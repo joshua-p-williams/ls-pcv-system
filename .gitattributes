@@ -1,0 +1,35 @@
+# Normalize text across Windows and other development environments.
+* text=auto
+*.md text eol=lf
+*.txt text eol=lf
+*.csv text eol=lf
+*.tsv text eol=lf
+*.py text eol=lf
+*.ps1 text eol=lf
+*.sh text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.toml text eol=lf
+*.ini text eol=lf
+*.cpp text eol=lf
+*.h text eol=lf
+.gitignore text eol=lf
+.gitattributes text eol=lf
+.editorconfig text eol=lf
+
+# CAD/export bytes must survive checkout unchanged, including ASCII exports.
+*.FCStd binary
+*.fcstd binary
+*.stl binary
+*.STL binary
+*.step binary
+*.STEP binary
+*.stp binary
+*.pdf binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.bin binary
+*.elf binary

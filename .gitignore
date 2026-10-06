@@ -1,0 +1,43 @@
+# Private intake and working files; publish only reviewed, sanitized copies.
+/_staging/
+
+# FreeCAD backups (keep native source and intentional exports)
+*.FCStd[0-9]*
+*.FCBak
+*.FCbak
+
+# Operating system and temporary files
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.tmp
+*.temp
+*~
+~$*
+
+# Local editor state
+.vs/
+.idea/
+*.user
+*.suo
+
+# Local secrets; keep example configuration trackable
+.env
+.env.*
+!.env.example
+
+# Python tooling, if introduced
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Build products, scoped so engineering artifacts remain trackable elsewhere
+/firmware/build/
+/firmware/out/
+/firmware/.pio/
+
+# Do not globally ignore FCStd, STL, STEP, CSV, LOG, BIN, or images.
