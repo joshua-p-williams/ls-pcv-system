@@ -2,6 +2,8 @@
 
 No measurements have been imported yet. Create `calibration/` and `logs/` with their first real records; do not populate them with invented example readings.
 
+See [A03: pressure measurement signal chain](../hardware/architecture/measurement-system.md) for the distinction between raw counts, calibrated pressure, display values and calibration/zero changes.
+
 ## Storage conventions
 
 - Keep original acquisition files unchanged, including native logger formats.
@@ -13,12 +15,12 @@ No measurements have been imported yet. Create `calibration/` and `logs/` with t
 
 ## Calibration metadata
 
-Record sensor ID/exact part, terminal mapping, date, pressure reference and sign convention, supply/reference voltage, ADC resolution, hardware/firmware revision, atmospheric zero procedure, applied pressures, raw readings, repetitions, fitted model/coefficient units, residuals, and validity range. Identify which calibration a vehicle run uses.
+Record sensor ID/exact part, terminal mapping, date, pressure reference and sign convention, supply/reference voltage, ADC module identity/resolution, gain, conversion rate/mode, channel/address, conditioning component values, hardware/firmware revision, atmospheric zero procedure, applied pressures, raw readings, repetitions, fitted model/coefficient units, residuals, and validity range. Identify which calibration a vehicle run uses.
 
 ## Vehicle-run metadata
 
 Record run ID, date/timezone, vehicle configuration, source commit when available, restrictor measured bore, hose routing, relief configuration and test record, pressure tap, calibration ID, sample rate, filtering/peak method, operating conditions, and observations. Include actual channels and their units; RPM/MAP/TPS are optional if not recorded.
 
-Suggested pressure channel names: `elapsed_ms`, `raw_adc_counts`, `sensor_voltage_v`, `pressure_inh2o`, `display_pressure_inh2o`. This is a naming guide, not a required logger schema or fabricated dataset. A voltage column requires a known conversion/reference; a computed voltage is not an independently measured value.
+Suggested pressure channel names: `elapsed_ms`, `raw_adc_counts`, `adc_input_voltage_v`, `sensor_voltage_v`, `pressure_inh2o`, `display_pressure_inh2o`. Distinguish the scaled voltage at the ADC input from a sensor voltage reconstructed using the divider ratio. This is a naming guide, not a required logger schema or fabricated dataset. A voltage column requires a known conversion/reference; a computed voltage is not an independently measured value.
 
 Follow the [test plan](../docs/testing/test-plan.md) and keep assumptions separate from evidence.

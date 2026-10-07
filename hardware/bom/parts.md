@@ -1,27 +1,36 @@
 # Parts and procurement
 
-Initial inventory transcribed from the [project context](../../docs/LS_PCV_SYSTEM_CONTEXT.md) on 2026-10-05. Status describes what that context reports; it is not a fresh inventory or vendor verification. Published specifications and compatibility claims still require verification on the actual parts. TBD means unknown, not zero or not required.
+This record tracks reported purchases, inventory status and unresolved selections. Prices are actual reported purchase amounts, not current quotes. Quantities distinguish individual items from packs where known; TBD means unknown, not zero or not required. Purchased does not imply received, installed, or tested. Published specifications and compatibility claims still require verification on the actual parts.
 
 | Category / part | Manufacturer / identifier | Source | Status | Qty | Cost | Specification / purpose / notes |
 | --- | --- | --- | --- | --- | --- | --- |
-| Catch can | EVIL ENERGY; product B087LZHFGC reported | Amazon, owner notes | Installed 2026-09-13 in earlier project | 1 | Not published | 300 ml baffled can; temporary vented mode, not completed manifold PCV; see [installation record](../../docs/installation/2026-09-13-catch-can.md) |
+| Catch can | EVIL ENERGY; product B087LZHFGC reported | Amazon, purchase reported | Installed 2026-09-13 in earlier project | 1 | USD 35.29 | Reported purchase price; 300 ml baffled can; temporary vented mode, not completed manifold PCV; see [installation record](../../docs/installation/2026-09-13-catch-can.md) |
 | PCV hose | Manufacturer / PN TBD | TBD | In use | TBD | TBD | 1/2 in SAE 30R7 reported; final routing/lengths TBD; restrictor targets 3/8 in ID hose |
 | Catch-can bracket | Custom aluminum angle / steel assembly | Fabricated | Installed 2026-09-13 in earlier project | 1 assembly | TBD | Two reported 3.5 mm pop rivets, M10 x 1.5 bolt/washer, Permatex Seal+Lock; inspection after heat cycles pending |
 | Restrictor filament | QIDI PAHT-CF | TBD | Used for initial print | TBD | TBD | Record spool and print settings with future builds |
-| 3 mm restrictor | Custom | Printed | Initial print complete | TBD | TBD | Baseline; measured bore and vehicle validation pending |
-| 2 mm restrictor | Custom | Printed | Preparing / printing | TBD | TBD | Comparison variant |
-| 4 mm restrictor | Custom | Printed | Preparing / printing | TBD | TBD | Comparison variant |
-| Relief/check valve | EVIL ENERGY; exact SKU TBD | TBD | Ordered | TBD | TBD | Published 0.5 PSI opening; desired approximately 0.1 PSI requires modification/testing |
+| 3 mm restrictor | Custom | Printed | Initial print reported; CAD and QIDI project imported | TBD | TBD | Baseline; measured bore and vehicle validation pending; see [actual CAD dimensions](../../cad/pcv-restrictor/README.md) |
+| 2 mm restrictor | Custom | Printed | FreeCAD mesh imported; physical print status unconfirmed | TBD | TBD | Comparison variant; no slicer settings supplied |
+| 4 mm restrictor | Custom | Printed | QIDI project imported; physical print status unconfirmed | TBD | TBD | Comparison variant; saved profile does not establish print completion |
+| Relief/check valve | EVIL ENERGY; Amazon ASIN B0FQJ71WZW | [Amazon listing](https://www.amazon.com/dp/B0FQJ71WZW), purchase reported | Purchased; receipt/installation unconfirmed | 3 valves (one 3-piece pack) | USD 18.04 total | Listed specifications: black aluminum one-way fuel check valves, listed as 1/2 in (12 mm), for gasoline, diesel and coolant, with universal hose clamps. Earlier context reports 0.5 PSI opening; actual cracking pressure remains unverified. Desired approximately 0.1 PSI requires modification/testing. |
 | Replacement relief spring | TBD | TBD | Under consideration | TBD | TBD | Measure valve/spring and bench-test before selecting |
-| FTP pressure sensor | Aftermarket GM 16238399-style; 16196060 / 12219388 cross-references | Amazon candidate B0CNZ2Q1F2 | Candidate selected | TBD | TBD | 5 V, three-wire analog concept; pinout and actual transfer function unverified |
-| Sensor pigtail | HiSport candidate; PT2782 / GM 13585316 family; PT2646 referenced | TBD | Identified | TBD | TBD | Verify terminal positions and physical fit; wire colors are not authoritative |
-| Power converter | SSLHONG B09NVG35CX | Amazon | Ordered | TBD | TBD | Listed 8-60 V input, 5 V / 3 A USB-C output; not established as OEM load-dump qualified |
-| MCU | TBD; Nano-class board is one candidate | TBD | Undecided | TBD | TBD | Platform and ADC/reference compatibility must be selected |
-| Display | TBD OLED | TBD | Undecided | TBD | TBD | Size, interface, and voltage compatibility TBD |
+| FTP pressure sensor | Aftermarket; listed cross-references 16196060 / 16238399 / 12219388; ASIN B0CNZ2Q1F2 | [Amazon listing](https://www.amazon.com/dp/B0CNZ2Q1F2), purchase reported | Purchased; receipt/installation unconfirmed | TBD | USD 7.89 reported purchase price | Quantity not specified. 5 V, three-wire analog design concept; actual electrical requirements, pinout, and transfer function unverified |
+| Sensor pigtail | HiSport 13585316; ASIN B09NVW46W2 | [Amazon listing](https://www.amazon.com/dp/B09NVW46W2), purchase reported | Purchased; receipt/installation unconfirmed | TBD | USD 7.99 reported purchase price | Quantity not specified. Verify terminal positions and physical fit; wire colors are not authoritative |
+| Power converter | SSLHONG B09NVG35CX | [Amazon listing](https://www.amazon.com/dp/B09NVG35CX), purchase reported | Purchased; receipt/operation unconfirmed | TBD | USD 13.99 reported purchase price | Listed 8-60 V input, 5 V / 3 A USB-C output, IP67; quantity not specified; not established as OEM load-dump qualified; see [power reference](../components/gauge-power-supply/README.md) |
+| Bench MCU board | ESP32-S3 N16R8; ASIN B0D93DLB6Q | [Amazon listing](https://www.amazon.com/dp/B0D93DLB6Q), purchase reported | Purchased; receipt/operation unconfirmed | TBD | USD 7.99 reported purchase price | Listed 16 MB flash / 8 MB PSRAM; bench development; exact board revision/pin assignments pending |
+| Gauge MCU boards | Seeed Studio XIAO ESP32-S3; ASIN B0DJ6NQFKX | [Amazon listing](https://www.amazon.com/dp/B0DJ6NQFKX), purchase reported | Purchased; receipt/operation unconfirmed | 3 boards (one pack) | USD 21.59 total | Listed 8 MB flash / 8 MB PSRAM; intended finished-gauge controller, bench counterpart, and spare |
+| Displays | Hosyond 1.28-inch GC9A01 round TFT; ASIN B0DYP4J9XP | [Amazon listing](https://www.amazon.com/dp/B0DYP4J9XP), purchase reported | Purchased; receipt/operation unconfirmed | 3 displays (one pack) | USD 14.39 total | Listed 240 x 240, 4-wire SPI; initial prototype display; final size/layout and voltage compatibility pending |
+| External ADC modules | ADS1115 breakout modules; ASIN B0BXDLZLZS | [Amazon listing](https://www.amazon.com/dp/B0BXDLZLZS), purchase reported | Purchased; receipt/chip identity/operation unconfirmed | 3 modules (one pack) | USD 5.98 total | Bench, gauge, and spare allocation planned; see [ADC reference](../components/adc/README.md); gain, rate, address, and wiring pending |
+| ADC input conditioning / protection | TBD | TBD | Preliminary design | TBD | TBD | 12 kΩ / 20 kΩ divider and approximately 0.1 µF input capacitor proposed; final values, tolerances, protection, and verification pending |
 | Buttons | TBD | TBD | Planned | TBD | TBD | Zero and peak reset; count/behavior TBD |
 | Gauge enclosure / fasteners | Custom; material TBD | TBD | Planned | TBD | TBD | ASA is a candidate; mounting and heat exposure TBD |
-| Input fuse / holder | TBD | TBD | Planned | TBD | TBD | Rating and location to be documented in electrical design |
+| Input fuse / holder | TBD | TBD | Planned | TBD | TBD | 0.5-1 A proposed starting range; final rating, characteristics, location, and wiring pending load/startup measurements and electrical design |
 | TVS / input filter | TBD | TBD | Under consideration | TBD | TBD | Select alongside power protection design |
 | Wiring / connectors / USB-C breakout | TBD | TBD | Planned | TBD | TBD | Gauge installation and strain relief |
+
+The [check-valve reference](../components/check-valve-relief-valve/README.md) includes the supplied vendor specifications, exploded view, and compatibility illustrations. Its specification image states the published 0.5 PSI opening pressure; actual valve behavior remains unmeasured.
+
+The [FTP sensor and pigtail reference](../components/fuel-tank-pressure-sensor/README.md) includes reported purchase identifiers/prices, supplied product images, and advertised dimensions. Quantities and receipt status remain unconfirmed. Images do not establish a pinout or sensor calibration.
+
+The [gauge electronics reference](../components/gauge-electronics/README.md) records the purchased ESP32-S3 boards and GC9A01 displays, vendor images, planned external ADC, and firmware direction. Listed hardware specifications have not been independently verified.
 
 For updates, record exact purchased identifiers, source link, quantity, actual cost/currency, and receipt/installation date when known. Keep candidate alternatives distinct from installed parts. Store verified wiring in `hardware/schematics/` when available; link manufacturer documentation with its revision/access date rather than inventing specifications.

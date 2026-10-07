@@ -1,6 +1,6 @@
 # LS PCV System — Project Brain Dump / Codex Context
 
-> Purpose: This file is intended to bootstrap Codex or another coding/engineering assistant with the current state of the `ls-pcv-system` project. It captures the reasoning, dimensions, hardware choices, open questions, repository structure, and near-term implementation plan so future work can continue without re-deriving prior decisions.
+> Historical context: this original brain dump preserves early reasoning, targets, and proposals. It is not the current configuration or a wiring/build instruction. Start with the [project README](../README.md), [current status](status.md), and [BOM](../hardware/bom/parts.md). The [restrictor README](../cad/pcv-restrictor/README.md) records actual imported geometry; the [gauge electronics](../hardware/components/gauge-electronics/README.md) and [ADS1115](../hardware/components/adc/README.md) documents supersede the Nano/OLED and internal-ADC proposals. The sections below preserve historical reasoning, with corrections where noted. Restrictor dimensions and taper notes reflect the adopted CAD design.
 
 ---
 
@@ -201,28 +201,29 @@ Therefore the 2 / 3 / 4 mm parts represent large tuning steps.
 
 ---
 
-# 7. Final Restrictor Dimensions
+# 7. Adopted Restrictor Dimensions
 
-Current agreed baseline geometry:
+The supplied FreeCAD geometry defines the current restrictor design. The dimensions below and sections 9-11 have been reconciled to that model, superseding the earlier written targets. See the [restrictor design and historical comparison](../cad/pcv-restrictor/README.md). These are nominal CAD dimensions, not measurements of printed parts.
 
-| Feature | Target |
+| Feature | Adopted CAD dimension |
 |---|---:|
-| Metering/restrictor ID | 3.0 mm |
+| Metering/restrictor ID | 3.0 mm baseline; 2.0 / 4.0 mm comparison meshes |
 | Straight restrictor length | 3.0 mm |
+| Overall length | 67.0 mm |
 | Maximum center body OD | 14.0 mm |
-| Main internal passage ID | 8.0 mm |
-| Converging taper 8 -> 3 mm | 6–8 mm long |
-| Expanding taper 3 -> 8 mm | 15 mm long |
-| Internal transition 8 -> 6 mm | 4–5 mm long |
-| Barb internal bore | 6.0 mm |
+| Main and barb straight passage ID | 6.4 mm |
+| Converging taper 6.4 -> 3 mm | 8.0 mm long |
+| Expanding taper 3 -> 6.4 mm | 8.0 mm long |
+| Separate internal passage transition | None |
 | Barb nominal/root OD | 9.8 mm |
-| Barb retention crest OD | ~10.5 mm |
-| Barb tip / lead-in OD | ~8.8–9.0 mm |
-| Barb tip taper length | 3–4 mm |
-| Total hose engagement | ~16–18 mm |
-| Target hose engagement | ~17 mm |
-| Clamp land | ~8–10 mm |
-| External body taper 14 -> 9.8 mm | ~7–8 mm |
+| Barb retention crest OD | 10.9 mm |
+| Barb tip / lead-in OD | Approximately 8.716 mm |
+| Barb tip taper length | 3.0 mm |
+| Straight root/clamp section | 15.0 mm each end |
+| Tip-to-body-taper axial span | 19.0 mm each end; not measured hose engagement |
+| External body taper 14 -> 9.8 mm | 3.0 mm each end |
+
+Actual hose engagement, retention, finished bores, and performance require physical verification.
 
 ---
 
@@ -242,46 +243,16 @@ For dimensional accuracy, the 3 mm throat may be printed slightly undersized and
 
 ---
 
-# 9. 3 -> 8 mm Taper Reasoning
+# 9. Adopted Internal Tapers
 
-The expanding side was analyzed as a conical diffuser.
+The adopted CAD has symmetric internal tapers. For the 3 mm baseline:
 
-For a 3 mm to 8 mm diameter expansion, radius increases by:
+- upstream contraction: 6.4 -> 3.0 mm over 8.0 mm
+- downstream expansion: 3.0 -> 6.4 mm over 8.0 mm
 
-`(8 - 3) / 2 = 2.5 mm`
+There is no separate 8-to-6 mm internal transition. The earlier proposal for a 15 mm exit diffuser was not implemented and is superseded by the adopted CAD design. The [component comparison](../cad/pcv-restrictor/README.md) preserves the earlier dimensional targets.
 
-If taper length is `L`:
-
-`half-angle = atan(2.5 / L)`
-
-Examples:
-
-| Taper length | Half-angle | Included angle |
-|---:|---:|---:|
-| 8 mm | ~17.4° | ~34.7° |
-| 10 mm | ~14.0° | ~28.1° |
-| 12 mm | ~11.8° | ~23.5° |
-| 15 mm | ~9.5° | ~18.9° |
-| 20 mm | ~7.1° | ~14.3° |
-
-The original 8 mm taper was judged unnecessarily abrupt.
-
-Final choice:
-
-**3 mm -> 8 mm over approximately 15 mm**
-
-This gives an included angle of approximately 19°.
-
-This is not intended to be a perfect pressure-recovery diffuser. The 3 mm throat intentionally dominates the system's pressure drop. The longer taper simply avoids an unnecessarily abrupt expansion.
-
-The upstream contraction does not need to be as long because converging flow tolerates aggressive geometry much better than a diffuser.
-
-Thus:
-
-- upstream 8 -> 3 mm contraction: ~6–8 mm
-- downstream 3 -> 8 mm expansion: ~15 mm
-
-The two sides are intentionally not required to be symmetric internally.
+The short throat remains the intended metering section. Adopting this geometry does not establish pressure recovery, flow rate, or suitability; compare the variants using measured crankcase pressure.
 
 ---
 
@@ -298,9 +269,10 @@ An existing fitting measured approximately 9.8 mm OD and was used as a physical 
 Barb design:
 
 - nominal/root OD: ~9.8 mm
-- retention crest: ~10.5 mm
-- hose-start tip: ~8.8–9.0 mm
-- total engagement: ~17 mm
+- retention crest: 10.9 mm
+- hose-start tip: approximately 8.716 mm
+- straight root/clamp section: 15.0 mm each end
+- tip-to-body-taper axial span: 19.0 mm each end; actual hose engagement remains unmeasured
 
 The hose should push over the smaller tapered tip, stretch over the retention crest, and settle around the 9.8 mm body.
 
@@ -312,29 +284,15 @@ Use small chamfers/radii where possible so the barb does not shave or cut the in
 
 ---
 
-# 11. Barb Wall Thickness Decision
+# 11. Adopted Barb Bore and Wall Thickness
 
-An 8 mm bore through a 9.8 mm OD barb would provide only:
+The adopted main and barb passage is **6.4 mm ID**, with a **9.8 mm root OD**. Nominal radial wall thickness at the straight root is:
 
-`(9.8 - 8.0) / 2 = 0.9 mm`
+`(9.8 - 6.4) / 2 = 1.7 mm`
 
-radial wall thickness.
+The passage connects directly to the 8 mm-long internal throat tapers; there is no separate main-to-barb bore transition. The earlier 6 mm barb bore and 1.9 mm wall calculation are superseded.
 
-That was judged too thin for a small FDM-printed PA-CF hose fitting.
-
-Final barb bore:
-
-**6.0 mm**
-
-Wall thickness becomes:
-
-`(9.8 - 6.0) / 2 = 1.9 mm`
-
-This is much more comfortable structurally.
-
-The smaller 6 mm passage should not meaningfully affect total PCV airflow because the 3 mm metering orifice remains the dominant restriction.
-
-The 6 mm barb bore transitions to the 8 mm main passage over roughly 4–5 mm.
+This is a geometric calculation, not a strength or flow validation. Printed dimensions, material behavior, hose retention, and sealing require physical testing.
 
 ---
 
@@ -541,6 +499,8 @@ Signals required:
 ---
 
 # 18. Dedicated Gauge — High-Level Concept
+
+Current hardware: the current selection is an ESP32-S3 N16R8 bench board, XIAO ESP32-S3 finished-gauge target, initial GC9A01 round SPI TFT, and planned external ADC. PlatformIO with the Arduino framework is the planned toolchain. See [gauge electronics](../hardware/components/gauge-electronics/README.md). Nano/OLED candidates, conceptual I2C display wiring, and statements that the initial MCU/display are undecided later in this historical file are superseded; they are not current wiring instructions.
 
 The crankcase pressure gauge will be independent of the Holley Terminator X.
 
@@ -1011,8 +971,8 @@ For important design decisions, document:
 Examples:
 
 - Why 3 mm baseline?
-- Why 6 mm barb bore instead of 8 mm?
-- Why 15 mm diffuser?
+- What wall thickness does the adopted 6.4 mm passage provide?
+- What measurements support retaining or changing the adopted symmetric tapers?
 - Why GM FTP sensor instead of a conventional PSI sensor?
 - Why low cracking pressure relief?
 - Why separate gauge from Holley?
@@ -1599,14 +1559,18 @@ Separate low-pressure atmospheric relief
 Restrictor:
 Baseline ID:             3.0 mm
 Straight throat length:  3.0 mm
-Main passage ID:         8.0 mm
-Barb bore ID:            6.0 mm
+Main passage ID:         6.4 mm
+Barb bore ID:            6.4 mm
 Body OD:                 14.0 mm
 Barb OD:                 9.8 mm
-Barb crest OD:           ~10.5 mm
-Tip OD:                  ~8.8–9.0 mm
-Expansion 3 -> 8:        ~15 mm
-Contraction 8 -> 3:      ~6–8 mm
+Barb crest OD:           10.9 mm
+Tip OD:                  ~8.716 mm
+Expansion 3 -> 6.4:      8.0 mm
+Contraction 6.4 -> 3:    8.0 mm
+Overall length:          67.0 mm
+Straight root length:    15.0 mm each end
+External body taper:     3.0 mm each end
+Design status:           Adopted prototype; physical validation pending
 Material:                QIDI PAHT-CF
 
 Restrictor variants:
@@ -1662,4 +1626,3 @@ Before making assumptions, read:
 If real measured data conflicts with an early design assumption in this file, measured data wins.
 
 When that happens, update the formal project docs rather than silently changing behavior.
-

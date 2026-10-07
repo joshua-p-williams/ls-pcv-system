@@ -1,6 +1,10 @@
 # PCV system test plan
 
-Status: proposed procedure derived from the [historical context](../LS_PCV_SYSTEM_CONTEXT.md). No test results or validated operating limits are recorded yet.
+This proposed test procedure covers the current component selections. No physical test results or validated operating limits are recorded yet. Earlier rationale is preserved in the [historical context](../LS_PCV_SYSTEM_CONTEXT.md).
+
+Use [A04: PCV system overview](../../hardware/architecture/pcv-system.md), [A01: overall gauge architecture](../../hardware/architecture/gauge-system.md) and [A02: power architecture](../../hardware/architecture/power-system.md) as conceptual configuration references. Record the actual test setup and any deviations; these drafts do not establish installed or verified connections.
+
+Use [A03: pressure measurement signal chain](../../hardware/architecture/measurement-system.md) when defining calibration, stale/fault, zero/reset and peak-response checks. Its behavior is proposed, not a record of completed tests.
 
 ## Objective and conventions
 
@@ -14,6 +18,8 @@ Record configuration and evidence using the [data conventions](../../data/README
 - Identify actual sensor, connector terminals, power supply, ADC/reference, and firmware revision when present.
 - Measure crankcase/catch-can pressure upstream of the restrictor; protect the sensor from direct liquid oil exposure.
 - Inspect hoses, retention, mounting, wiring, and catch-can condition before testing.
+
+For gauge bench work, start with the documented [power integration checks](../../hardware/components/gauge-power-supply/README.md), [P04 sensor terminal/fit checks](../../hardware/pinouts/ftp-sensor.md), and [ADS1115 setup](../../hardware/components/adc/README.md). Record the actual conditioning components, gain, conversion rate, channel/address, and supply arrangement with the calibration. The proposed divider, capacitor, and fuse values are not validated test-fixture specifications.
 
 ## 2. Characterize the sensor on the bench
 

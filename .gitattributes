@@ -10,6 +10,9 @@
 *.json text eol=lf
 *.yml text eol=lf
 *.yaml text eol=lf
+*.svg text eol=lf
+*.drawio text eol=lf
+*.html text eol=lf
 *.toml text eol=lf
 *.ini text eol=lf
 *.cpp text eol=lf
@@ -21,6 +24,8 @@
 # CAD/export bytes must survive checkout unchanged, including ASCII exports.
 *.FCStd binary
 *.fcstd binary
+*.3mf binary
+*.3MF binary
 *.stl binary
 *.STL binary
 *.step binary
