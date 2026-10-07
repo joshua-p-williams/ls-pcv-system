@@ -1,6 +1,6 @@
 # ESP32-S3 N16R8 bench-board interface
 
-P01 documents the bench controller used by the [gauge architecture](../architecture/gauge-system.md). The header map below is transcribed from the supplied product image. Electrical functions are qualified against Espressif references where applicable; the received board, PCB revision and wiring have not been verified. Project GPIO assignments remain open.
+P01 documents the bench controller used by the [gauge architecture](../architecture/gauge-system.md). The header map below is transcribed from the supplied product image. Electrical functions are qualified against Espressif references where applicable; the received board, PCB revision and wiring have not been verified. The purchased board has not yet arrived; all supplied images are online references. Project GPIO assignments remain open.
 
 ## Board identity and evidence
 
@@ -13,6 +13,16 @@ P01 documents the bench controller used by the [gauge architecture](../architect
 | Other visible features | Two USB-C receptacles, RST/BOOT buttons and RGB LED | USB roles, bridge chip, LED GPIO, regulator and power-path circuit |
 
 Module specifications do not identify the carrier PCB or establish that it uses Espressif's DevKitC-1 circuit. The [Espressif module datasheet](https://www.espressif.com/sites/default/files/documentation/esp32-s3-wroom-1_wroom-1u_datasheet_en.pdf) defines the N16R8 memory configuration; it does not define this carrier's connectors or regulator capacity.
+
+## Additional board-family references
+
+The [bench-board evidence record](../components/gauge-electronics/bench-board-reference.md) provides additional front/back product images and annotated port/header references. They corroborate the 44-position map and suggest the YD-style family; the rear reference reads `YD-ESP32-23`, `2022-V1.3`. These are pictured markings, not a verified received revision (Q04).
+
+In the front-view orientation below, the annotations identify left USB-C as native USB/OTG and right USB-C as CH343P USB-to-UART. Port operation and actual routing remain to be checked under Q05. Serial-console access through a UART bridge and native USB/JTAG debugging are distinct functions.
+
+The reference record flags IN-OUT and USB-OTG jumper behavior for verification: USB power may not reach the header's 5Vin with IN-OUT open. Do not use that header as a verified 5 V output or change jumpers from these notes alone. Q03 selects one USB source at a time; Q05/Q12 must establish the complete gauge's supply paths and capacity.
+
+The [local module datasheet v1.8](../datasheets/esp32-s3-wroom-1_wroom-1u-datasheet-v1.8.pdf) preserves the manufacturer reference for N16R8 memory and module restrictions.
 
 ## Header orientation and label map
 
@@ -75,7 +85,7 @@ Espressif's [GPIO reference](https://docs.espressif.com/projects/esp-idf/en/v5.3
 | GPIO19, 20 / right rows 20, 19 | Native USB signals. | Reserve for USB bring-up/debugging. |
 | GPIO43, 44 / TX, RX | UART0 comparison mapping; possible bridge connection. | Reserve until programming/console use is resolved. |
 | GPIO39-42 / right rows 9-6 | JTAG functions in the DevKitC comparison reference. | Preserve if external JTAG is needed; otherwise evaluate during pin assignment. |
-| RGB LED connection | A visible onboard LED does not identify its GPIO. Board variants differ. | Confirm its connection before allocating any potentially shared GPIO. Do not copy another board's LED pin definition. |
+| RGB LED connection | Board-family research identifies GPIO48 as a candidate; the received connection is unverified. | Reserve GPIO48 provisionally; confirm the actual circuit and RGB jumper before reuse. |
 
 The memory restriction follows the [WROOM-1 module specification](https://www.espressif.com/sites/default/files/documentation/esp32-s3-wroom-1_wroom-1u_datasheet_en.pdf) and the chip GPIO reference. GPIO33-34 are not shown on these headers; do not infer missing pins from a generic ESP32-S3 pinout. No table here labels unallocated pins as tested or universally safe.
 
@@ -85,7 +95,7 @@ The memory restriction follows the [WROOM-1 module specification](https://www.es
 | --- | --- | --- | --- |
 | ADS1115 | SDA, SCL | Bidirectional data; controller-generated clock | GPIOs TBD; planned 3.3 V bus, verify pull-ups |
 | GC9A01 | Clock, MOSI/data, CS, DC, reset | Outputs | GPIOs TBD; module logic/supply checks pending |
-| Controls | Deliberate zero and peak reset | Inputs | Button count and GPIOs TBD |
+| Controls | Deliberate zero and peak reset | Inputs | One multifunction button selected; GPIO TBD |
 | ADC ready notification | ALERT/RDY if selected | Input | Optional; polling versus ready notification unresolved |
 | FTP pressure signal | Analog to conditioning and ADS1115 | No direct MCU analog connection | See [measurement chain](../architecture/measurement-system.md) |
 

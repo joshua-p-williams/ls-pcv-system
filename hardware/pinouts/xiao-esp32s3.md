@@ -38,12 +38,12 @@ The bus labels identify the manufacturer's conventional assignments. Firmware an
 | UART transmit | D6 / GPIO43 | Output | Keep console/debug requirements explicit before reuse |
 | UART receive | D7 / GPIO44 | Input | Keep console/debug requirements explicit before reuse |
 | Display CS, DC, reset | TBD | Outputs | Not assigned by the SPI clock/data labels |
-| Zero / peak-reset controls | TBD | Inputs | Button count and pin selection pending |
+| Zero / peak-reset controls | TBD | Inputs | One multifunction button selected; GPIO pending |
 | ADS1115 ready indication | TBD, if used | Input | Optional; acquisition method unresolved |
 
 GPIO interfaces use the project's 3.3 V logic domain. The FTP analog signal goes through conditioning and the ADS1115, not directly to a XIAO ADC pin. See the [measurement chain](../architecture/measurement-system.md).
 
-A preliminary pin budget is useful before the harness: two I2C lines plus five display lines (clock, data, CS, DC, reset) consume seven of the eleven edge GPIOs. Two separate buttons would bring that to nine. Keeping D2 unused and retaining both UART pins would leave only eight. This calculation assumes dedicated signals; control count, reset strategy, optional ADC-ready and debug choices need to be resolved together. It does not select pins or require extra hardware.
+A preliminary pin budget is useful before the harness: two I2C lines plus five display lines (clock, data, CS, DC, reset) consume seven of the eleven edge GPIOs. The selected single multifunction button brings that to eight. Keeping D2 unused and retaining both UART pins leaves exactly eight edge GPIOs, so this allocation has no spare for an optional ADC-ready or separate dimming signal. This calculation assumes dedicated signals; reset strategy, optional ADC-ready and debug choices still need to be resolved together. It does not select pins or require extra hardware.
 
 ## Power interfaces
 

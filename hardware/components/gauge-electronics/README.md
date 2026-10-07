@@ -8,9 +8,11 @@ See [P01: bench-board interface](../../pinouts/esp32-s3-devkit.md) for the pictu
 
 See [P02: XIAO interface](../../pinouts/xiao-esp32s3.md) for edge-pin aliases, bus candidates and power-reference limits for the finished-gauge board.
 
+See the [bench-board evidence record](bench-board-reference.md) for additional YD-style product views, candidate USB roles, jumper questions and the preserved Espressif module datasheet. These references do not verify the received board.
+
 ## Purchased hardware
 
-Prices and selections below are reported. Specifications are from the supplied listing descriptions, not measurements or independently verified datasheets. Receipt, board revision, assembly, and operation have not been confirmed.
+Prices and selections below are reported. Specifications are from the supplied listing descriptions, not measurements or independently verified datasheets. The N16R8 development board has not yet arrived. Receipt of the XIAO boards and displays remains unconfirmed; actual board revisions, assembly and operation remain unverified.
 
 | Role | Item / source | Quantity | Reported price | Listed configuration |
 | --- | --- | --- | --- | --- |
@@ -18,7 +20,7 @@ Prices and selections below are reported. Specifications are from the supplied l
 | Finished-gauge controller | [Seeed Studio XIAO ESP32-S3, B0DJ6NQFKX](https://www.amazon.com/dp/B0DJ6NQFKX) | 3 boards, one pack | USD 21.59 total | 8 MB flash, 8 MB PSRAM, dual-core ESP32-S3, USB, Wi-Fi/BLE, battery support |
 | Initial display | [Hosyond GC9A01 TFT, B0DYP4J9XP](https://www.amazon.com/dp/B0DYP4J9XP) | 3 displays, one pack | USD 14.39 total | 1.28-inch round display, 240 x 240 pixels, 4-wire SPI |
 
-The N16R8 board is intended for breadboarding, sensor/ADC/display testing, controls, probing, and USB debugging. The three XIAO boards are intended for the installed gauge, a bench controller matching the gauge hardware, and a spare/future gauge. These are planned roles, not completed deployments.
+The N16R8 board is selected for W01 bench wiring, sensor/ADC/display testing, controls, probing, and USB debugging. Both it and the finished-gauge XIAO require complete wiring plans and phased assembly/verification; see the [controller configurations](../../wiring/README.md#controller-configurations). The three XIAO boards are intended for the installed gauge, a bench controller matching the gauge hardware, and a spare/future gauge. These are planned roles, not completed deployments.
 
 ![Vendor development board image](../../../media/reference/gauge-electronics/esp32-s3-development-board.jpg)
 
@@ -52,7 +54,7 @@ Verify the actual board labels, supply and logic levels, reset behavior, and mod
 
 ## Planned measurement and power arrangement
 
-The proposed first prototype uses the [SSLHONG vehicle-to-5 V converter](../../components/gauge-power-supply/README.md), purchased for USD 13.99, the FTP sensor, ESP32-S3 controller, an **[ADS1115 external ADC](../../components/adc/README.md)**, one SPI display, and button(s). Three ADC modules were purchased for USD 5.98 total. I2C and a 3.3 V ADC supply are planned; module identity, gain/rate, address, logic levels, and final conditioning circuit remain to be verified or selected.
+The proposed first prototype uses the [SSLHONG vehicle-to-5 V converter](../../components/gauge-power-supply/README.md), purchased for USD 13.99, the FTP sensor, ESP32-S3 controller, an **[ADS1115 external ADC](../../components/adc/README.md)**, one SPI display, and one multifunction button. See the [BetterButton integration direction](../../../firmware/README.md#multifunction-button); initial gestures are selected there; confirmation-prompt details and switch/GPIO selection remain open. Three ADC modules were purchased for USD 5.98 total. I2C and a 3.3 V ADC supply are planned; module identity, gain/rate, address, logic levels, and final conditioning circuit remain to be verified or selected.
 
 Resolve the actual sensor output range, ADC input/reference limits, I2C logic levels, board power inputs, display supply, and grounding together. The 5 V system supply does not imply that every signal or peripheral can connect directly to 5 V. This import does not establish a wiring schematic.
 

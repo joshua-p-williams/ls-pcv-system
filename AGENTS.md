@@ -60,12 +60,14 @@
 
 - Follow `docs/diagramming-and-wiring-standard.md` and maintain `hardware/DIAGRAMS.md`. Consult the user on which diagrams to create; proposed inventory entries are not implementation authorization.
 - Use Markdown/Mermaid for concepts, WireViz YAML for exact wiring, editable Draw.io SVG for spatial layouts when useful, and KiCad when circuit complexity warrants it. Keep bench and vehicle harnesses separate.
+- W01 covers the complete intended bench wiring, with phased assembly/testing documented against that design. Derive sectional assembly views from the main harness source, keep identifiers consistent, and mark unresolved details inline with open-question IDs. Do not invent connections to complete a draft.
+- For W01 construction, allow soldered leads or secure removable connectors at assembler discretion. Specify electrical connectivity and constraints, require support/strain relief and record as-built connector orientation; do not repeatedly seek decisions on routine mechanical choices or exact stock parts.
 - Keep document progress separate from electrical evidence. Do not infer pin assignments from proposal examples or wire colors. Verify connector orientation and actual module identity. Update generated outputs from sources, record tool versions/commands, and visually inspect renders.
 
 ## Outstanding questions
 
 - Maintain `docs/open-questions.md` for actionable unresolved checks and design decisions. Keep stable question IDs, evidence needed and configuration-specific dependencies; do not turn proposals into selected scope.
-- Record answers and evidence in the relevant component/interface document, then update the register and affected status/harness references. A design decision does not close a separate physical-verification question. Preserve resolved entries with a brief answer or link; use Git history instead of routine update dates.
+- Record answers and evidence in the relevant component/interface document, then update the register and affected status/harness references. A design decision does not close a separate physical-verification question. Strike through resolved question text and preserve entries with a brief answer or link; use Git history instead of routine update dates.
 
 ## Validation and handoff
 

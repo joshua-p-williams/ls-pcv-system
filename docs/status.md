@@ -11,14 +11,16 @@ This page summarizes the design, available hardware records and remaining work. 
 - Three EVIL ENERGY check valves purchased for USD 18.04 total; [vendor reference images](../hardware/components/check-valve-relief-valve/README.md) imported. Receipt, modification, and measured relief behavior remain unconfirmed.
 - SSLHONG B09NVG35CX converter purchased for USD 13.99; [power specifications and mounting references](../hardware/components/gauge-power-supply/README.md) imported. Quantity, receipt, output performance, and protection design remain unconfirmed.
 - FTP sensor B0CNZ2Q1F2 purchased for a reported USD 7.89; HiSport 13585316 pigtail B09NVW46W2 purchased for a reported USD 7.99. [Purchase details and reference images](../hardware/components/fuel-tank-pressure-sensor/README.md) imported. Quantities and receipt status remain unconfirmed; pinout, fit, and calibration remain pending.
-- ESP32-S3 N16R8 development board purchased for USD 7.99; three XIAO ESP32-S3 boards for USD 21.59 total; three Hosyond GC9A01 TFTs for USD 14.39 total. See [gauge electronics](../hardware/components/gauge-electronics/README.md). Receipt and operation remain unconfirmed.
+- ESP32-S3 N16R8 development board purchased for USD 7.99; three XIAO ESP32-S3 boards for USD 21.59 total; three Hosyond GC9A01 TFTs for USD 14.39 total. See [gauge electronics](../hardware/components/gauge-electronics/README.md). The N16R8 board has not yet arrived; XIAO/display receipt remains unconfirmed. Operation remains unverified.
 - Three ADS1115 modules purchased for USD 5.98 total; [ADC reference and integration notes](../hardware/components/adc/README.md) imported. Chip identity, electrical setup, and operation remain unconfirmed.
 - Planned firmware environment: PlatformIO, Arduino framework for ESP32, C/C++. ADC conditioning/configuration, pin assignments, firmware, calibration, final display layout, and enclosure remain pending.
 - Five sanitized historical installation photographs and a dated installation record have been imported. No schematics or measured logs have been imported yet.
 
+Additional [bench-board references](../hardware/components/gauge-electronics/bench-board-reference.md) and the Espressif module datasheet are imported. Q04/Q05 are Investigating: product imagery supports a YD-style candidate but does not verify the received board; USB-to-5Vin availability and jumper behavior need checking.
+
 ## Next work
 
-Use the [open-questions register](open-questions.md) for actionable follow-up and W01 dependencies. Start with Q01-Q03 to choose bench scope, controller and power mode; component pages retain final answers and evidence.
+Use the [open-questions register](open-questions.md) for actionable follow-up and W01 dependencies. Q01 selects a complete bench wiring design with phased assembly/testing; Q02 confirms the N16R8 for W01 and XIAO for the finished gauge. Q03 selects one USB source at a time for computer-powered debugging or standalone operation, accepting restart when switching. Q04 physical identification and Q05/Q12 board measurements await delivery. Continue design decisions in parallel, then verify the actual board after receipt. Component pages retain final answers and evidence.
 
 - [x] Document [P06: SSLHONG converter interface](../hardware/pinouts/buck-converter.md) from the supplied vendor references.
 - [ ] Verify converter polarity, output/return behavior and the intended USB-C connection; establish load margin, protection and USB programming power handling before harness design.
@@ -63,6 +65,10 @@ Use the [open-questions register](open-questions.md) for actionable follow-up an
 - [ ] Measure relief opening/reseating behavior and reverse leakage.
 - [ ] Implement and bench-validate pressure reading, zero, and min/max capture.
 - [ ] Record repeatable restrictor comparisons using the test plan.
+
+One multifunction button is selected for both controller configurations, with [BetterButton](../firmware/README.md#multifunction-button) as the planned input library. Q15 and Q24 are resolved: click clears min/max, double-click is unassigned and long press opens atmospheric-zero confirmation. Q25 is resolved: zero confirmation defaults to Cancel, click toggles Cancel/Zero, double-click selects and inactivity cancels unchanged, with an atmospheric-equalization reminder. Q23 is resolved: fixed brightness initially, with provision for software configuration and persistent user settings later; Q26 tracks menu and storage design. Display dimming capability remains unverified under Q06. Library integration and physical button/GPIO selection remain pending.
+
+W01 requires a [sturdy movable assembly](../hardware/wiring/README.md#bench-construction-and-retention), using a solderable protoboard carrier, soldered female header sockets and removable male-header modules, with mechanical support and strain relief. Protoboard and male/female header strips are on hand; nominal 2.54 mm pitch is accepted for planning. Q16 is resolved: soldered or secure removable connections may be mixed at assembler discretion. W01 retains responsibility for electrical connectivity and wire requirements; actual terminations and layout belong in the build record.
 
 ## Open decisions
 

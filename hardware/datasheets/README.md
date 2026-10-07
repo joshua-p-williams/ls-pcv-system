@@ -15,3 +15,15 @@ eefff4d412ce2dcd7e659f47238edc9b2fa02e5971f2625af730502033701834
 ```
 
 See the [ADC hardware reference](../components/adc/README.md) for how the device is intended to be used. The datasheet does not authenticate the purchased third-party breakout modules.
+
+## ESP32-S3-WROOM-1 and WROOM-1U
+
+[Local module datasheet](esp32-s3-wroom-1_wroom-1u-datasheet-v1.8.pdf): Espressif Systems, version 1.8, revision history dated 2026-03-02, 53 pages. Imported 2026-10-06 from `bench-board-verification`. [Official source](https://www.espressif.com/sites/default/files/documentation/esp32-s3-wroom-1_wroom-1u_datasheet_en.pdf).
+
+Preserved unchanged, including publisher notices. Reviewed metadata, attachment absence and link-only annotations; no personal annotations or local-file links were found. Rendered the cover and checked module variants and revision history. This reference does not establish the third-party carrier's schematic or authenticate the received module. See the [board evidence record](../components/gauge-electronics/bench-board-reference.md).
+
+Source and repository SHA-256 match:
+
+```text
+27d71971da07c280c6068d08c74720d1a25b8f20cf8494dc1765bdd28d40d435
+```

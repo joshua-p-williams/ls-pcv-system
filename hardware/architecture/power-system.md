@@ -6,6 +6,8 @@ For the XIAO implementation, [P02](../pinouts/xiao-esp32s3.md) documents the man
 
 [P06: converter interface](../pinouts/buck-converter.md) records the vendor-labeled input leads, USB-C output and converter checks needed to resolve these power paths.
 
+The [bench-board evidence record](../components/gauge-electronics/bench-board-reference.md) flags a possible IN-OUT jumper dependency for USB power reaching 5Vin. Verify this under Q05/Q12 before using that header to supply the 5 V sensor branch; Q03's selected USB operating mode does not establish that distribution path.
+
 ## Supply and distribution
 
 ```mermaid
@@ -80,10 +82,11 @@ Use a compatible common reference for sensor, conditioning, ADC and controller a
 | --- | --- | --- |
 | Vehicle operation | Switched vehicle supply through fuse/protection/converter | Normal target; no USB host in this baseline. Exact source, ground point and installed behavior remain unverified. |
 | Bench converter evaluation | One selected bench DC source through the converter path | Input voltage/current limit must suit the actual converter and test plan. Verify unloaded output before connecting loads. |
-| USB-only controller bring-up | USB host through the actual board's documented USB input | Converter disconnected. This does not establish that USB can supply the FTP sensor, full 5 V bus or display; peripheral rail availability/current must be checked. |
+| W01 USB development | Computer USB through the verified board input | Selected operating approach: power plus programming/debugging, with converter disconnected. Full-gauge rail availability and source/load capacity remain subject to Q05/Q12. |
+| W01 standalone USB operation | Suitable standalone USB supply through the verified board input | Selected alternative: disconnect computer, change source and restart. Supply selection and full-load capability remain pending; no simultaneous sources. |
 | Converter-powered debugging with USB | Converter plus USB host | Unresolved: requires documented board power-path behavior and a selected backfeed/isolation strategy. Not an approved connection configuration yet. |
 
-No battery, direct bench 5 V injection or automatic source switching is selected. The USB-only case is an alternative limited bring-up mode; it does not power the entire diagram by implication. Check signal connections to unpowered modules when choosing a test configuration.
+No onboard battery, direct bench 5 V injection or automatic source switching is selected. Q03 selects alternate USB sources for W01, with restart accepted between modes; see the [bench power requirements](../wiring/README.md#bench-power-requirements). Full-gauge USB operation is intended, not electrically verified. The distribution diagram retains the converter path for vehicle and converter evaluation work; W01 must define its verified USB-fed distribution separately. Check signal connections to unpowered modules when choosing a test configuration.
 
 ## Rail and load responsibilities
 
