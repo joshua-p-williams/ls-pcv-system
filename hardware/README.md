@@ -6,6 +6,7 @@ Start with the [diagram inventory](DIAGRAMS.md) to choose upcoming documentation
 - [Architecture](architecture/README.md): system, PCV, power and measurement relationships. Current drafts: [A04: engine PCV overview](architecture/pcv-system.md), [A01: overall gauge architecture](architecture/gauge-system.md), [A02: power architecture](architecture/power-system.md), and [A03: measurement signal chain](architecture/measurement-system.md).
 - [Pinouts](pinouts/README.md): module and connector identities and interface evidence.
 - [Wiring](wiring/README.md): separate bench and vehicle harnesses.
+- [Wokwi illustrations and simulation](../simulation/wokwi/README.md): L01's initial component-and-wire view, virtual/physical mappings and future ESP32 simulation.
 - [Schematics and layouts](schematics/README.md): optional spatial illustrations and future circuit projects.
 - [BOM](bom/parts.md): existing procurement authority.
 - [Datasheets](datasheets/README.md): preserved reference revisions.

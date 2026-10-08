@@ -10,10 +10,13 @@ This standard defines formats, locations, evidence labels and review practices f
 | System, pneumatic, power, signal or data flow | Mermaid embedded in Markdown | Relationships and conceptual boundaries, not exact harness wiring |
 | Firmware modes, sequencing, test decisions | Mermaid state, sequence or flowchart in Markdown | Choose the diagram type that answers the question |
 | Exact connector-to-connector wiring | WireViz `.yml` | Pin mapping, cables, splices, shields, wire color/gauge/length |
-| Physical bench or installation layout | Editable `.drawio.svg` | Only where manual placement improves understanding |
+| Electronics component-and-wire illustration; temporary solderless breadboard view | Wokwi `diagram.json` | Recognizable components and colored terminal-to-terminal leads, synchronized with the harness |
+| Virtual ESP32 firmware testing | Wokwi JSON and build configuration | Document synthetic inputs, model coverage and differences from physical hardware |
+| Other installation or spatial illustration | Editable `.drawio.svg` | When other formats do not express placement well |
+| Detailed permanent perfboard layout | DIY Layout Creator, if needed | Optional future hole/copper map; no current tooling dependency |
 | Custom circuitry, electrical-rule checking or PCB | KiCad native project | Introduce when circuit complexity warrants it; no PCB is required to justify a real circuit schematic |
 
-Markdown owns explanatory context; Mermaid owns conceptual relationships; pinout pages own terminal identity/evidence; WireViz owns designed point-to-point connectivity; the existing BOM owns purchases. A generated harness BOM describes build requirements, not purchased inventory. Native CAD remains authoritative for dimensions. Do not duplicate connectivity in a competing drawing.
+Markdown owns explanatory context; Mermaid owns conceptual relationships; pinout pages own terminal identity/evidence; WireViz owns designed point-to-point connectivity; the existing BOM owns purchases. Wokwi provides a synchronized instructional view and virtual model, not a competing wiring authority. A generated harness BOM describes build requirements, not purchased inventory. Native CAD remains authoritative for dimensions. See the [Wokwi adoption decision](wokwi-adoption.md).
 
 ## Locations and naming
 
@@ -26,6 +29,7 @@ Markdown owns explanatory context; Mermaid owns conceptual relationships; pinout
 | `hardware/wiring/bench/` | Development harness source and accompanying build notes |
 | `hardware/wiring/vehicle/` | Separate vehicle harness source and installation notes |
 | `hardware/wiring/<configuration>/generated/` | WireViz renderings next to their owning source |
+| `simulation/wokwi/` | Maintained Wokwi illustration/simulation JSON, physical mappings, model limits and opening instructions |
 | `hardware/schematics/drawio/` | Editable layout/installation illustrations when needed |
 | `hardware/schematics/<circuit>/` | Future circuit schematic projects, if justified |
 | `firmware/` | Firmware architecture/state/data-flow documentation near future code |
@@ -71,11 +75,17 @@ Specify planned conductor colors in the harness source and show them in renders 
 
 Editable Draw.io SVG must include embedded diagram data. Reopen it to verify editability and check its repository preview. If editable SVG is unsuitable, keep `.drawio` source plus a clearly labeled SVG derivative. See the [official editable-image guidance](https://www.drawio.com/docs/manual/collaboration/diagram-data-image-formats/).
 
+Wokwi JSON is the maintained component-and-wire illustration source. Use stable interface IDs, explicit voltage-domain labels and W01 conductor colors; preserve actual GPIO decisions. Record virtual-to-physical terminal mappings, substitutions and omitted connections beside it. Confirm types/pins against official Wokwi definitions, check JSON syntax and unique IDs, and inspect the rendered diagram. Keep unrelated movement/routing out of electrical edits. Update W01 first when changing actual wiring, then synchronize affected Wokwi views and scenarios. Use one diagram for illustration and simulation when practical; explain differences if separate configurations are needed.
+
+Graphical representations and functional models are separate. Clearly mark unsupported or purely illustrative components, and review community model sources/licenses before adoption. Simulated measurements are synthetic; describe whether a fault scenario exercises application logic, a peripheral driver or a modeled bus. Simulation does not validate the RC filter, power paths, translator voltage levels, current capacity or sensor calibration. The selected solderable protoboard construction remains in effect; a Wokwi arrangement is not a dimensional solder-hole map.
+
 Review source and rendered output for clipped text, swapped terminals, orientation ambiguity, units, evidence labels, missing connections, public metadata and private paths. Rendering proves syntax/presentation, not electrical correctness. Physical verification needs a linked test record. Keep source edits, generated changes and inventory state consistent.
 
 ## Tooling
 
 Mermaid lives in Markdown; no Node toolchain is required just to author these pages. Use GitHub rendering and an available Mermaid-capable editor preview. Add an editor extension only if needed; no personal editor settings are required.
+
+Use the [Wokwi guide](../simulation/wokwi/README.md) for online/VS Code opening instructions, model status and current licensing limitations. The initial diagram can be inspected without firmware. Add `wokwi.toml` against actual build artifacts when firmware exists; keep compiled outputs and credentials local. Wokwi remains optional for ordinary firmware builds. Add custom chips/scenarios only with useful content; do not add a second component or pinout inventory.
 
 For harness work, use WireViz plus Graphviz (`dot` executable on PATH). Prefer an isolated pipx installation of WireViz; Graphviz is a separate prerequisite. Follow [WireViz installation/usage](https://github.com/wireviz/WireViz) and the installed `wireviz --help`; output options have changed between releases, as documented in [release notes](https://github.com/wireviz/WireViz/releases).
 

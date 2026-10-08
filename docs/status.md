@@ -21,6 +21,8 @@ Additional [bench-board references](../hardware/components/esp32-s3-dev-board/be
 
 ## Next work
 
+Wokwi is [adopted](wokwi-adoption.md) for instructional component-and-wire views and future ESP32 simulation. [L01](../simulation/wokwi/README.md) illustrates the complete intended bench connectivity: all non-USB W01 conductors, explicit series/shunt RC wiring and a whole-USB annotation. DevKitC substitutes for the purchased N16R8; unsupported parts use original generic terminal-only symbols, not physical footprints or functioning models. The online opening workflow includes these definitions; VS Code custom-chip registration remains pending. W01 and sturdy solderable protoboard construction remain authoritative. Firmware/build configuration, functional model selection and simulation scenarios follow actual development.
+
 The [component documentation improvement plan](component-documentation-plan.md) establishes the instructional approach and adopted controller/display split. Initial explanations are in place for the gauge electronics, pressure sensor, ADC, power supply, relief candidate and restrictor; N16R8, XIAO and GC9A01 now have separate component pages, with gauge-electronics retained as the integration guide.
 
 Q17 is Investigating: the [pressure-input conditioning review](../hardware/components/adc/conditioning-review.md) records the selected shared 5 V sensor/ADC architecture, translated I2C and selected built RC filter and remaining validation/protection work. Proceed using listed component identities and explicit engineering assumptions. The sensor is on hand and unmarked; its advertised replacement family and nominal 5 V analog interface are the accepted design basis. Q09/Q10 track sourced terminal/behavior expectations, with physical checks during bring-up rather than an identity investigation. Circuit protection and calibration remain design/test work.
@@ -54,6 +56,9 @@ Use the [open-questions register](open-questions.md) for actionable follow-up an
 - [ ] Verify the received N16R8 board against P01, including power paths and memory-reserved pins, before using W01's proposed GPIO assignments.
 
 - [x] Adopt [diagramming/wiring standards](diagramming-and-wiring-standard.md) and establish the [diagram inventory](../hardware/DIAGRAMS.md).
+- [x] Adopt Wokwi and establish [L01](../simulation/wokwi/README.md).
+- [x] Extend L01 to complete intended bench connectivity with original visual parts and documented model limitations.
+- [ ] Introduce actual firmware and suitable functional models/synthetic inputs before claiming gauge simulation; register compiled custom parts for VS Code when needed.
 - [x] Document A04, the [engine PCV overview](../hardware/architecture/pcv-system.md).
 - [ ] Review the proposed pressure tap/sensor mount and exact PCV ports in A04.
 - [x] Document A01, the [overall gauge architecture](../hardware/architecture/gauge-system.md); electrical interfaces remain planned/TBD.

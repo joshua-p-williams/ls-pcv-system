@@ -1,0 +1,16 @@
+{
+  "name": "ADS1115 - visual",
+  "author": "LS PCV System contributors",
+  "pins": [
+    "A0",
+    "A1",
+    "A2",
+    "A3",
+    "ALERT",
+    "ADDR",
+    "SCL",
+    "SDA",
+    "G",
+    "V"
+  ]
+}

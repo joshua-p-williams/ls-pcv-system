@@ -12,6 +12,8 @@ Open the [full SVG](generated/bench-harness.svg) to zoom. The smaller phase view
 
 - **Connectivity source:** [bench-harness.yml](bench-harness.yml). Edit connections here, then regenerate; do not edit generated drawings or the schedule.
 - **Source identity and tools:** [generation record](generated/generation.md).
+- **Instructional component view:** [L01 / Wokwi](../../../simulation/wokwi/README.md), covering all intended non-USB conductors, the internal RC node and a USB annotation. W01 remains the wiring authority; virtual parts are not purchased-board header layouts or functioning peripheral models.
+- **Component-view PNG:** [L01 preview](../../../simulation/wokwi/diagram-preview.png), generated from the Wokwi source for viewing without opening the editor.
 - **Follow-up:** [open questions](../../../docs/open-questions.md), especially Q04-Q10, Q12, Q14, Q17, Q18 and Q29.
 
 All drawn connections are planned or proposed. Blue module blocks identify interfaces from P01/P03/P05; amber blocks or bundles contain unresolved functional boundaries. Wire colors follow the [W01 color convention](generated/connections.md#wire-color-convention): black for ground, red for 5 V, orange for 3.3 V, and separate signal colors. The complete USB cable has no conductor color assignment and renders neutrally; it does not denote ground. Display VCC is orange for its selected 3.3 V rail. The full drawing is a design-review view, not an assembly-ready rendering. Blank/unconnected terminals are intentional where explained below.

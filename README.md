@@ -77,6 +77,8 @@ Primary pressure unit: **inH2O**, relative to atmosphere; negative means vacuum.
 | [A03: measurement signal chain](hardware/architecture/measurement-system.md) | Calibration, validity, peak capture and display smoothing |
 | [Diagramming standard](docs/diagramming-and-wiring-standard.md) | Formats, folder responsibilities, evidence and tooling |
 | [W01 bench harness](hardware/wiring/bench/README.md) | Full wiring draft, proposed GPIOs, generated connection schedule and phased assembly checks |
+| [L01 / Wokwi](simulation/wokwi/README.md) | Complete intended bench connections, visual-part mappings and future simulation limits |
+| [Wokwi adoption](docs/wokwi-adoption.md) | Tool responsibilities and illustration/simulation scope |
 | [cad/pcv-restrictor/](cad/pcv-restrictor/README.md) | Restrictor design intent and source/export conventions |
 | [Hardware components](hardware/components/README.md) | Component descriptions, design decisions and import records |
 | [hardware/bom/parts.md](hardware/bom/parts.md) | Parts, procurement status, and unresolved selections |

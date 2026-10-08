@@ -1,0 +1,18 @@
+{
+  "name": "BSS138 - visual",
+  "author": "LS PCV System contributors",
+  "pins": [
+    "HV",
+    "GND_HV",
+    "HV1",
+    "HV2",
+    "HV3",
+    "HV4",
+    "LV4",
+    "LV3",
+    "LV2",
+    "LV1",
+    "GND_LV",
+    "LV"
+  ]
+}

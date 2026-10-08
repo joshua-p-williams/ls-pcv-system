@@ -22,7 +22,7 @@ Paths in code are planned destinations, not links to existing artifacts. As docu
 | W04 | 3 | ADC subassembly | WireViz `wiring/bench/adc-harness.yml` if separate | Confirm I2C, address, analog inputs and conditioning; otherwise include in W01 |
 | F01 | 3 | Firmware acquisition/calibration/peak/display data flow | Mermaid in `../firmware/data-flow.md` | After acquisition/configuration decisions; no firmware implementation implied |
 | T01 | 3 | Sensor calibration and relief-test workflows | Mermaid in `../docs/testing/test-plan.md` | Add only if a flow clarifies the existing procedure; link real data when available |
-| L01 | 4 | Physical bench layout | `schematics/drawio/bench-layout.drawio.svg` | After module placement and pressure tubing/test-point arrangement are known |
+| L01 | 4 | Instructional bench component-and-wire illustration | Wokwi [guide](../simulation/wokwi/README.md), [JSON source](../simulation/wokwi/diagram.json) and [PNG preview](../simulation/wokwi/diagram-preview.png) | **Draft, complete intended connectivity**. All non-USB W01 conductors plus internal RC node; USB annotated. DevKitC substitutes for N16R8; unsupported modules use original terminal-only visual parts. Not physical footprints, assembly-ready wiring or working simulation; W01 owns connectivity |
 | W05 | 4 | Vehicle gauge harness | WireViz `wiring/vehicle/gauge-harness.yml` | Separate design after source/fuse/ground/routing/connectors and bench findings are resolved |
 | L02 | 4 | Gauge enclosure/electronics placement | Draw.io layout or CAD-associated view | After display/enclosure choices; choose destination with CAD work to avoid duplicate drawings |
 | S01 | Conditional | Analog conditioning/protection circuit | KiCad under `schematics/` if warranted | Revisit if component-level connectivity needs a real schematic/ERC; not selected now |
@@ -30,6 +30,8 @@ Paths in code are planned destinations, not links to existing artifacts. As docu
 ## Next documentation
 
 The architecture, P01-P06 interfaces and [W01 harness draft](wiring/bench/README.md) are in place. Use the [open-questions register](../docs/open-questions.md) to resolve the remaining design and interface checks before assembly-ready W01 wiring. W01's section views cover the display, ADC and sensor boundaries without separate competing sources; W02-W04 remain optional subassembly candidates.
+
+[L01](../simulation/wokwi/README.md) now illustrates the complete intended bench wiring using native controller/button/resistor parts and original terminal-only placeholders. Preserve W01's 5 V ADC/sensor, translated I2C and 3.3 V display decisions. Functional models, VS Code custom-chip registration and actual firmware remain future work; see the [model limitations](../simulation/wokwi/README.md#model-coverage-and-next-work) and [adoption decision](../docs/wokwi-adoption.md).
 
 ## Inputs already available
 

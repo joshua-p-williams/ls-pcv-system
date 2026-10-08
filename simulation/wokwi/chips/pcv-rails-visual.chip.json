@@ -1,0 +1,10 @@
+{
+  "name": "RAILS - visual",
+  "author": "LS PCV System contributors",
+  "pins": [
+    "3V3",
+    "GND",
+    "5V",
+    ""
+  ]
+}

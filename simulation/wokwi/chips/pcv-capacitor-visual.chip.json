@@ -1,0 +1,8 @@
+{
+  "name": "C1 - visual",
+  "author": "LS PCV System contributors",
+  "pins": [
+    "OUT",
+    "GND"
+  ]
+}

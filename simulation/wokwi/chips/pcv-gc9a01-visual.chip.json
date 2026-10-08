@@ -1,0 +1,14 @@
+{
+  "name": "GC9A01 - visual",
+  "author": "LS PCV System contributors",
+  "pins": [
+    "VCC",
+    "GND",
+    "RST",
+    "CS",
+    "DC",
+    "SDA",
+    "SCL",
+    ""
+  ]
+}

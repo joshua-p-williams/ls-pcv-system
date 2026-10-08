@@ -14,6 +14,8 @@ Use [P02: XIAO interface](../hardware/pinouts/xiao-esp32s3.md) for the XIAO alia
 
 ## Board configurations
 
+The [Wokwi bench illustration](../simulation/wokwi/README.md) covers the intended measurement chain using original visual placeholders where no functional model is selected. No runnable project simulation exists yet. When PlatformIO environments are introduced, add `wokwi.toml` beside the maintained diagram under `simulation/wokwi/`, with paths to actual firmware/ELF outputs and explicit registration of any compiled custom chips; select that configuration in VS Code. Preserve hardware GPIO decisions, identify synthetic measurements and keep measurement logic independent of physical versus simulated acquisition. Visual stubs provide no device behavior; virtual geometry does not establish physical compatibility.
+
 Use explicit build-time configurations for the N16R8 development board and standard XIAO ESP32-S3, selected through separate PlatformIO environments when firmware is introduced. Both use ESP32-S3, so chip identity alone does not identify the carrier or its wiring. Automatic board detection is not a requirement; the build/upload target must be chosen explicitly.
 
 Each configuration must identify its board and harness revision, GPIO mapping, bus assignments, enabled peripherals/controls, and applicable memory, USB and upload settings. Use named functions such as display chip-select and ADC clock rather than scattering board-specific pin numbers through application code. Keep peripheral settings and calibration identity explicit where the assembled hardware differs; calibration is not interchangeable merely because the controller profile changes.
