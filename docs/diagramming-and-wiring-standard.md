@@ -38,7 +38,7 @@ Keep the `hardware/` root for shared navigation/index documents. Component-speci
 
 ## Writing style
 
-Explain the design for readers unfamiliar with its development history. Lead with purpose, current choices and remaining work. Use direct technical prose such as "The board's 3V3 output supplies the ADC" and keep compatibility checks beside that statement.
+Explain the design for readers unfamiliar with its development history. Lead with purpose, current choices and remaining work. Use direct technical prose such as "The sensor and ADC share the regulated 5 V branch" and keep compatibility checks beside that statement.
 
 Use Git history for routine editing and selection chronology. Dates belong where they identify an installation, test, calibration, import or source revision. Keep provenance in dedicated records or sections. A short scope/status statement is sufficient for a conceptual design; repeat uncertainty only where it changes how a specific detail should be used.
 
@@ -67,6 +67,8 @@ Evidence labels on facts/connections: **Planned**, **Manufacturer Spec**, **Vend
 
 WireViz YAML is the editable connectivity source. Resolve errors against evidence, correct the source and regenerate; never manually repair only the output. Commit SVG as the default browsable render with each selected harness. HTML and TSV are optional when useful; PNG/PDF are derivatives only when needed. Keep generated files trackable, and update them with their sources.
 
+Specify planned conductor colors in the harness source and show them in renders and connection schedules. Start with [W01's color convention](../hardware/wiring/bench/generated/connections.md#wire-color-convention) for new project wiring: black ground, red 5 V, orange 3.3 V and labeled signal colors. Keep unresolved color choices explicit. Distinguish designed wire colors from observed factory leads; color never establishes an unknown terminal function. Labels remain authoritative, and as-built records capture substitutions. A whole factory-cable symbol does not specify its internal conductor colors.
+
 Editable Draw.io SVG must include embedded diagram data. Reopen it to verify editability and check its repository preview. If editable SVG is unsuitable, keep `.drawio` source plus a clearly labeled SVG derivative. See the [official editable-image guidance](https://www.drawio.com/docs/manual/collaboration/diagram-data-image-formats/).
 
 Review source and rendered output for clipped text, swapped terminals, orientation ambiguity, units, evidence labels, missing connections, public metadata and private paths. Rendering proves syntax/presentation, not electrical correctness. Physical verification needs a linked test record. Keep source edits, generated changes and inventory state consistent.
@@ -77,15 +79,15 @@ Mermaid lives in Markdown; no Node toolchain is required just to author these pa
 
 For harness work, use WireViz plus Graphviz (`dot` executable on PATH). Prefer an isolated pipx installation of WireViz; Graphviz is a separate prerequisite. Follow [WireViz installation/usage](https://github.com/wireviz/WireViz) and the installed `wireviz --help`; output options have changed between releases, as documented in [release notes](https://github.com/wireviz/WireViz/releases).
 
-WireViz rendering has not yet been validated for this repository. Mermaid preview commands and tested versions are recorded in the architecture pages. Before the first harness:
+W01 rendering is validated with Python 3.12.10, WireViz 0.4.1 and Graphviz 16.1.0. Use its [pinned requirements and reproduction commands](../hardware/wiring/bench/README.md#rendering-and-validation); the local venv is an alternative to pipx. The [renderer](../hardware/wiring/bench/render.py) generates the complete harness, sectional views and connection schedule from one YAML source. Mermaid preview commands and tested versions are recorded in the architecture pages. For harness changes:
 
-1. Install Graphviz and pipx using their supported platform instructions, then install WireViz with `pipx install wireviz`.
-2. Check `dot -V`, `pipx list`, and `wireviz --help`; record actual versions.
+1. Install Graphviz separately and use an isolated Python environment with the harness's pinned requirements.
+2. Check `dot -V` and `wireviz --help`; record actual versions.
 3. Verify the installed output-directory/format flags and render the selected YAML into its adjacent `generated/` directory.
 4. Record the working command and pin the tested WireViz version in repository tooling before adding repeatable automation. Record Graphviz/Python versions as well.
 5. Visually inspect the result, then commit selected outputs with their source.
 
-Do not claim rendering passed until a real artifact has been rendered. Defer CI, renderer wrappers and optional graphical-tool installation until the first chosen artifact establishes the needed workflow.
+Do not claim rendering passed until a real artifact has been rendered. Regenerate W01 section views and the connection schedule with its renderer after connectivity changes. Add CI or optional graphical tools only when a selected artifact needs them.
 
 ## Selection workflow
 

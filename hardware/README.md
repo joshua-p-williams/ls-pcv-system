@@ -10,7 +10,7 @@ Start with the [diagram inventory](DIAGRAMS.md) to choose upcoming documentation
 - [BOM](bom/parts.md): existing procurement authority.
 - [Datasheets](datasheets/README.md): preserved reference revisions.
 
-Existing component READMEs remain the design references: [gauge electronics](components/gauge-electronics/README.md), [ADC](components/adc/README.md), [sensor/pigtail](components/fuel-tank-pressure-sensor/README.md), [power supply](components/gauge-power-supply/README.md), and [relief valve](components/check-valve-relief-valve/README.md). New interface pages should link to these rather than copy their purchase history.
+Use the [gauge integration guide](components/gauge-electronics/README.md#reading-and-building-path) for the learning and assembly path. Separate component guides cover the [N16R8 development board](components/esp32-s3-dev-board/README.md), [XIAO](components/xiao-esp32s3/README.md), [GC9A01 display](components/gc9a01-display/README.md), [ADC](components/adc/README.md), [sensor/pigtail](components/fuel-tank-pressure-sensor/README.md), [power supply](components/gauge-power-supply/README.md), and [relief valve](components/check-valve-relief-valve/README.md). Interface pages link to these explanations; the BOM retains procurement responsibility.
 
 ## Organization
 

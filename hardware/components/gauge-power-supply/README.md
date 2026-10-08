@@ -1,6 +1,22 @@
 # Gauge power supply
 
-Selected converter: **SSLHONG DC 8-60 V input, USB-C 5 V / 3 A buck converter**, [Amazon B09NVG35CX](https://www.amazon.com/dp/B09NVG35CX). Supplied notes confirm purchase for **USD 13.99**. Quantity, purchase date, receipt, installation, and operation were not explicitly confirmed. See the [BOM](../../bom/parts.md).
+## What it does and why the gauge needs it
+
+A **buck converter** is a switching regulator that reduces a higher DC voltage to a lower regulated voltage. The vehicle supply is not the same as a steady 5 V electronics rail. This converter's job is to provide that rail for the gauge; the selected controller board then provides its own 3.3 V rail where appropriate.
+
+In a typical buck circuit, a switch, inductor and capacitor transfer and smooth energy, while feedback adjusts the switching to maintain the output under changing load. These are general operating principles, not a reverse-engineered schematic of the purchased enclosed unit. See [TI's buck-converter introduction](https://www.ti.com/lit/sg/slyt729b/slyt729b.pdf).
+
+The sensor and ADS1115 share the 5 V branch. The ESP32 uses 3.3 V logic, with I2C translation between it and the ADC. A supply voltage describes how a component is powered; a logic voltage describes its signal interface. Sharing a ground reference does not make those two signal-voltage domains interchangeable.
+
+### Understanding the current rating
+
+The advertised 3 A is an output capacity claim, not current forced into every load. Loads draw current according to their operation. As a **hypothetical example**, a 5 V load drawing 0.4 A uses 2 W. At 12 V input and an assumed 85% efficiency, converter input current would be about `2 W / (12 V x 0.85) = 0.20 A`. Those are illustrative values, not measurements of this gauge or converter, and they do not select the fuse.
+
+Output-current capacity also does not establish the current available from a controller's downstream 3.3 V regulator. [A02](../../architecture/power-system.md) separates those responsibilities. During bring-up, measuring loaded output voltage and startup behavior tests whether the particular supply path supports the assembly; it does not demonstrate every vehicle transient condition.
+
+## Selected hardware
+
+Selected converter: **SSLHONG DC 8-60 V input, USB-C 5 V / 3 A buck converter**, [Amazon B09NVG35CX](https://www.amazon.com/dp/B09NVG35CX). Supplied notes confirm purchase for **USD 13.99**. The converter has not yet arrived. Quantity and purchase date remain unspecified; operation is unverified. See the [BOM](../../bom/parts.md).
 
 See [A01: overall gauge architecture](../../architecture/gauge-system.md) for the converter within the planned gauge power path. See [A02: power architecture](../../architecture/power-system.md) for planned supply modes, distribution, returns and unresolved USB-power handling.
 
@@ -38,7 +54,7 @@ Additional TVS protection, bulk/bypass capacitance, and reverse-polarity protect
 
 ## Distribution and measurement considerations
 
-Use the selected ESP32-S3 board's `3V3` output for the ADS1115 and other compatible 3.3 V peripherals. Use the appropriate board power input and verify available regulator current and actual header location for each board variant. The FTP sensor is planned around a 5 V supply, but its actual electrical requirements, the external ADC reference/input limits, and display voltage compatibility remain to be verified together. Sharing a supply does not by itself establish ratiometric measurement accuracy.
+Power the FTP sensor and ADS1115 from the same regulated 5 V branch. The selected ESP32-S3 board's `3V3` output supplies the low-voltage side of the I2C translator and other compatible peripherals. Size and document both rail loads; display VCC is selected at 3.3 V with load margin to verify. The ADC uses an internal reference, so sharing the sensor supply does not automatically cancel supply-related measurement error. See the [ADC decision](../adc/conditioning-review.md).
 
 USB-C may simplify prototype power; a breakout or short pigtail is an option for the final harness. Connector retention, strain relief, and the interaction between vehicle power and USB programming power remain design tasks. The IP67 claim does not establish that the complete harness, USB connection, or gauge enclosure is sealed.
 

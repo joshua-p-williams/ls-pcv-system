@@ -4,7 +4,7 @@ P02 documents the standard Seeed Studio XIAO ESP32-S3 intended for the finished 
 
 ## Scope and identity
 
-The [purchase record](../components/gauge-electronics/README.md) identifies the standard XIAO ESP32-S3, ASIN B0DJ6NQFKX, supplied as three boards. The [product image](../../media/reference/gauge-electronics/xiao-esp32s3-pack.jpg) shows base boards and antennas. It does not establish the received revision. Sense expansion hardware and the Plus variant are outside this interface's scope.
+The [component record](../components/xiao-esp32s3/README.md) identifies the standard XIAO ESP32-S3, ASIN B0DJ6NQFKX, supplied as three boards. The [product image](../../media/reference/gauge-electronics/xiao-esp32s3-pack.jpg) shows base boards and antennas. It does not establish the received revision. Sense expansion hardware and the Plus variant are outside this interface's scope.
 
 Seeed specifies 8 MB flash and 8 MB PSRAM for the standard board. Its [series guide](https://wiki.seeedstudio.com/xiao_esp32s3_getting_started/) covers multiple variants; use the standard-board sections and confirm the actual markings before applying a variant-specific schematic.
 
@@ -30,8 +30,8 @@ The bus labels identify the manufacturer's conventional assignments. Firmware an
 
 | Interface | Board alias / GPIO | Direction at controller | Project use |
 | --- | --- | --- | --- |
-| I2C data | D4 / GPIO5 | Bidirectional | Candidate ADS1115 SDA; assignment pending |
-| I2C clock | D5 / GPIO6 | Output with bus input sensing | Candidate ADS1115 SCL; check 3.3 V pull-ups |
+| I2C data | D4 / GPIO5 | Bidirectional | Candidate translator low-side SDA; assignment pending |
+| I2C clock | D5 / GPIO6 | Output with bus input sensing | Candidate translator low-side SCL; 3.3 V pull-ups |
 | SPI clock | D8 / GPIO7 | Output | Candidate GC9A01 clock |
 | SPI transmit | D10 / GPIO9 | Output | Candidate GC9A01 data/MOSI |
 | SPI receive | D9 / GPIO8 | Input when used as MISO | No readback signal established for the selected display; availability for another role requires a pin plan |
@@ -41,7 +41,7 @@ The bus labels identify the manufacturer's conventional assignments. Firmware an
 | Zero / peak-reset controls | TBD | Inputs | One multifunction button selected; GPIO pending |
 | ADS1115 ready indication | TBD, if used | Input | Optional; acquisition method unresolved |
 
-GPIO interfaces use the project's 3.3 V logic domain. The FTP analog signal goes through conditioning and the ADS1115, not directly to a XIAO ADC pin. See the [measurement chain](../architecture/measurement-system.md).
+GPIO interfaces use the project's 3.3 V logic domain. The ADS1115 and sensor share 5 V; a bidirectional I2C translator connects the ADC to this board. The FTP analog signal goes through conditioning and the ADS1115, not directly to a XIAO ADC pin. See the [measurement chain](../architecture/measurement-system.md).
 
 A preliminary pin budget is useful before the harness: two I2C lines plus five display lines (clock, data, CS, DC, reset) consume seven of the eleven edge GPIOs. The selected single multifunction button brings that to eight. Keeping D2 unused and retaining both UART pins leaves exactly eight edge GPIOs, so this allocation has no spare for an optional ADC-ready or separate dimming signal. This calculation assumes dedicated signals; reset strategy, optional ADC-ready and debug choices still need to be resolved together. It does not select pins or require extra hardware.
 
@@ -51,7 +51,7 @@ A preliminary pin budget is useful before the harness: two I2C lines plus five d
 | --- | --- | --- |
 | USB-C | Programming/data and 5 V power | Identify the intended bench mode and power interaction |
 | 5V / VBUS | USB-linked rail; external-input use has conditions | Resolve isolation/backfeed design before using the converter with a USB host |
-| 3V3 | Regulated supply output | Selected source for ADS1115 and compatible peripherals; establish actual current margin |
+| 3V3 | Regulated supply output | Selected source for I2C translator low side and compatible peripherals; establish actual current margin |
 | GND | Supply and signal return | Verify physical return arrangement with the harness |
 | Battery pads | Battery/charging interface | Not selected for this gauge; do not use as a 5 V input |
 
@@ -59,7 +59,7 @@ Seeed's [power-pin guidance](https://wiki.seeedstudio.com/xiao_esp32s3_getting_s
 
 The wiki states 700 mA for 3V3. The [linked schematic](https://files.seeedstudio.com/wiki/SeeedStudio-XIAO-ESP32S3/new-res/202003751_XIAO%20ESP32S3_v1.4_SCH_260226.pdf.pdf), sheet 4, labels the regulator output `Imax=600mA`. These figures conflict and neither establishes measured peripheral headroom for the purchased boards. Check revision, board consumption, thermal conditions and intended loads before assigning a budget. The converter's 3 A rating does not resolve this difference.
 
-The schematic also connects the edge VBUS pin and USB VBUS to the same net; its downstream regulator diode should not be assumed to isolate an external supply at that header from the USB host. Confirm applicability to the actual revision. The [power architecture](../architecture/power-system.md) retains the unresolved combined-power mode, while the FTP sensor remains planned for 5 V and display supply compatibility remains open.
+The schematic also connects the edge VBUS pin and USB VBUS to the same net; its downstream regulator diode should not be assumed to isolate an external supply at that header from the USB host. Confirm applicability to the actual revision. The [power architecture](../architecture/power-system.md) retains the unresolved combined-power mode, while the FTP sensor remains planned for 5 V and display VCC is selected at 3.3 V within the purchased module's listed range, with this board's load margin still open.
 
 ## Restrictions and onboard functions
 

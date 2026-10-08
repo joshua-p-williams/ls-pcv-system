@@ -1,0 +1,700 @@
+# Authoritative W01 connection source. Internal RC circuit: components/rc-input-filter/README.md.
+metadata:
+  title: W01 - N16R8 bench harness - DRAFT / NOT ASSEMBLY READY
+options:
+  fontname: Arial
+  mini_bom_mode: false
+connectors:
+  USB_SOURCE:
+    type: ONE USB source at a time
+    pins:
+    - PLUG
+    pinlabels:
+    - Complete USB cable interface
+    notes: 'Computer: power and data
+
+      OR standalone USB supply: power
+
+      Q03 selected; capacity Q12'
+    show_pincount: false
+    ignore_in_bom: true
+    bgcolor: '#eaf2f8'
+  J1:
+    type: N16R8 board - subset of interfaces
+    pins:
+    - USB_NATIVE
+    - L1
+    - L4
+    - L5
+    - L6
+    - L12
+    - L15
+    - L16
+    - L17
+    - L18
+    - L21
+    - L22
+    pinlabels:
+    - Native USB / left
+    - 3V3
+    - GPIO4 / DISP_DC
+    - GPIO5 / DISP_RST
+    - GPIO6 / BUTTON
+    - GPIO8 / I2C_SDA
+    - GPIO9 / I2C_SCL
+    - GPIO10 / DISP_CS
+    - GPIO11 / SPI_MOSI
+    - GPIO12 / SPI_CLK
+    - 5Vin / USB-fed 5 V
+    - GND
+    notes: 'L = front-view left row, top to bottom (P01).
+
+      USB_NATIVE is a whole-port symbol, not a contact.
+
+      YD-family assumption Q30: IN-OUT closed; USB-OTG open.
+
+      GPIOs Q14; physical rail/load checks Q05/Q12.'
+    show_pincount: false
+    ignore_in_bom: true
+    bgcolor: '#eaf2f8'
+  RAILS:
+    type: Carrier distribution - functional nets
+    pins:
+    - 3V3
+    - GND
+    - 5V
+    pinlabels:
+    - J1 L1 / 3.3 V
+    - J1 L22
+    - J1 L21 / nominal 5 V
+    notes: 'Net names, NOT physical connector pins.
+
+      3V3 and 5V are distinct supplies; never bridge them.
+
+      One USB source; common return; load budget Q12.'
+    show_pincount: false
+    ignore_in_bom: true
+    bgcolor: '#eaf2f8'
+  J2:
+    type: GC9A01 display header
+    pins:
+    - RST
+    - CS
+    - DC
+    - SDA
+    - SCL
+    - GND
+    - VCC
+    pinlabels:
+    - Reset
+    - Chip select
+    - Data/command
+    - SPI data / MOSI
+    - SPI clock
+    - Return
+    - 3.3 V module supply selected Q31
+    notes: 'P05: screen side, tab down, left to right.
+
+      Vendor supply range 3-5 V; use 3.3 V logic and VCC.
+
+      SPI labels SDA/SCL are NOT I2C.
+
+      Current/backlight and operation checks Q06/Q20.'
+    show_pincount: false
+    ignore_in_bom: true
+    bgcolor: '#eaf2f8'
+  J3:
+    type: ADS1115 module header
+    pins:
+    - A3
+    - A2
+    - A1
+    - A0
+    - ALERT
+    - ADDR
+    - SDA
+    - SCL
+    - G
+    - V
+    pinlabels:
+    - Unused
+    - Unused
+    - Unused
+    - Conditioned pressure
+    - 'Unused: polling proposed'
+    - GND strap proposed Q08/Q18
+    - I2C data / 5 V side
+    - I2C clock / 5 V side
+    - Return
+    - 5 V shared with FTP sensor
+    notes: 'P03: BACK view, mounting holes up, left to right.
+
+      Q07/Q08: identity, pull-ups and bias checks.
+
+      5 V ADC bus connects through LS1, never directly to J1.'
+    show_pincount: false
+    ignore_in_bom: true
+    bgcolor: '#eaf2f8'
+  S1:
+    type: Normally open momentary button
+    pins:
+    - CONTACT_A
+    - CONTACT_B
+    pinlabels:
+    - Signal
+    - Ground
+    notes: 'Functional contact pair, not package pin numbers.
+
+      Identify two contacts open until pressed.
+
+      Internal GPIO pull-up planned; no external supply.'
+    show_pincount: false
+    ignore_in_bom: true
+    bgcolor: '#eaf2f8'
+  FTP:
+    type: FTP sensor/pigtail - GM-family map assumed
+    pins:
+    - A
+    - B
+    - C
+    pinlabels:
+    - Low reference / GND
+    - Analog pressure output
+    - Nominal 5 V supply
+    notes: 'P04: PIGTAIL mating face, latch up: A B C left to right.
+
+      GM reference map adopted for listed replacement.
+
+      Q09: as-built lead/fit check; Q10: calibration.
+
+      Sensor mating face is mirrored; do not copy left/right.'
+    show_pincount: false
+    ignore_in_bom: true
+    bgcolor: '#fff2dc'
+  COND:
+    type: Built RC input filter - 470 ohm / 1 uF
+    pins:
+    - IN
+    - OUT
+    - GND
+    pinlabels:
+    - Sensor-side R1 lead
+    - R1/C1 junction to A0
+    - C1 return
+    notes: 'IN -- R1 470 ohm -- OUT; C1 1 uF from OUT to GND.
+
+      Nonpolar capacitor, rated at least 10 V; no supply pin.
+
+      Node names, NOT physical connector pin numbers.
+
+      Nominal cutoff 339 Hz; built near A0.
+
+      No divider or fault clamp; power/protection review Q17.'
+    show_pincount: false
+    ignore_in_bom: true
+    bgcolor: '#eaf2f8'
+  LS1:
+    type: hiBCTR BSS138 4-channel module
+    pins:
+    - HV4
+    - HV3
+    - GND_HV
+    - HV
+    - HV2
+    - HV1
+    - LV4
+    - LV3
+    - GND_LV
+    - LV
+    - LV2
+    - LV1
+    pinlabels:
+    - Unused
+    - Unused
+    - GND pad / HV row
+    - 5 V reference
+    - SCL / ADC
+    - SDA / ADC
+    - Unused
+    - Unused
+    - GND pad / LV row
+    - 3.3 V reference
+    - SCL / ESP32
+    - SDA / ESP32
+    notes: 'SOLDER/BACK view: HV row above LV row.
+
+      Each row listed left to right; component view mirrored.
+
+      GND_HV/GND_LV: aliases for pads marked GND.
+
+      Channel 1 SDA; channel 2 SCL; 3/4 unused.
+
+      Nominal 10k pull-ups assumed; bring-up Q29.'
+    show_pincount: false
+    ignore_in_bom: true
+    bgcolor: '#eaf2f8'
+cables:
+  W_USB:
+    category: bundle
+    wirecount: 1
+    wirelabels:
+    - USB cable
+    colors:
+    - ''
+    notes: 'Complete USB cable, NOT one conductor.
+
+      Native USB: left front view / USB label; COM unused.
+
+      Computer cable must support data; source/load capacity Q12.
+
+      Color unspecified: complete factory cable.'
+    bgcolor: '#ffffff'
+    show_equiv: false
+  W_RAIL:
+    category: bundle
+    wirecount: 3
+    wirelabels:
+    - 3V3
+    - GND
+    - 5V_USB
+    colors:
+    - OG
+    - BK
+    - RD
+    gauge: TBD AWG
+    notes: 'Carrier feeds: L1 3V3, L22 GND, L21 nominal 5 V.
+
+      IN-OUT closed; USB-OTG open; family assumption Q30.
+
+      5 V is after USB input diode; voltage/load checks Q05/Q12.
+
+      Length (mm), termination and substitutions: as-built record.'
+    bgcolor: '#ffffff'
+    show_equiv: false
+  W_LCD:
+    category: bundle
+    wirecount: 5
+    wirelabels:
+    - DISP_RST
+    - DISP_CS
+    - DISP_DC
+    - SPI_MOSI
+    - SPI_CLK
+    colors:
+    - WH
+    - BU
+    - VT
+    - GN
+    - YE
+    gauge: TBD AWG
+    notes: 'Proposed signal allocation Q14.
+
+      Verify display logic domain Q06.
+
+      Length (mm), termination and color substitutions: as-built record.'
+    bgcolor: '#ffffff'
+    show_equiv: false
+  W_LCD_PWR:
+    category: bundle
+    wirecount: 2
+    wirelabels:
+    - DISP_3V3
+    - GND
+    colors:
+    - OG
+    - BK
+    gauge: TBD AWG
+    notes: 'Selected 3.3 V display power Q31; listing range 3-5 V.
+
+      Current/backlight and regulator margin checks Q06/Q12.
+
+      Length (mm), termination and substitutions: as-built record.'
+    bgcolor: '#ffffff'
+    show_equiv: false
+  W_ADC:
+    category: bundle
+    wirecount: 4
+    wirelabels:
+    - 5V_SHARED
+    - GND
+    - I2C_SDA_HV
+    - I2C_SCL_HV
+    colors:
+    - RD
+    - BK
+    - GN
+    - YE
+    gauge: TBD AWG
+    notes: 'Shared 5 V ADC power and LS1 HV1/HV2 bus.
+
+      Verify Q07/Q08/Q12; translator bring-up Q29.
+
+      Length (mm), termination and substitutions: as-built record.'
+    bgcolor: '#ffffff'
+    show_equiv: false
+  W_ADDR:
+    category: bundle
+    wirecount: 1
+    wirelabels:
+    - ADDR_GND
+    colors:
+    - BK
+    gauge: TBD AWG
+    notes: 'PROPOSED address 0x48.
+
+      Inspect existing bias before fitting Q08/Q18.
+
+      Length (mm), termination and color substitutions: as-built record.'
+    bgcolor: '#ffffff'
+    show_equiv: false
+  W_BUTTON:
+    category: bundle
+    wirecount: 2
+    wirelabels:
+    - BUTTON
+    - GND
+    colors:
+    - GY
+    - BK
+    gauge: TBD AWG
+    notes: 'Normally open; internal pull-up proposed.
+
+      GPIO6 candidate Q14; wire to real contact pair.
+
+      Length (mm), termination and color substitutions: as-built record.'
+    bgcolor: '#ffffff'
+    show_equiv: false
+  W_FTP_PWR:
+    category: bundle
+    wirecount: 2
+    wirelabels:
+    - SENSOR_5V
+    - SENSOR_RETURN
+    colors:
+    - RD
+    - BK
+    gauge: TBD AWG
+    notes: 'P04: GM-family map assumed; C=5 V, A=return.
+
+      USB-fed L21 with IN-OUT closed; voltage/load checks Q05/Q12.
+
+      Q09: check lead mapping/fit at assembly.
+
+      Colors apply to added leads, NOT factory pigtail.
+
+      Length (mm), termination and substitutions: as-built record.'
+    bgcolor: '#ffffff'
+    show_equiv: false
+  W_RAW:
+    category: bundle
+    wirecount: 1
+    wirelabels:
+    - SENSOR_OUTPUT
+    colors:
+    - BN
+    gauge: TBD AWG
+    notes: 'FTP B signal to RC filter IN.
+
+      R1/C1 circuit in rc-input-filter component guide.
+
+      BN applies to added lead, NOT factory pigtail.
+
+      Length (mm), termination and substitutions: as-built record.'
+    bgcolor: '#ffffff'
+    show_equiv: false
+  W_A0:
+    category: bundle
+    wirecount: 1
+    wirelabels:
+    - FILTERED_A0
+    colors:
+    - PK
+    gauge: TBD AWG
+    notes: 'RC OUT (R1/C1 junction) to A0.
+
+      Keep short; input stays within ADC GND to VDD.
+
+      Power/protection review Q17.
+
+      Length (mm), termination and substitutions: as-built record.'
+    bgcolor: '#ffffff'
+    show_equiv: false
+  W_ANALOG_GND:
+    category: bundle
+    wirecount: 1
+    wirelabels:
+    - ANALOG_RETURN
+    colors:
+    - BK
+    gauge: TBD AWG
+    notes: 'C1 return to common analog reference.
+
+      No display-only return path.
+
+      Length (mm), termination and substitutions: as-built record.'
+    bgcolor: '#ffffff'
+    show_equiv: false
+  W_I2C_LV:
+    category: bundle
+    wirecount: 2
+    wirelabels:
+    - I2C_SDA_LV
+    - I2C_SCL_LV
+    colors:
+    - GN
+    - YE
+    gauge: TBD AWG
+    notes: 'ESP32 3.3 V I2C to LS1 LV1/LV2.
+
+      Selected channels 1=SDA, 2=SCL.
+
+      Pull-up/communication bring-up Q29.'
+    bgcolor: '#ffffff'
+    show_equiv: false
+  W_LS_REF:
+    category: bundle
+    wirecount: 4
+    wirelabels:
+    - LS_3V3_REF
+    - LS_5V_REF
+    - LS_GND_LV
+    - LS_GND_HV
+    colors:
+    - OG
+    - RD
+    - BK
+    - BK
+    gauge: TBD AWG
+    notes: 'Selected module LV/HV supplies and both GND pads.
+
+      5 V shares the sensor/ADC branch.
+
+      No enable pin; bring-up Q29; selected source Q30; load checks Q12.'
+    bgcolor: '#ffffff'
+    show_equiv: false
+connections:
+- - USB_SOURCE:
+    - PLUG
+  - W_USB:
+    - 1
+  - J1:
+    - USB_NATIVE
+- - J1:
+    - L1
+    - L22
+    - L21
+  - W_RAIL:
+    - 1
+    - 2
+    - 3
+  - RAILS:
+    - 3V3
+    - GND
+    - 5V
+- - J1:
+    - L5
+    - L16
+    - L4
+    - L17
+    - L18
+  - W_LCD:
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+  - J2:
+    - RST
+    - CS
+    - DC
+    - SDA
+    - SCL
+- - RAILS:
+    - 3V3
+    - GND
+  - W_LCD_PWR:
+    - 1
+    - 2
+  - J2:
+    - VCC
+    - GND
+- - RAILS:
+    - 5V
+    - GND
+  - W_ADC:
+    - 1
+    - 2
+  - J3:
+    - V
+    - G
+- - LS1:
+    - HV1
+    - HV2
+  - W_ADC:
+    - 3
+    - 4
+  - J3:
+    - SDA
+    - SCL
+- - RAILS:
+    - GND
+  - W_ADDR:
+    - 1
+  - J3:
+    - ADDR
+- - J1:
+    - L6
+  - W_BUTTON:
+    - 1
+  - S1:
+    - CONTACT_A
+- - RAILS:
+    - GND
+  - W_BUTTON:
+    - 2
+  - S1:
+    - CONTACT_B
+- - RAILS:
+    - 5V
+    - GND
+  - W_FTP_PWR:
+    - 1
+    - 2
+  - FTP:
+    - C
+    - A
+- - FTP:
+    - B
+  - W_RAW:
+    - 1
+  - COND:
+    - IN
+- - COND:
+    - OUT
+  - W_A0:
+    - 1
+  - J3:
+    - A0
+- - RAILS:
+    - GND
+  - W_ANALOG_GND:
+    - 1
+  - COND:
+    - GND
+- - J1:
+    - L12
+    - L15
+  - W_I2C_LV:
+    - 1
+    - 2
+  - LS1:
+    - LV1
+    - LV2
+- - RAILS:
+    - 3V3
+    - 5V
+    - GND
+    - GND
+  - W_LS_REF:
+    - 1
+    - 2
+    - 3
+    - 4
+  - LS1:
+    - LV
+    - HV
+    - GND_LV
+    - GND_HV
+tweak:
+  append:
+  - 'graph [label="W01 - DRAFT / NOT ASSEMBLY READY\nProposed connections; amber blocks/bundles contain unresolved
+    interfaces.\nWire colors: W01 convention, NOT factory pigtail evidence. Blank color = complete USB cable; see
+    schedule.", labelloc=t, fontsize=18, nodesep=0.35, ranksep=0.7];'
+x-w01-views:
+  power:
+    title: Phase 1 - controller and distribution checks
+    cables:
+    - W_USB
+    - W_RAIL
+  display-button:
+    title: Phase 2 - display and button / 3.3 V supply
+    cables:
+    - W_RAIL
+    - W_LCD
+    - W_LCD_PWR
+    - W_BUTTON
+  adc:
+    title: Phase 3 - ADC power, bus and address
+    cables:
+    - W_RAIL
+    - W_ADC
+    - W_ADDR
+    - W_I2C_LV
+    - W_LS_REF
+  pressure:
+    title: Phase 4 - RC filter and pressure chain
+    cables:
+    - W_RAIL
+    - W_FTP_PWR
+    - W_RAW
+    - W_A0
+    - W_ANALOG_GND
+    - W_ADC
+    - W_I2C_LV
+    - W_LS_REF
+x-w01-status:
+  proposed_gpio_question: Q14
+  unresolved_questions:
+  - Q04
+  - Q05
+  - Q06
+  - Q07
+  - Q08
+  - Q09
+  - Q10
+  - Q12
+  - Q17
+  - Q18
+  - Q29
+  physical_verification: none
+  wire_color: W01 convention for added bench wiring; label and record substitutions; display VCC orange / 3.3 V
+  wire_length: measure in mm during layout
+  wire_gauge: TBD AWG by current, voltage drop and connector fit
+  sensor_terminal_map: GM document 1706435 page 19; adopted pigtail mating-face A/B/C map per P04; as-built check
+    pending
+  power_design: 'Q30/Q31 selected: native USB, IN-OUT closed, USB-OTG open, L21 5 V feed and L1 3V3 display'
+x-w01-color-convention:
+  BK:
+    name: Black
+    use: Ground/return, including ADDR-to-GND strap
+  RD:
+    name: Red
+    use: Nominal USB-fed 5 V supply, shared sensor/ADC branch and translator HV reference; Q30 selected, voltage/load
+      checks Q12
+  OG:
+    name: Orange
+    use: 3.3 V supply
+  YE:
+    name: Yellow
+    use: 'Clock: SPI CLK or I2C SCL, identified by bundle/net'
+  GN:
+    name: Green
+    use: 'Data: SPI MOSI or I2C SDA, identified by bundle/net'
+  BU:
+    name: Blue
+    use: Display chip select
+  VT:
+    name: Violet
+    use: Display data/command
+  WH:
+    name: White
+    use: Display reset
+  GY:
+    name: Gray
+    use: Button signal
+  BN:
+    name: Brown
+    use: Raw sensor output, added harness lead only
+  PK:
+    name: Pink
+    use: Conditioned ADC A0 signal

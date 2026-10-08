@@ -8,7 +8,7 @@ A03 describes the planned pressure measurement chain, from the FTP sensor throug
 flowchart TD
     pressure["Pressure at proposed upstream-of-restrictor tap"]
     sensor["FTP sensor: pressure to analog voltage"]
-    analog["Scaling, protection and analog filtering"]
+    analog["Analog filtering and protection; no divider"]
     adc["ADS1115: new conversion"]
     acquire["ESP32-S3: acquire counts, timestamp and status"]
     calibrate["Apply measured calibration and accepted zero offset"]
@@ -25,8 +25,8 @@ flowchart TD
 
     pressure ---|"Pressure sense hose"| sensor
     sensor -->|"Analog voltage"| analog
-    analog -->|"Scaled ADC input"| adc
-    adc -->|"I2C: conversion result"| acquire
+    analog -->|"Filtered ADC input"| adc
+    adc -->|"I2C via 5 V / 3.3 V translator"| acquire
     acquire --> calibrate
     calibration -.->|"Coefficients and valid configuration"| calibrate
     zero -.->|"Accepted zero correction"| calibrate
@@ -58,14 +58,14 @@ flowchart TD
 
 The [PCV overview (A04)](pcv-system.md) proposes sensing the catch-can outlet line before the restrictor. This measures pressure at the tap relative to atmosphere, not intake manifold pressure. Hose/catch-can losses may separate tap pressure from actual crankcase pressure; sensor mounting and this difference need evaluation. No second pressure sensor is selected here.
 
-The [overall gauge architecture (A01)](gauge-system.md) supplies system context. Per [A02](power-system.md), use the controller board's selected `3V3` output for the ADS1115 and compatible peripherals; the FTP sensor remains planned for 5 V. Actual module compatibility, supply performance and available current still need verification. Analog scaling/protection must be resolved before connecting the sensor signal to the ADC.
+The [overall gauge architecture (A01)](gauge-system.md) supplies system context. Per [A02](power-system.md), the FTP sensor and ADS1115 share regulated 5 V. I2C translation connects the ADC to the ESP32's 3.3 V logic. Select +/-6.144 V for the assumed 0-5 V signal envelope; no divider compensation applies. The initial [470 ohm / 1 uF RC filter](../components/rc-input-filter/README.md) is selected; its physical response and any justified additional protection remain Q17, with translator selection resolved under Q28 and physical bus checks under Q29.
 
 ## Stage responsibilities
 
 | Stage | Preserve or produce | Decision / evidence still needed |
 | --- | --- | --- |
 | Pressure sense and FTP sensor | Pressure-relative-to-atmosphere signal | Actual sensor terminals, reference arrangement, range, mounting and pneumatic response |
-| Analog conditioning | Scaled voltage with controlled filtering/protection | Final values, loading, tolerances, fault behavior and settling; preliminary values are in the [ADC notes](../components/adc/README.md) |
+| Analog conditioning | Unscaled sensor voltage with filtering/protection | Final values, loading, tolerances, fault behavior and settling; preliminary values are in the [ADC notes](../components/adc/README.md) |
 | ADS1115 conversion | New raw conversion counts | Chip/module identity, channel, gain, mode, address and supported conversion rate |
 | Acquisition | Counts, sample timestamp/age and acquisition status | Readiness detection, timeouts and measured effective sample cadence |
 | Calibration | Signed inH2O using an identified calibration record and accepted zero correction | Measured transfer model, coefficient units, validity range and matching hardware/configuration |
@@ -79,7 +79,7 @@ Input checks occur before conversion as needed; the single validity diamond summ
 
 Calibrate the complete sensor/conditioning/ADC chain against a known pressure reference. A fitted conversion may map raw counts directly to pressure; this diagram does not require reconstructing sensor voltage as an intermediate step or assume a generic OE transfer curve. Preserve raw readings and the model/configuration under the [data conventions](../../data/README.md).
 
-If voltage columns are recorded, distinguish ADC input voltage from sensor voltage reconstructed with the divider ratio. Those are calculated values unless independently measured. Do not apply the divider correction twice when calibration already maps the assembled chain's counts to pressure.
+If voltage columns are recorded, use the actual ADC range: nominally 187.5 uV/count at +/-6.144 V. The selected circuit has no divider correction. ADC input voltage and sensor voltage can differ because of filtering/loading or wiring; do not describe a computed sensor voltage as an independent measurement. Historical divider configurations retain their own calibration and ratio.
 
 Atmospheric zero is a deliberate operation with the pressure port equalized to atmosphere. Never automatically zero while the engine runs or treat a running average as atmosphere. Zero correction cannot replace slope/range calibration or repair an invalid sensor. The diagram shows an accepted offset, not a chosen button count or automatic acceptance algorithm.
 

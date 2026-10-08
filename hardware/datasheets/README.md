@@ -20,7 +20,7 @@ See the [ADC hardware reference](../components/adc/README.md) for how the device
 
 [Local module datasheet](esp32-s3-wroom-1_wroom-1u-datasheet-v1.8.pdf): Espressif Systems, version 1.8, revision history dated 2026-03-02, 53 pages. Imported 2026-10-06 from `bench-board-verification`. [Official source](https://www.espressif.com/sites/default/files/documentation/esp32-s3-wroom-1_wroom-1u_datasheet_en.pdf).
 
-Preserved unchanged, including publisher notices. Reviewed metadata, attachment absence and link-only annotations; no personal annotations or local-file links were found. Rendered the cover and checked module variants and revision history. This reference does not establish the third-party carrier's schematic or authenticate the received module. See the [board evidence record](../components/gauge-electronics/bench-board-reference.md).
+Preserved unchanged, including publisher notices. Reviewed metadata, attachment absence and link-only annotations; no personal annotations or local-file links were found. Rendered the cover and checked module variants and revision history. This reference does not establish the third-party carrier's schematic or authenticate the received module. See the [board evidence record](../components/esp32-s3-dev-board/bench-board-reference.md).
 
 Source and repository SHA-256 match:
 

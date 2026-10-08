@@ -44,6 +44,16 @@ Target hose ID is 3/8 in (9.525 mm). Compare 2.0, 3.0, and 4.0 mm metering varia
 
 ## Design intent
 
+### What the restriction changes
+
+A **fixed restrictor** limits flow through a small passage rather than actively controlling a pressure setpoint. In this PCV system, the intake-vacuum path draws through the restrictor while blow-by and the fresh-air path affect crankcase pressure. The measured pressure is therefore a result of the whole system, not a pressure value assigned by the bore diameter.
+
+The metering throat is the narrow passage that provides the intended restriction. Changing its diameter gives a repeatable design variable to compare on the bench and vehicle. Doubling a circular bore's diameter multiplies its area by four; that does not guarantee four times the flow, because pressure difference, passage geometry and gas behavior also matter. The adopted area calculations below explain why small diameter changes deserve measurement.
+
+The catch can and restrictor have separate jobs: the can is intended to collect entrained liquid before the intake return, while the restrictor meters that return path. A clean-looking can, a modeled bore or an atmospheric zero reading alone does not establish the final PCV performance. Use the [test plan](../../docs/testing/test-plan.md) to compare actual configurations.
+
+### Adopted prototype
+
 The short metering section localizes restriction. The adopted internal tapers are symmetric: each is 8 mm long between the 6.4 mm passage and the metering throat. The earlier 15 mm diffuser and separate 8-to-6 mm passage transition are superseded proposals. The 3 mm throat is the initial tuning baseline, with 2 and 4 mm comparison variants; final sizing remains subject to measurements.
 
 The actual 6.4 mm bore and 9.8 mm root OD leave nominal radial wall thickness `(9.8 - 6.4) / 2 = 1.7 mm`. This is a geometric calculation, not a strength or flow validation. Orifice areas are approximately 3.14, 7.07, and 12.57 mm² for 2, 3, and 4 mm respectively; area ratios alone do not establish actual flow.

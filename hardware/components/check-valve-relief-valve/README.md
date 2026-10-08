@@ -1,5 +1,21 @@
 # Check valve / proposed pressure relief
 
+## One-way flow and pressure relief
+
+A **check valve** permits flow in one direction and resists flow in the reverse direction. In a spring-loaded design, forward pressure must overcome the closing force before the valve begins to open. That differential pressure is called **cracking pressure**. It is different from the pressure rating of the valve body and from the pressure needed to pass a useful flow rate.
+
+This project proposes using the purchased check valve on a catch-can branch directed outward to atmosphere. During crankcase vacuum, that branch should remain closed rather than admitting unmetered air. During positive pressure, a suitably low opening threshold could provide an additional outward path. The restricted intake-vacuum branch remains a separate path; the relief valve does not meter normal manifold-vacuum evacuation.
+
+### Why a check valve is still only a relief candidate
+
+A one-way fuel valve is not automatically a characterized crankcase pressure-relief device. Its opening threshold, flow capacity, reverse leakage and behavior in vapor all matter here. A valve might begin opening at an acceptable pressure yet still require substantially more pressure to pass the required flow.
+
+The supplied vendor image advertises 0.5 PSI cracking pressure, approximately **13.8 inH2O**. The project's provisional relief target is approximately **2.77 inH2O** (0.1 PSI). That difference explains the interest in characterization and possible spring changes; it does not establish a suitable modification. Reducing spring force can also change closure and leakage, so opening, reseating and reverse-flow checks belong together in the [bench-test plan](../../../docs/testing/test-plan.md).
+
+The lesson for this component is to separate **direction**, **opening pressure** and **flow capacity**. None can be inferred solely from the hose size or maximum-pressure claim. The supplied internal illustration below is evidence of advertised construction, not a measured spring specification.
+
+## Selected hardware
+
 Purchased item: **EVIL ENERGY 1/2 in (12 mm) aluminum one-way fuel check valve**, black, three-piece pack with hose clamps, Amazon ASIN **B0FQJ71WZW**. Three valves were purchased for **USD 18.04 total**. See the [BOM](../../bom/parts.md).
 
 This check valve is a candidate for the separate catch-can-to-atmosphere relief path. Receipt, disassembly, modification, installation, and bench performance have not been confirmed.

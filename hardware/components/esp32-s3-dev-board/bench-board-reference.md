@@ -18,13 +18,13 @@ The images are product illustrations, including loose header strips, promotional
 
 ## USB and power findings
 
-With the antenna at the top and connectors at the bottom, component side facing the viewer, the annotated references identify **left: native ESP32-S3 USB/OTG; right: CH343P USB-to-UART**. The rear view reverses left/right and labels the ports USB and COM. Treat these as Vendor Listing evidence until the actual board is matched. USB-to-UART supports a serial programming/console path; it is not proof of native JTAG capability through that same port. No W01 programming port has yet been selected.
+With the antenna at the top and connectors at the bottom, component side facing the viewer, the annotations identify **left: native ESP32-S3 USB; right: CH343P USB-to-UART**. The rear view reverses left/right and labels the ports USB and COM. W01 now selects the native port for power, programming and native USB debugging; the COM port stays disconnected.
 
-The images show `RGB`, `IN-OUT` and rear `USB-OTG` jumper locations. Factory state, circuit applicability and regulator capacity require inspection. An annotated image's default-jumper caption is not evidence of the received jumper state.
+The [official board-family V1.4 schematic](https://github.com/vcc-gnd/YD-ESP32-S3/blob/main/5-public-YD-ESP32-S3-Hardware%20info/YD-ESP32-S3-SCH-V1.4.pdf) establishes the reference circuit: native VBUS enters the internal 5V rail through D2, header pin 21 enters through D3, and IN-OUT bypasses D3. W01 selects IN-OUT closed for a USB-fed header output, with USB-OTG open. In that schematic USB-OTG bypasses D2; the earlier community description of tying both raw VBUS rails together is incomplete because the UART input diode remains. The [power plan](power-plan.md) explains connections, diode drop and routine bring-up.
 
-The supplied [community board notes](https://github.com/profharris/YD-ESP32-S3_ESP32-S3-WROOM-1_Dev) report GPIO48 for RGB and describe IN-OUT as controlling whether USB power reaches 5Vin. They also describe USB-OTG as linking port VBUS rails. Their jumper explanation cites another community discussion, so these are investigation leads, not a verified schematic for this unit. In particular, an open IN-OUT jumper may leave 5Vin unavailable as a USB-powered sensor supply. Verify jumper states, diode paths and header voltage under Q05/Q12 before choosing distribution; no jumper modification is selected.
+The rear listing image reads 2022-V1.3; the official reference is V1.4. Its circuit is adopted as a working family assumption, not a confirmed received revision. The images show the relevant jumper locations and matching header map. No additional photos are required to continue design. Q04/Q05 retain received-board comparison and ordinary electrical checks; Q12 retains actual source/load margin. No physical jumper change or measurement is recorded.
 
-Q03's single-source USB operating choice still stands. If the board cannot provide the required 5 V branch as wired, resolve an explicit distribution change. Do not interpret the staged notes' suggestion to leave jumpers open as a completed power design or proof of source isolation.
+Q03's single-source USB choice still stands. Q30 resolves the USB-fed distribution/debug arrangement. No simultaneous USB sources, external header supply or converter/host combination is selected.
 
 ## Module reference and pin choices
 

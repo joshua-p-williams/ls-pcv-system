@@ -29,7 +29,7 @@ The 3 A figure is an advertised **output** limit. It does not specify input curr
 
 Follow [A02: power architecture](../architecture/power-system.md) for source selection, returns and operating modes. The planned path is switched vehicle supply or one selected bench DC source, through the chosen fuse/input protection, into the converter. Its nominal 5 V output then supplies the designed gauge distribution. Exact source, fuse, conductors, connectors and protection remain TBD; the component record's preliminary fuse range is not a selected harness specification.
 
-The selected ESP32-S3 board regulates the planned ADC/peripheral `3V3` rail. Check the appropriate board input and power paths in [P01: bench board](esp32-s3-devkit.md) or [P02: XIAO](xiao-esp32s3.md). The sensor remains planned for 5 V subject to [P04](ftp-sensor.md); the display supply remains unresolved in [P05](gc9a01.md). A USB-C plug does not by itself define how the separate sensor and display branches receive power.
+The selected ESP32-S3 board regulates the planned controller/peripheral `3V3` rail. Check the appropriate board input and power paths in [P01: bench board](esp32-s3-devkit.md) or [P02: XIAO](xiao-esp32s3.md). The sensor remains planned for 5 V subject to [P04](ftp-sensor.md); display VCC is selected at 3.3 V in [P05](gc9a01.md), with rail capacity still to verify. A USB-C plug does not by itself define how the separate sensor and display branches receive power.
 
 A02's input/output return relationship remains unresolved. Verify it on the actual converter and document intended source, gauge and USB-host return paths. Do not claim galvanic isolation from an open continuity reading or assume a particular chassis bond from enclosure appearance.
 

@@ -1,80 +1,51 @@
-# Gauge electronics
+# Gauge electronics integration
 
-The gauge uses **ESP32-S3**, with an N16R8 development board for bench work, a **Seeed Studio XIAO ESP32-S3** as the intended finished-gauge controller, and a **Hosyond 1.28-inch GC9A01 round TFT** for the first display prototype. These selections supersede the earlier Nano/OLED candidates.
+## How the electronics divide the work
 
-See [A01: overall gauge architecture](../../architecture/gauge-system.md) for how these components connect conceptually, including the alternative bench and finished-gauge controllers.
+The sensor creates an analog voltage; the ADS1115 measures it; the ESP32 applies calibration, captures peaks and handles the button; the GC9A01 display presents the resulting state. A display refresh must not determine whether a brief pressure event is captured. [A03](../../architecture/measurement-system.md) explains acquisition, peak capture and display smoothing.
 
-See [P01: bench-board interface](../../pinouts/esp32-s3-devkit.md) for the pictured N16R8 header labels, GPIO restrictions and verification checklist.
+Use one controller per build: the N16R8 development board for W01 bench work, or the XIAO for the intended finished gauge and a matching bench build. Shared application code needs explicit board configurations because pins and power paths differ. These selections supersede the earlier Nano/OLED candidates.
 
-See [P02: XIAO interface](../../pinouts/xiao-esp32s3.md) for edge-pin aliases, bus candidates and power-reference limits for the finished-gauge board.
+## Component guides
 
-See the [bench-board evidence record](bench-board-reference.md) for additional YD-style product views, candidate USB roles, jumper questions and the preserved Espressif module datasheet. These references do not verify the received board.
+| Component | What to learn here | Exact interface |
+| --- | --- | --- |
+| [N16R8 development board](../esp32-s3-dev-board/README.md) | Chip/module/carrier distinctions, memory, bench access and USB operation | [P01](../../pinouts/esp32-s3-devkit.md) |
+| [XIAO ESP32-S3](../xiao-esp32s3/README.md) | Compact-controller role, pin aliases, pin budget and power constraints | [P02](../../pinouts/xiao-esp32s3.md) |
+| [GC9A01 TFT](../gc9a01-display/README.md) | Display/controller roles, SPI and readable gauge output | [P05](../../pinouts/gc9a01.md) |
+| [I2C level shifter](../i2c-level-shifter/README.md) | BSS138 translation, supply domains and channel assignments | Terminal map in the component guide; connections in W01 |
+| [RC input filter](../rc-input-filter/README.md) | Built analog filter, response tradeoff and stock-part assembly | Internal circuit in its component guide; external nodes in W01 |
+| [ADS1115](../adc/README.md) | Analog-to-digital conversion, gain, resolution and calibration | [P03](../../pinouts/ads1115.md) |
+| [FTP sensor and pigtail](../fuel-tank-pressure-sensor/README.md) | Pressure-to-voltage conversion, connector and atmospheric reference | [P04](../../pinouts/ftp-sensor.md) |
+| [Power supply](../gauge-power-supply/README.md) | Buck regulation, rail responsibilities and load budgeting | [P06](../../pinouts/buck-converter.md) |
 
-## Purchased hardware
-
-Prices and selections below are reported. Specifications are from the supplied listing descriptions, not measurements or independently verified datasheets. The N16R8 development board has not yet arrived. Receipt of the XIAO boards and displays remains unconfirmed; actual board revisions, assembly and operation remain unverified.
-
-| Role | Item / source | Quantity | Reported price | Listed configuration |
-| --- | --- | --- | --- | --- |
-| Bench development | [ESP32-S3 N16R8 board, B0D93DLB6Q](https://www.amazon.com/dp/B0D93DLB6Q) | Not explicitly specified | USD 7.99 | 16 MB flash, 8 MB PSRAM, exposed GPIO, Wi-Fi/Bluetooth |
-| Finished-gauge controller | [Seeed Studio XIAO ESP32-S3, B0DJ6NQFKX](https://www.amazon.com/dp/B0DJ6NQFKX) | 3 boards, one pack | USD 21.59 total | 8 MB flash, 8 MB PSRAM, dual-core ESP32-S3, USB, Wi-Fi/BLE, battery support |
-| Initial display | [Hosyond GC9A01 TFT, B0DYP4J9XP](https://www.amazon.com/dp/B0DYP4J9XP) | 3 displays, one pack | USD 14.39 total | 1.28-inch round display, 240 x 240 pixels, 4-wire SPI |
-
-The N16R8 board is selected for W01 bench wiring, sensor/ADC/display testing, controls, probing, and USB debugging. Both it and the finished-gauge XIAO require complete wiring plans and phased assembly/verification; see the [controller configurations](../../wiring/README.md#controller-configurations). The three XIAO boards are intended for the installed gauge, a bench controller matching the gauge hardware, and a spare/future gauge. These are planned roles, not completed deployments.
-
-![Vendor development board image](../../../media/reference/gauge-electronics/esp32-s3-development-board.jpg)
-
-![Vendor XIAO three-pack image](../../../media/reference/gauge-electronics/xiao-esp32s3-pack.jpg)
-
-## Display and interface
-
-See [P05: GC9A01 display interface](../../pinouts/gc9a01.md) for header orientation, SPI signal roles, power/backlight questions and verification before wiring.
-
-Start with one GC9A01 screen displaying signed live pressure in `inH2O` and minimum/maximum values. Evaluate readability from the driver's seat before finalizing the display and enclosure.
-
-![Vendor GC9A01 display image](../../../media/reference/gauge-electronics/gc9a01-display.jpg)
-
-The notes describe a square PCB and approximately 32.4 mm active circular area. The supplied image instead shows a rounded PCB with a connector tab and mounting holes. Use the actual module's measured outline, mounting holes, connector clearance, and viewing area for enclosure design; the approximate active-area figure is not an enclosure dimension.
-
-The supplied vendor pin-reference image lists the following symbols. This is a transcription of its interface descriptions, **not a verified wiring diagram or assignment of ESP32 GPIOs**. In this SPI reference, `SCL` and `SDA` label serial clock and data; they do not indicate an I2C display.
-
-| Display label | Vendor-described function |
-| --- | --- |
-| VCC | Power; voltage not specified in the supplied image |
-| GND | Power ground |
-| SCL | Serial interface clock |
-| SDA | SPI data; image describes latching on the rising clock edge |
-| DC | Data/command selection |
-| CS | Chip select, active low |
-| RST | Reset, active low |
-
-![Vendor display pin reference](../../../media/reference/gauge-electronics/gc9a01-pin-definition.jpg)
-
-Verify the actual board labels, supply and logic levels, reset behavior, and module documentation before wiring. The image's generic FPC wording and the pictured header do not establish a separate connector specification. GPIO assignments and driver-library choices remain open.
+Procurement status lives in the [BOM](../../bom/parts.md). Component pages preserve selections and relevant product references; this page explains how they fit together. The [bench-board evidence record](../esp32-s3-dev-board/bench-board-reference.md) belongs with the N16R8 component. Existing media locations remain stable.
 
 ## Planned measurement and power arrangement
 
-The proposed first prototype uses the [SSLHONG vehicle-to-5 V converter](../../components/gauge-power-supply/README.md), purchased for USD 13.99, the FTP sensor, ESP32-S3 controller, an **[ADS1115 external ADC](../../components/adc/README.md)**, one SPI display, and one multifunction button. See the [BetterButton integration direction](../../../firmware/README.md#multifunction-button); initial gestures are selected there; confirmation-prompt details and switch/GPIO selection remain open. Three ADC modules were purchased for USD 5.98 total. I2C and a 3.3 V ADC supply are planned; module identity, gain/rate, address, logic levels, and final conditioning circuit remain to be verified or selected.
+The sensor and ADS1115 share regulated 5 V. The ADC uses the selected +/-6.144 V range without an analog divider. A bidirectional I2C translator separates the ADC's 5 V bus from ESP32 3.3 V logic. The hiBCTR BSS138 translator is selected (Q28); physical bus checks remain Q29. The initial 470 ohm / 1 uF RC filter is selected, with stock-part recording, response and power/protection review under Q17. Display VCC and SPI/control use 3.3 V (Q31), within the listed 3-5 V module supply range. W01 selects native USB with IN-OUT closed for its 5 V branch (Q30); actual rail/load checks remain. A 5 V system rail does not make every signal 5 V compatible.
 
-Resolve the actual sensor output range, ADC input/reference limits, I2C logic levels, board power inputs, display supply, and grounding together. The 5 V system supply does not imply that every signal or peripheral can connect directly to 5 V. This import does not establish a wiring schematic.
+**I2C** carries ADC data and clock; **SPI** carries display data and clock with separate control signals. The display's SDA/SCL labels denote its SPI interface and must not be confused with the ADC bus. [A01](../../architecture/gauge-system.md) shows these relationships; [A02](../../architecture/power-system.md) defines rail/return responsibilities.
+
+W01 uses one USB source at a time: computer power/debugging or a suitable standalone supply, accepting restart on switching. USB-derived 5 V distribution and load capacity remain Q05/Q12. The SSLHONG converter is the planned vehicle supply and a separate evaluation path, not an instruction to connect two sources together.
 
 ## Firmware direction
 
-Planned environment: **VS Code, PlatformIO, Arduino framework for ESP32, C/C++**. No environment definitions, platform versions, board IDs, dependencies, or firmware have been created yet.
+Planned environment: VS Code, PlatformIO, Arduino framework for ESP32, C/C++. No environment definitions, library versions or firmware implementation exist yet. Keep acquisition, calibration, filtering and peak capture separate from the display driver and board-specific GPIO configuration. The [firmware requirements](../../../firmware/README.md) define the selected single-button interactions and future settings persistence.
 
-Use shared application code for the development board and XIAO, with board-specific GPIO and hardware configuration isolated. Keep acquisition, calibration, filtering, and peak capture independent of the display implementation. A display should render pressure state without owning measurement or calibration logic. See the [firmware requirements](../../../firmware/README.md).
+Initial bring-up exercises the controller, display/button, ADC and calibrated pressure chain against the complete wiring design. [W01](../../wiring/bench/README.md) derives phased views from its authoritative source; staged testing does not replace planning the final wiring. A XIAO build requires its own complete harness and verification.
 
-Initial bring-up order: development board, one display, verified ADC/sensor interfaces, calibrated pressure, deliberate zero, and min/max capture; then evaluate in-vehicle readability. Saved peaks should allow later review without watching the display during a pull.
+## Reading and building path
 
-## Display options retained for later
-
-- One 1.28-inch pressure gauge: initial prototype and possible final configuration.
-- Several small displays in a pod: potential future channels include fuel/oil pressure, oil/coolant temperature, or differential pressure. Shared SPI clock/data with separate chip selects is a proposed approach, pending pin-budget and bus/driver validation.
-- A larger approximately 2.1-inch round display if readability requires it. No specific larger module is selected or purchased; active-screen size does not establish compatibility with a conventional gauge opening.
-
-These are future options, not requirements to implement multiple channels now. Keep display size and controller choice out of pressure-measurement logic.
+1. Read [A04](../../architecture/pcv-system.md) to understand the airflow and pressure tap, then [A01](../../architecture/gauge-system.md) for gauge boundaries.
+2. Use the component guides above to learn the operating principles and selection tradeoffs.
+3. Follow the P01-P06 links for exact module interfaces and orientation conventions; consult [A02](../../architecture/power-system.md) and [A03](../../architecture/measurement-system.md) for power and measurement responsibilities.
+4. Review [W01's full diagram and connection schedule](../../wiring/bench/README.md) before its phased assembly steps. Resolve the marked [open questions](../../../docs/open-questions.md) before energizing affected sections.
+5. Use the [calibration/test plan](../../../docs/testing/test-plan.md) and [data conventions](../../../data/README.md) to record results. Document generation and successful display output do not establish measured pressure accuracy.
 
 ## Import record - 2026-10-06
+
+The original combined import is retained here. Current board and display explanations and reference images are linked from the separate component guides above; procurement remains in the BOM.
 
 Source batch: `guage-electronics` (original spelling retained in private staging). Imported the technical notes into this document, the BOM, firmware README, current status, and agent guidance. Public names use `gauge-electronics`.
 

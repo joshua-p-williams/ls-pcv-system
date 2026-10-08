@@ -19,7 +19,9 @@ Record configuration and evidence using the [data conventions](../../data/README
 - Measure crankcase/catch-can pressure upstream of the restrictor; protect the sensor from direct liquid oil exposure.
 - Inspect hoses, retention, mounting, wiring, and catch-can condition before testing.
 
-For gauge bench work, start with the documented [power integration checks](../../hardware/components/gauge-power-supply/README.md), [P04 sensor terminal/fit checks](../../hardware/pinouts/ftp-sensor.md), and [ADS1115 setup](../../hardware/components/adc/README.md). Record the actual conditioning components, gain, conversion rate, channel/address, and supply arrangement with the calibration. The proposed divider, capacitor, and fuse values are not validated test-fixture specifications.
+For gauge bench work, start with the documented [power integration checks](../../hardware/components/gauge-power-supply/README.md), [P04 sensor terminal/fit checks](../../hardware/pinouts/ftp-sensor.md), and [ADS1115 setup](../../hardware/components/adc/README.md). Record the actual conditioning components, gain, conversion rate, channel/address, and supply arrangement with the calibration. The former divider is superseded; the initial signal filter is 470 ohm / 1 uF, with stock parts and response to record/validate; fuse values remain design work. Verify the shared 5 V branch and separate I2C voltage domains before integrating the sensor and ADC.
+
+[W01's phased assembly guide](../../hardware/wiring/bench/README.md#phased-assembly-and-verification) adds configuration-specific prerequisites and section views for the N16R8 USB bench setup. Resolve each phase's marked interfaces before connection or power; converter checks apply only when that source is introduced. Q30/Q31 define native USB, IN-OUT closed, USB-OTG open, nominal USB-fed 5 V and 3.3 V display power. Include actual diode/cable drop and source/load margin in phase checks. The harness draft and rendering checks are not bench-test results.
 
 ## 2. Characterize the sensor on the bench
 
