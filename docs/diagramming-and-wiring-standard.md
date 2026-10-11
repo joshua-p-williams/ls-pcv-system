@@ -30,6 +30,7 @@ Markdown owns explanatory context; Mermaid owns conceptual relationships; pinout
 | `hardware/wiring/vehicle/` | Separate vehicle harness source and installation notes |
 | `hardware/wiring/<configuration>/generated/` | WireViz renderings next to their owning source |
 | `simulation/wokwi/` | Maintained Wokwi illustration/simulation JSON, physical mappings, model limits and opening instructions |
+| `simulation/wokwi/breadboard/` | L03 carrier-placement/jumper view, rail/strip projection checks and generated PNG; shares L01's custom parts |
 | `hardware/schematics/drawio/` | Editable layout/installation illustrations when needed |
 | `hardware/schematics/<circuit>/` | Future circuit schematic projects, if justified |
 | `firmware/` | Firmware architecture/state/data-flow documentation near future code |

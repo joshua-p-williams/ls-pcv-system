@@ -15,8 +15,8 @@
     {
       "type": "board-esp32-s3-devkitc-1",
       "id": "J1",
-      "top": 150,
-      "left": 560,
+      "top": 220,
+      "left": 700,
       "attrs": {
         "flashSize": "16",
         "psramSize": "8",
@@ -27,31 +27,31 @@
     {
       "type": "chip-pcv-gc9a01-visual",
       "id": "J2",
-      "top": 170,
-      "left": 100,
+      "top": 240,
+      "left": 480,
       "attrs": {}
     },
     {
       "type": "wokwi-text",
       "id": "display-note",
-      "top": 80,
-      "left": 80,
+      "top": 170,
+      "left": 465,
       "attrs": {
-        "text": "J2 - GC9A01 / 3.3 V\nSDA/SCL are SPI, not I2C"
+        "text": "J2 GC9A01 / 3.3 V\nSDA/SCL are SPI, not I2C"
       }
     },
     {
       "type": "chip-pcv-level-shifter-visual",
       "id": "LS1",
-      "top": 300,
-      "left": 330,
+      "top": 420,
+      "left": 480,
       "attrs": {}
     },
     {
       "type": "wokwi-text",
       "id": "translator-note",
-      "top": 370,
-      "left": 305,
+      "top": 350,
+      "left": 465,
       "attrs": {
         "text": "LS1: 3.3 V <-> 5 V\nCh1 SDA / Ch2 SCL"
       }
@@ -59,15 +59,15 @@
     {
       "type": "chip-pcv-ads1115-visual",
       "id": "J3",
-      "top": 300,
-      "left": 85,
+      "top": 420,
+      "left": 280,
       "attrs": {}
     },
     {
       "type": "wokwi-text",
       "id": "adc-note",
-      "top": 240,
-      "left": 65,
+      "top": 350,
+      "left": 275,
       "attrs": {
         "text": "J3 ADS1115 / 5 V\nA0; ADDR candidate"
       }
@@ -75,15 +75,15 @@
     {
       "type": "chip-pcv-ftp-visual",
       "id": "FTP",
-      "top": 570,
-      "left": 70,
+      "top": 420,
+      "left": 20,
       "attrs": {}
     },
     {
       "type": "wokwi-text",
       "id": "sensor-note",
-      "top": 510,
-      "left": 0,
+      "top": 350,
+      "left": 20,
       "attrs": {
         "text": "FTP sensor / 5 V\nA GND; B signal; C 5 V"
       }
@@ -91,59 +91,59 @@
     {
       "type": "wokwi-resistor",
       "id": "R1",
-      "top": 440,
-      "left": 220,
+      "top": 420,
+      "left": 155,
       "attrs": {
         "value": "470"
       },
-      "rotate": 90
+      "rotate": 0
     },
     {
       "type": "wokwi-text",
       "id": "filter-note",
       "top": 480,
-      "left": 300,
+      "left": 130,
       "attrs": {
-        "text": "COND: R1 470 ohm\nC1 1 uF nonpolar"
+        "text": "R1 470 ohm series\nBrown IN / pink OUT"
       }
     },
     {
       "type": "chip-pcv-capacitor-visual",
       "id": "C1",
-      "top": 680,
-      "left": 300,
+      "top": 560,
+      "left": 120,
       "attrs": {}
     },
     {
       "type": "wokwi-text",
       "id": "capacitor-note",
-      "top": 760,
-      "left": 300,
+      "top": 620,
+      "left": 170,
       "attrs": {
-        "text": "C1 >=10 V / OUT to GND\nSymbol is not a physical footprint"
+        "text": "C1 1 uF / >=10 V\nNonpolar / OUT to GND"
       }
     },
     {
       "type": "chip-pcv-rails-visual",
       "id": "RAILS",
-      "top": 720,
-      "left": 800,
+      "top": 690,
+      "left": 340,
       "attrs": {}
     },
     {
       "type": "wokwi-text",
       "id": "rails-note",
-      "top": 960,
-      "left": 800,
+      "top": 760,
+      "left": 340,
       "attrs": {
-        "text": "RAILS - functional nets\n3.3 V / nominal 5 V\nCommon ground"
+        "text": "RAILS - functional nets\nOrange 3.3 V / red nominal 5 V\nBlack common ground"
       }
     },
     {
       "type": "wokwi-pushbutton",
       "id": "S1",
-      "top": 600,
-      "left": 520,
+      "top": 560,
+      "left": 700,
       "attrs": {
         "color": "blue",
         "label": "S1"
@@ -152,8 +152,8 @@
     {
       "type": "wokwi-text",
       "id": "button-note",
-      "top": 505,
-      "left": 510,
+      "top": 615,
+      "left": 675,
       "attrs": {
         "text": "GPIO6 / internal pull-up\nGray signal; black return"
       }
@@ -161,8 +161,8 @@
     {
       "type": "wokwi-text",
       "id": "USB_SOURCE",
-      "top": 220,
-      "left": 820,
+      "top": 260,
+      "left": 835,
       "attrs": {
         "text": "ONE native USB source\nComputer OR standalone\nYD native USB: LEFT\nIN-OUT closed\nUSB-OTG open\nPower geometry: P01/Q30"
       }
@@ -170,7 +170,7 @@
     {
       "type": "wokwi-text",
       "id": "legend",
-      "top": 1000,
+      "top": 880,
       "left": 0,
       "attrs": {
         "text": "Green data / yellow clock: identify SPI versus I2C by endpoint.\nWhite reset / blue CS / violet DC / gray button.\nBrown raw output / pink filtered A0; factory pigtail colors are not assigned.\nGeneric visual parts: functional terminals, not actual pin order or footprints.\nNot a solder-hole map or working simulation; support hoses, modules and cables."
@@ -183,10 +183,9 @@
       "RAILS:3V3",
       "orange",
       [
-        "h-15.08",
-        "v-108.98",
-        "h155.00",
-        "v658.58"
+        "h-35.08",
+        "v406.02",
+        "h-325.20"
       ]
     ],
     [
@@ -194,12 +193,9 @@
       "RAILS:GND",
       "black",
       [
-        "h-15.08",
-        "v74.42",
-        "h450.00",
-        "v433.00",
-        "h-255.00",
-        "v-149.82"
+        "h99.92",
+        "v229.42",
+        "h-460.20"
       ]
     ],
     [
@@ -207,12 +203,9 @@
       "RAILS:5V",
       "red",
       [
-        "h-30.08",
-        "v69.02",
-        "h445.00",
-        "v500.00",
-        "h-45.00",
-        "v-201.82"
+        "h99.92",
+        "v264.02",
+        "h-356.41"
       ]
     ],
     [
@@ -220,10 +213,8 @@
       "J2:RST",
       "white",
       [
-        "h-30.08",
-        "v-70.38",
-        "h-460.00",
-        "v50.78"
+        "h-65.08",
+        "v-19.60"
       ]
     ],
     [
@@ -231,24 +222,25 @@
       "J2:CS",
       "blue",
       [
-        "h-45.08",
-        "v-99.98",
-        "h-450.00",
-        "v-15.62"
+        "h-55.08",
+        "v-115.60"
       ]
     ],
     [
       "J1:4",
       "J2:DC",
       "violet",
-      []
+      [
+        "h-45.08",
+        "v-0.40"
+      ]
     ],
     [
       "J1:11",
       "J2:SDA",
       "green",
       [
-        "h-55.08",
+        "h-35.08",
         "v-134.80"
       ]
     ],
@@ -257,7 +249,7 @@
       "J2:SCL",
       "yellow",
       [
-        "h-65.08",
+        "h-25.08",
         "v-154.00"
       ]
     ],
@@ -266,10 +258,9 @@
       "J2:VCC",
       "orange",
       [
-        "h-99.80",
-        "v-658.58",
-        "h-650.00",
-        "v108.58"
+        "v-43.58",
+        "h275.20",
+        "v-406.42"
       ]
     ],
     [
@@ -277,10 +268,9 @@
       "J2:GND",
       "black",
       [
-        "h-59.80",
-        "v-683.18",
-        "h-705.00",
-        "v133.18"
+        "v-28.18",
+        "h285.20",
+        "v-421.82"
       ]
     ],
     [
@@ -288,10 +278,9 @@
       "J3:V",
       "red",
       [
-        "h26.41",
-        "v201.82",
-        "h-717.00",
-        "v-631.42"
+        "v-3.18",
+        "h-43.59",
+        "v-276.42"
       ]
     ],
     [
@@ -299,33 +288,35 @@
       "J3:G",
       "black",
       [
-        "h-59.80",
-        "v149.82",
-        "h-517.00",
-        "v-569.82"
+        "v-28.18",
+        "h70.20",
+        "v-241.82"
       ]
     ],
     [
       "LS1:HV1",
       "J3:SDA",
       "green",
-      []
+      [
+        "h-34.80"
+      ]
     ],
     [
       "LS1:HV2",
       "J3:SCL",
       "yellow",
-      []
+      [
+        "h-24.80"
+      ]
     ],
     [
       "RAILS:GND",
       "J3:ADDR",
       "black",
       [
-        "h-59.80",
-        "v149.82",
-        "h-507.00",
-        "v-541.02"
+        "v-28.18",
+        "h80.20",
+        "v-213.02"
       ]
     ],
     [
@@ -333,10 +324,9 @@
       "S1:1.r",
       "gray",
       [
-        "h-80.08",
-        "v348.02",
-        "h105.00",
-        "v38.00"
+        "h-45.08",
+        "v243.02",
+        "h107.00"
       ]
     ],
     [
@@ -344,10 +334,9 @@
       "S1:2.r",
       "black",
       [
-        "h-59.80",
-        "v149.82",
-        "h-135.00",
-        "v-256.00"
+        "v-28.18",
+        "h450.20",
+        "v-88.00"
       ]
     ],
     [
@@ -355,10 +344,9 @@
       "FTP:C",
       "red",
       [
-        "h26.41",
-        "v201.82",
-        "h-920.00",
-        "v-361.42"
+        "v-3.18",
+        "h-433.59",
+        "v-276.42"
       ]
     ],
     [
@@ -366,10 +354,9 @@
       "FTP:A",
       "black",
       [
-        "h-59.80",
-        "v149.82",
-        "h-715.00",
-        "v-299.82"
+        "v-28.18",
+        "h-339.80",
+        "v-241.82"
       ]
     ],
     [
@@ -377,9 +364,8 @@
       "R1:1",
       "brown",
       [
-        "h29.41",
-        "v-192.18",
-        "h41.56"
+        "h11.41",
+        "v-13.18"
       ]
     ],
     [
@@ -387,8 +373,8 @@
       "J3:A0",
       "pink",
       [
-        "h-210.56",
-        "v-166.32"
+        "h30.88",
+        "v3.58"
       ]
     ],
     [
@@ -396,10 +382,9 @@
       "C1:GND",
       "black",
       [
-        "h-59.80",
-        "v149.82",
-        "h-475.00",
-        "v-189.82"
+        "v-28.18",
+        "h-244.80",
+        "v-101.82"
       ]
     ],
     [
@@ -407,8 +392,8 @@
       "LS1:LV1",
       "green",
       [
-        "h-85.08",
-        "v43.20"
+        "h-65.08",
+        "v93.20"
       ]
     ],
     [
@@ -416,8 +401,8 @@
       "LS1:LV2",
       "yellow",
       [
-        "h-90.08",
-        "v24.00"
+        "h-55.08",
+        "v74.00"
       ]
     ],
     [
@@ -425,10 +410,9 @@
       "LS1:LV",
       "orange",
       [
-        "h-99.80",
-        "v-303.58",
-        "h-215.00",
-        "v-116.42"
+        "v-43.58",
+        "h270.20",
+        "v-226.42"
       ]
     ],
     [
@@ -436,10 +420,9 @@
       "LS1:HV",
       "red",
       [
-        "h26.41",
-        "v-298.18",
-        "h-655.00",
-        "v-131.42"
+        "v-3.18",
+        "h1.41",
+        "v-276.42"
       ]
     ],
     [
@@ -447,10 +430,9 @@
       "LS1:GND_LV",
       "black",
       [
-        "h-59.80",
-        "v-268.18",
-        "h-280.00",
-        "v-151.82"
+        "v-28.18",
+        "h280.20",
+        "v-241.82"
       ]
     ],
     [
@@ -458,10 +440,9 @@
       "LS1:GND_HV",
       "black",
       [
-        "h-59.80",
-        "v-283.18",
-        "h-475.00",
-        "v-136.82"
+        "v-28.18",
+        "h115.20",
+        "v-241.82"
       ]
     ],
     [
@@ -469,8 +450,10 @@
       "C1:OUT",
       "pink",
       [
-        "h30.44",
-        "v213.68"
+        "h30.88",
+        "v115.00",
+        "h-165.00",
+        "v28.58"
       ]
     ]
   ],

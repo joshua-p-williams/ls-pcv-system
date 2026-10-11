@@ -278,7 +278,7 @@ If someone asked why the thing is in the PCV controller, I'd say:
 
 # ADS1115 Module Selection
 
-Selected external ADC: **ADS1115 modules**, [Amazon B0BXDLZLZS](https://www.amazon.com/dp/B0BXDLZLZS). Supplied notes confirm **three modules purchased for USD 5.98 total**. Planned allocation is one bench module, one finished-gauge module, and one spare/expansion module. The modules have not yet arrived; chip identity and operation remain unverified.
+Selected external ADC: **ADS1115 modules**, [Amazon B0BXDLZLZS](https://www.amazon.com/dp/B0BXDLZLZS). Supplied notes confirm **three modules purchased for USD 5.98 total**. Planned allocation is one bench module, one finished-gauge module, and one spare/expansion module. The modules are reported on hand; chip identity and operation remain unverified.
 
 The intended measurement path is FTP sensor, input filtering/protection, ADS1115 on 5 V, then translated I2C to ESP32-S3. The controller handles calibrated pressure, peak tracking, and display rendering. An external ADC keeps the acquisition design consistent between the N16R8 bench board and XIAO controller; changing the actual ADC or analog circuit still calls for calibration review.
 
@@ -314,7 +314,7 @@ See the [N16R8](../esp32-s3-dev-board/README.md), [XIAO](../xiao-esp32s3/README.
 - Remove analog divider scaling from the baseline. Use the initial [470 ohm / 1 uF RC input filter](../rc-input-filter/README.md). Stock parts, response and power/protection behavior remain Q17. TI's 100 nF supply decoupling recommendation is separate from the A0 signal capacitor.
 - ADDR-to-GND / 0x48, single-shot 128 SPS and readiness polling remain W01 bring-up candidates. ALERT stays unused.
 
-The [conditioning review](conditioning-review.md) owns this decision, its rationale and remaining implementation work. It applies to the N16R8 bench and XIAO target; each still needs its own power distribution and GPIO configuration. [P03](../../pinouts/ads1115.md) describes the two voltage domains. The purchased module has not arrived; normal assembly checks confirm its connections against the listing.
+The [conditioning review](conditioning-review.md) owns this decision, its rationale and remaining implementation work. It applies to the N16R8 bench and XIAO target; each still needs its own power distribution and GPIO configuration. [P03](../../pinouts/ads1115.md) describes the two voltage domains. The purchased modules are reported on hand; normal assembly checks confirm their connections against the listing.
 
 ## Sampling, peaks, and calibration
 

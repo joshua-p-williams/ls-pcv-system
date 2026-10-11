@@ -1,0 +1,5 @@
+{
+  "name": "BSS138 headers",
+  "author": "LS PCV System contributors",
+  "pins": ["LV1", "LV2", "LV", "GND_LV", "LV3", "LV4", "HV4", "HV3", "GND_HV", "HV", "HV2", "HV1"]
+}

@@ -2,7 +2,7 @@
 
 Status: planned; no firmware, dependencies, or build/test commands yet. The selected direction is **ESP32-S3**, with an N16R8 development board and XIAO ESP32-S3 finished-gauge target. The first display is a **240 x 240 GC9A01 SPI TFT**. Planned development uses VS Code, PlatformIO, the Arduino framework for ESP32, and C/C++. See [gauge integration guide](../hardware/components/gauge-electronics/README.md) and [procurement BOM](../hardware/bom/parts.md). This supersedes the earlier Nano/OLED candidates.
 
-Separate PlatformIO environments should eventually share application code while isolating board-specific GPIO/configuration. Exact board definitions, platform/library versions, and pins remain unselected; no environment files are created by this import.
+Separate PlatformIO environments should eventually share application code while isolating board-specific GPIO/configuration. Exact board definitions and platform/library versions remain unselected. W01 proposes the N16R8 pin map; the XIAO allocation remains open. No firmware environment files exist yet.
 
 See [A01: overall gauge architecture](../hardware/architecture/gauge-system.md) for acquisition, controller, display and control boundaries, and [A04: PCV system overview](../hardware/architecture/pcv-system.md) for the pressure being observed. Both are planned-system drafts, not verified hardware configurations.
 
@@ -30,13 +30,13 @@ Share measurement, calibration, peak tracking and display behavior across boards
 - Capture positive and negative peaks independently of display smoothing.
 - Detect implausible readings and invalid calibration visibly rather than presenting them as valid zero pressure.
 
-Never automatically zero while the engine runs. Zero requires the pressure port to be equalized to atmosphere. One multifunction button is selected; its initial gesture mapping is selected below; physical wiring remains open. Persistent user settings are required as described below; storage details, warning thresholds, sampling rate and filtering parameters remain design decisions.
+Never automatically zero while the engine runs. Zero requires the pressure port to be equalized to atmosphere. One multifunction button is selected; its initial gesture mapping is selected below; W01 proposes GPIO6 to ground for the N16R8; XIAO allocation and physical switch selection remain open. Persistent user settings are required as described below; storage details, warning thresholds, sampling rate and filtering parameters remain design decisions.
 
 W01 selects native ESP32-S3 USB for programming/console/debugging; configure the matching USB interface when firmware is introduced and preserve GPIO19/20. UART COM remains a separate recovery option, not the W01 source. Firmware must run the gauge without a computer attached. USB diagnostics must not indefinitely block startup or acquisition while waiting for host enumeration or a serial-console connection.
 
 ## Multifunction button
 
-Use one multifunction button for both controller configurations, with [BetterButton](https://github.com/joshua-p-williams/BetterButton) as the planned input library. Its README documents click, double-click and long-press events, a normally open button from GPIO to ground, and an internal pull-up configured by `begin()`. This is the intended interface direction; the physical switch, GPIO, cable and any additional filtering remain to be selected for the harness.
+Use one multifunction button for both controller configurations, with [BetterButton](https://github.com/joshua-p-williams/BetterButton) as the planned input library. Its README documents click, double-click and long-press events, a normally open button from GPIO to ground, and an internal pull-up configured by `begin()`. This is the intended interface direction; W01 proposes GPIO6 and documents its signal/ground cable; the physical switch and any additional filtering remain to be selected, and XIAO GPIO allocation is separate.
 
 The reviewed [header](https://github.com/joshua-p-williams/BetterButton/blob/master/BetterButton.h) defines 2000 ms long-press, 500 ms double-click monitoring and 60 ms debounce constants. These are upstream reference values, not accepted gauge timing requirements. The README and header were reviewed; implementation audit, ESP32-S3 compatibility and behavior under display/acquisition load remain pending. Pin an exact revision and retain license attribution when integrating; no dependency or source code has been imported yet.
 
@@ -58,7 +58,7 @@ Q25 selects the atmospheric-zero prompt behavior:
 
 Keep prompt actions separate from the normal-view peak-reset action; a prompt click must not clear min/max. Verify that the double-click selecting Zero does not first toggle the selection as a single-click action. The interaction does not establish atmospheric conditions automatically or replace calibration/validity checks.
 
- Distinguish normal-view and prompt-state handling, and verify that double-click/long-press recognition does not also invoke a single-click reset. Gesture timing and physical behavior require testing on both controllers. A long press is not proof that the pressure port is at atmosphere. Deliberate zero must retain the atmospheric-condition requirement. Q23 selects the brightness policy below. The initial mapping remains in effect until a later settings-menu design explicitly replaces it.
+Distinguish normal-view and prompt-state handling, and verify that double-click/long-press recognition does not also invoke a single-click reset. Gesture timing and physical behavior require testing on both controllers. A long press is not proof that the pressure port is at atmosphere. Deliberate zero must retain the atmospheric-condition requirement. Q23 selects the brightness policy below. The initial mapping remains in effect until a later settings-menu design explicitly replaces it.
 
 ## Brightness and persistent settings
 

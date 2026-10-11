@@ -57,9 +57,10 @@ The baseline combines reported installation and purchase information, imported a
 | Catch can | Installed as an earlier project on 2026-09-13 in temporary vented mode; manifold-vacuum PCV remains incomplete |
 | Restrictor | 3.0 mm baseline; 2.0 and 4.0 mm comparison variants; initial PAHT-CF print reported complete |
 | Relief | Three EVIL ENERGY valves purchased; advertised 0.5 PSI opening pressure; approximately 0.1 PSI desired, modification/bench validation pending |
-| Instrumentation | FTP sensor on hand; HiSport 13585316 pigtail not yet received; actual identity/pinout, fit and calibration pending |
+| Pressure tap | [Inline block and separate barbs](cad/pressure-tap/README.md) modeled; PAHT-CF tap print reported; annealing with the restrictor planned; fit/sealing validation pending |
+| Instrumentation | FTP sensor and HiSport 13585316 pigtail reported on hand; sourced terminal map adopted; physical fit, lead checks and calibration pending |
 | Power | [SSLHONG B09NVG35CX](hardware/components/gauge-power-supply/README.md) purchased for USD 13.99; advertised 8-60 V input, 5 V / 3 A USB-C output; validation pending |
-| Gauge | ESP32-S3 bench/XIAO boards, GC9A01 TFTs, and ADS1115 modules purchased; ADC conditioning, wiring, final display layout, and enclosure pending; no firmware yet |
+| Gauge | ESP32-S3 bench/XIAO boards, GC9A01 TFTs, and ADS1115 modules purchased; 5 V ADC, translated I2C, RC values and W01 bench wiring documented; electrical checks, firmware, final display layout and enclosure pending |
 | Repository | Documentation, catch-can photos, native restrictor CAD, 3MF variants, and model views imported; measured data still pending |
 
 Primary pressure unit: **inH2O**, relative to atmosphere; negative means vacuum. Approximately -3 to -8 inH2O at hot idle/light cruise is a provisional tuning target, not a GM specification or a validated limit. The 3 mm restrictor is a baseline, not a proven final choice.
@@ -79,6 +80,8 @@ Primary pressure unit: **inH2O**, relative to atmosphere; negative means vacuum.
 | [W01 bench harness](hardware/wiring/bench/README.md) | Full wiring draft, proposed GPIOs, generated connection schedule and phased assembly checks |
 | [L01 / Wokwi](simulation/wokwi/README.md) | Complete intended bench connections, visual-part mappings and future simulation limits |
 | [Wokwi adoption](docs/wokwi-adoption.md) | Tool responsibilities and illustration/simulation scope |
+| [Mechanical designs](cad/README.md) | Restrictor and pressure-tap CAD, exports, slicer projects and fabrication status |
+| [L03 bench placement](simulation/wokwi/breadboard/README.md) | Carrier grouping and jumper routing, with physical-fit limitations |
 | [cad/pcv-restrictor/](cad/pcv-restrictor/README.md) | Restrictor design intent and source/export conventions |
 | [Hardware components](hardware/components/README.md) | Component descriptions, design decisions and import records |
 | [hardware/bom/parts.md](hardware/bom/parts.md) | Parts, procurement status, and unresolved selections |
@@ -106,7 +109,7 @@ Use the BOM for current purchase/inventory facts, component READMEs for current 
 
 Use UTF-8, LF line endings, descriptive lowercase kebab-case names where practical, and explicit units. Preserve native CAD source and raw measurements. For important changes, record the reason, evidence, validation, and unresolved questions alongside the affected component.
 
-There are no firmware dependencies, build commands, or automated tests yet. Review Markdown links, units, and consistency, and run `git diff --check` for unstaged changes and `git diff --cached --check` for staged changes. Review new untracked files separately; before committing, ensure the staged versions include the intended edits. Add build/test instructions when executable code is introduced.
+No firmware build exists yet. Documentation and wiring checks are available in [tools/check-repository.py](tools/check-repository.py). With [W01's Python drawing dependencies](hardware/wiring/bench/README.md#rendering-and-validation) installed, run `python tools/check-repository.py` from the repository root. It checks public Markdown links/anchors and filename case, generated W01 source/renderer fingerprints and schedule, and L01/L03 connectivity. It does not build firmware or validate hardware. Also run `git diff --check` and `git diff --cached --check`, review new files and the staged versions, and visually inspect changed diagrams.
 
 ## Private intake workflow
 
@@ -120,7 +123,7 @@ Ignored directories are local only. On a fresh clone, create the inbox with `New
 
 1. Verify physical variants, measured bores, and slicer behavior against the [adopted restrictor CAD design](cad/pcv-restrictor/README.md).
 2. Confirm current parts status and final plumbing; the earlier vented installation is documented separately.
-3. Finalize ADS1115 conditioning/configuration and verify sensor, board, and display electrical interfaces before bringing up the ESP32-S3/GC9A01 prototype.
+3. Lay out the bench using W01 and L03, perform unpowered connection and rail checks, then introduce bench firmware for peripheral tests. The selected RC circuit and ADC configuration candidates are documented; remaining electrical and firmware checks are still open.
 4. Characterize the sensor and relief valve on the bench before vehicle tuning.
 
 This design is specific to this engine until evidence supports broader use. The gauge is a diagnostic instrument, not a certified safety device. See the [test plan](docs/testing/test-plan.md) for validation gates.

@@ -14,7 +14,7 @@ As a practical distinction, a program image belongs in flash, while a temporary 
 
 ## Selected hardware and evidence
 
-Purchased listing: [Amazon B0D93DLB6Q](https://www.amazon.com/dp/B0D93DLB6Q), reported **USD 7.99**. Quantity was not explicitly specified. The board has not yet arrived; supplied images are online references, not photographs of received hardware. The [BOM](../../bom/parts.md) owns procurement status.
+Purchased listing: [Amazon B0D93DLB6Q](https://www.amazon.com/dp/B0D93DLB6Q), reported **USD 7.99**. Quantity was not explicitly specified. The board is reported on hand; supplied images are online references, not photographs of received hardware. The [BOM](../../bom/parts.md) owns procurement status.
 
 ![Vendor development board image](../../../media/reference/gauge-electronics/esp32-s3-development-board.jpg)
 

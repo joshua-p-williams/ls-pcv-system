@@ -60,6 +60,10 @@ The actual 6.4 mm bore and 9.8 mm root OD leave nominal radial wall thickness `(
 
 The baseline material is QIDI PAHT-CF. Reported print orientation is vertical with the fitting axis along Z; keep support out of the passage. Inspect passages, hose-entry edges, and layer integrity. Record actual bore measurements and any finishing operation; a nominal filename does not establish the finished orifice diameter.
 
+## Fabrication update
+
+The pressure-tap catch-up report confirms a PAHT-CF tap print and plans to anneal it with the restrictor. Annealing completion, settings, the exact restrictor variant in that batch and post-process dimensions remain unreported. This selected next step supersedes the historical context's earlier preference against annealing. Record the actual metering bore and fit after processing before drawing conclusions about flow. See the [pressure-tap record](../pressure-tap/README.md).
+
 ## Printing projects
 
 The 3 and 4 mm projects identify QIDI Studio `02.07.02.60`, an X-Plus 4 printer, 0.4 mm nozzle, 0.2 mm layer height, and the `QIDI PAHT-CF @Qidi X-Plus 4 0.4 nozzle` filament profile. These are saved settings, not verified print-history records or universal printing recommendations. Slicer opening and slicing were not performed during import. Material suitability, finished bore, hose retention, sealing, and heat/vibration durability still require physical validation.
@@ -71,6 +75,8 @@ These are supplied model views, not photographs of printed parts; internal dimen
 ![Isometric restrictor view](../../media/diagrams/pcv-restrictor/pcv-restrictor-isometric.png)
 
 ![Side restrictor view](../../media/diagrams/pcv-restrictor/pcv-restrictor-side.png)
+
+Additional model exports supplied with the 2026-10-10 CAD catch-up: [perspective](../../media/diagrams/pcv-restrictor/pcv-restrictor-image-1.png) and [side](../../media/diagrams/pcv-restrictor/pcv-restrictor-image-2.png). Public copies preserve pixels and dimensions and omit image metadata; these are CAD views, not print photographs.
 
 ## Validation and further exports
 

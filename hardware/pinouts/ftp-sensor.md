@@ -45,11 +45,11 @@ The design assumes a three-wire analog sensor. Directions below are relative to 
 
 The sensor output must pass through the filtering/protection boundary in [A01](../architecture/gauge-system.md). [P03: ADC interface](ads1115.md) defines the ADC-side limits for the selected 5 V ADC domain. The [ADC decision](../components/adc/conditioning-review.md) removes divider scaling; the signal filter remains to be specified. Resolve supply tolerances, loading, return routing and the condition where the sensor is powered while the ADC is off.
 
-[W01](../wiring/bench/README.md#unresolved-interfaces-and-power) uses FTP.A/B/C at the sensor/pigtail assembly boundary. These are the adopted pigtail reference IDs; lead labels and splices are recorded during assembly. Do not assign ESP32 GPIOs to this analog sensor output; the controller interface is through the ADS1115.
+[W01](../wiring/bench/README.md#selected-power-and-remaining-checks) uses FTP.A/B/C at the sensor/pigtail assembly boundary. These are the adopted pigtail reference IDs; lead labels and splices are recorded during assembly. Do not assign ESP32 GPIOs to this analog sensor output; the controller interface is through the ADS1115.
 
 ## Pressure interface and calibration
 
-[A04: PCV overview](../architecture/pcv-system.md) proposes a pressure tap at the catch-can outlet before the restrictor. The hose, adapter, sealing, retention and sensor mounting remain to be selected. The vendor's 0.45 in pressure-port-area callout does not establish a bore, thread or compatible hose size.
+[A04: PCV overview](../architecture/pcv-system.md) proposes a pressure tap at the catch-can outlet before the restrictor. A [printed inline tap](../../cad/pressure-tap/README.md) now provides the prototype adapter and internal sensing passage. Post-anneal fit, sensor and barb seals, retention and final mounting remain to be verified. The vendor's 0.45 in pressure-port-area callout does not establish a bore, thread or compatible hose size.
 
 The gauge requires pressure relative to atmosphere, reported in `inH2O` with negative values for vacuum. Confirm how the actual sensor references atmosphere and preserve any required vent path when mounting it; no vent location is identified by the available images. Verify pressure limits and suitability for the intended environment, protect the sensor from liquid oil/water, and evaluate tubing response. Tap pressure may differ from crankcase pressure because of losses in the connecting flow path.
 

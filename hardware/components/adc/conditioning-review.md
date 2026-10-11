@@ -6,7 +6,7 @@ The FTP sensor and ADS1115 share the regulated **5 V branch**. ESP32-S3 logic re
 
 The nominal sensor signal reaches A0 without divider scaling. The initial [RC input filter](../rc-input-filter/README.md) uses 470 ohm series resistance and 1 uF from the A0-side node to ground. W01 COND now names its IN/OUT/GND nodes. Q17 retains physical response, power transitions and any additional protection. The advertised sensor family and nominal 5 V analog interface are the working design basis, not a measured transfer curve. Calibrate the assembled chain under Q10/Q21.
 
-The sensor is on hand and unmarked; its pigtail, ADC modules and project converter have not arrived. A multimeter and alternative bench/USB supplies are available, but their suitability depends on the particular test.
+The sensor is on hand and reported unmarked; its pigtail, ADC modules and project converter are now also reported on hand. The I2C translator is also reported on hand; its listing references remain the design basis. A multimeter and alternative bench/USB supplies are available, but their suitability depends on the particular test.
 
 ## Input range and acquisition
 

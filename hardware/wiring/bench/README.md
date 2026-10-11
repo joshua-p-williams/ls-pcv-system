@@ -1,6 +1,6 @@
 # W01: N16R8 bench harness
 
-**Document state: Draft. Not assembly-ready.** W01 covers the complete intended bench gauge: one N16R8 controller, one GC9A01 display, one ADS1115, the FTP sensor and built RC input filter, a bidirectional I2C translator, one multifunction button, and USB-derived power distribution. The controller has not arrived and no connections have been bench verified. The XIAO and vehicle converter configurations remain separate work.
+**Document state: Draft. Not assembly-ready.** W01 covers the complete intended bench gauge: one N16R8 controller, one GC9A01 display, one ADS1115, the FTP sensor and built RC input filter, a bidirectional I2C translator, one multifunction button, and USB-derived power distribution. The controller and other purchased bench parts, including the I2C translator, are reported on hand. No connections have been bench verified. The XIAO and vehicle converter configurations remain separate work.
 
 The design establishes intended signal and power wiring from listing/reference evidence, with hardware validation and remaining sensor interfaces explicit. Assemble and energize a section only after its listed prerequisites are resolved. P04 supplies the working sensor cavity map. Native USB, IN-OUT closed, USB-OTG open, the L21 nominal 5 V takeoff and 3.3 V display supply are selected (Q30/Q31). Rail/load checks, translator bring-up and filter power/protection review remain assembly checks.
 
@@ -14,6 +14,8 @@ Open the [full SVG](generated/bench-harness.svg) to zoom. The smaller phase view
 - **Source identity and tools:** [generation record](generated/generation.md).
 - **Instructional component view:** [L01 / Wokwi](../../../simulation/wokwi/README.md), covering all intended non-USB conductors, the internal RC node and a USB annotation. W01 remains the wiring authority; virtual parts are not purchased-board header layouts or functioning peripheral models.
 - **Component-view PNG:** [L01 preview](../../../simulation/wokwi/diagram-preview.png), generated from the Wokwi source for viewing without opening the editor.
+- **Physical arrangement:** [protoboard plan](protoboard-plan.md), with placement zones, practical routing, proposed gauge defaults and secure connections. Cut leads to fit; no cut-length schedule is required.
+- **Carrier-based view:** [L03 breadboard guide](../../../simulation/wokwi/breadboard/README.md) and [PNG](../../../simulation/wokwi/breadboard/diagram-preview.png), showing local jumper routes, rail taps and raw/OUT strips. Translate virtual footprints to the actual solderable carrier.
 - **Follow-up:** [open questions](../../../docs/open-questions.md), especially Q04-Q10, Q12, Q14, Q17, Q18 and Q29.
 
 All drawn connections are planned or proposed. Blue module blocks identify interfaces from P01/P03/P05; amber blocks or bundles contain unresolved functional boundaries. Wire colors follow the [W01 color convention](generated/connections.md#wire-color-convention): black for ground, red for 5 V, orange for 3.3 V, and separate signal colors. The complete USB cable has no conductor color assignment and renders neutrally; it does not denote ground. Display VCC is orange for its selected 3.3 V rail. The full drawing is a design-review view, not an assembly-ready rendering. Blank/unconnected terminals are intentional where explained below.
@@ -85,7 +87,7 @@ The [electrical review](../../components/adc/conditioning-review.md) selects a s
 
 ### Wire and construction requirements
 
-- Wire gauge is explicitly **TBD AWG** pending the actual current budget, length/voltage drop, insulation needs and connector fit. W01 is not a numeric wire-sizing specification yet. Record lengths in mm and the final gauge in AWG or mm2 before assembly release.
+- Wire gauge is explicitly **TBD AWG** in the source pending the actual wire selection, load/voltage drop and connector fit. The [protoboard plan](protoboard-plan.md#wire-routing-and-gauge-defaults) proposes 22 AWG main feeds/display power and 24 AWG other short bench connections as starting defaults. Record the actual gauges before using the assembly; cut leads to suit routing with modest service slack. Exact lengths are optional unless an electrical or reproduction need makes them relevant.
 - Use the planned colors in the [generated schedule and legend](generated/connections.md#wire-color-convention) for added harness wiring. Label each wire by bundle/conductor or net identity; clock and data colors repeat across the separate SPI/I2C bundles. If available stock requires a substitution, identify both ends and record the actual color in the as-built record. Red and orange distinguish the two supply domains. Display VCC uses orange for the selected 3.3 V rail. Purchased pigtail colors remain evidence to record separately, never a basis for assigning sensor terminals.
 - USB uses an appropriate factory data cable for computer operation; W_USB is not a cable-fabrication specification. Confirm the selected standalone source/cable can supply the verified load.
 - Internal carrier wiring may be soldered; off-board leads may be soldered or use secure removable connectors. Record connectors, splice locations, pad/track cuts and bridges, and test points. Keep exposed conductors insulated and module insertion aligned.
@@ -94,7 +96,7 @@ The [electrical review](../../components/adc/conditioning-review.md) selects a s
 
 ## Phased assembly and verification
 
-These are planned steps with prerequisites, not completed test results. All wiring changes occur with power disconnected. At each phase, record the actual configuration, supply conditions, instrument and readings using the [data conventions](../../../data/README.md). Retain only verified preceding connections; do not attach later-phase loads to unverified rails.
+These are planned steps with prerequisites, not completed test results. W01 and L03 support laying out and completing the mechanical wiring before firmware exists; staged powered checks can follow that assembly. Unpowered continuity/contact checks and rail measurements are available now. Programming/console tests, display output, button gestures, I2C transactions, ADC readings and pressure-processing tests require suitable firmware, which has not been implemented. Treat those functional checks as pending, not as expected behavior of bare hardware. All wiring changes occur with power disconnected. At each phase, record the actual configuration, supply conditions, instrument and readings using the [data conventions](../../../data/README.md). Retain only verified preceding connections; do not attach later-phase loads to unverified rails.
 
 ### Phase 0: identify and prepare
 

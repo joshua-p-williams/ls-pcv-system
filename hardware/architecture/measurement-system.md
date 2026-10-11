@@ -8,7 +8,7 @@ A03 describes the planned pressure measurement chain, from the FTP sensor throug
 flowchart TD
     pressure["Pressure at proposed upstream-of-restrictor tap"]
     sensor["FTP sensor: pressure to analog voltage"]
-    analog["Analog filtering and protection; no divider"]
+    analog["470 ohm / 1 uF RC; no divider; protection review pending"]
     adc["ADS1115: new conversion"]
     acquire["ESP32-S3: acquire counts, timestamp and status"]
     calibrate["Apply measured calibration and accepted zero offset"]
@@ -23,7 +23,7 @@ flowchart TD
     zero["Deliberate atmospheric zero: conditions verified"]
     reset["Deliberate peak reset"]
 
-    pressure ---|"Pressure sense hose"| sensor
+    pressure ---|"Pressure-sensing passage/interface"| sensor
     sensor -->|"Analog voltage"| analog
     analog -->|"Filtered ADC input"| adc
     adc -->|"I2C via 5 V / 3.3 V translator"| acquire

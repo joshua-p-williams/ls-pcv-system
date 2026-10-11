@@ -1,6 +1,6 @@
 # Original visual parts
 
-These definitions provide named terminals for parts lacking a selected native Wokwi representation. They are **illustrations, not functioning models**. Generic bodies and leg order are not real shapes or connector positions.
+These definitions provide named terminals for parts lacking a selected native Wokwi representation. They are **illustrations, not functioning models**. The original `-visual` bodies and leg order are not real shapes or connector positions.
 
 | Exact online chip name | Definition | Inert stub | Represents |
 | --- | --- | --- | --- |
@@ -10,6 +10,10 @@ These definitions provide named terminals for parts lacking a selected native Wo
 | `pcv-ftp-visual` | [JSON](pcv-ftp-visual.chip.json) | [C](pcv-ftp-visual.chip.c) | FTP A/B/C interface |
 | `pcv-rails-visual` | [JSON](pcv-rails-visual.chip.json) | [C](pcv-rails-visual.chip.c) | Separate 3V3, GND and 5V nodes |
 | `pcv-capacitor-visual` | [JSON](pcv-capacitor-visual.chip.json) | [C](pcv-capacitor-visual.chip.c) | C1 OUT/GND leads; 1 uF nonpolar, at least 10 V |
+| `pcv-ads1115-header` | [JSON](pcv-ads1115-header.chip.json) | [C](pcv-ads1115-header.chip.c) | L03 single ten-position component-side header from P03 |
+| `pcv-level-shifter-header` | [JSON](pcv-level-shifter-header.chip.json) | [C](pcv-level-shifter-header.chip.c) | L03 parallel six-position component-side headers from the module reference |
+
+The two `-header` symbols are rotated 270 degrees in L03 to reproduce documented terminal order. Empty positions put the ADC contacts on one edge. Their body dimensions and separation between rows remain Wokwi graphics, not measured footprints. Their stubs have no behavior. L01 retains its original functional symbols.
 
 Create the exact names using the [Custom Chip workflow](https://docs.wokwi.com/chips-api/getting-started), paste matching files, then the main [diagram.json](../diagram.json). Online filenames omit `chips/`; diagram types add `chip-`. Definitions follow the [pin format](https://docs.wokwi.com/chips-api/chip-json); empty entries leave blank symbol positions.
 

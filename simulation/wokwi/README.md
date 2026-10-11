@@ -8,7 +8,11 @@ See the [adoption decision](../../docs/wokwi-adoption.md), [standard](../../docs
 
 Open the [full PNG](diagram-preview.png) to zoom. This is a generated preview of [diagram.json](diagram.json), not an additional wiring source.
 
+For placement on a visible carrier with separate power rails and local jumper routing, see [L03's breadboard view](breadboard/README.md) and [PNG](breadboard/diagram-preview.png). L01 remains the functional overview; both views project W01's connections using the shared visual parts.
+
 ## Read the connections
+
+The analog path runs left to right through the sensor, resistor and ADC, with the capacitor branching from filtered OUT to ground. The translator sits between ADC and controller; the display has a separate SPI bundle above it. Supply/return lanes below these groups keep distribution readable. Wire crossings do not imply junctions: named endpoints define connections. Routing illustrates topology rather than physical cable lengths or placement; use L03 for carrier planning.
 
 **FTP.B** carries the raw sensor output through the brown lead to **R1**, the selected 470 ohm series resistor. The other lead is **COND.OUT**, the pink node shared by ADC **A0** and **C1**. C1 is the selected 1 uF nonpolar capacitor from OUT to ground. This shows the [RC filter](../../hardware/components/rc-input-filter/README.md)'s series/shunt topology; there is no divider or simulated filter response. The pink R1-to-C1 connection represents an internal node, not another required harness cable.
 
@@ -42,12 +46,12 @@ Custom symbols use generic breakout presentation. **Leg order/package shape do n
 ## Open online
 
 1. Open a [new ESP32-S3 project](https://wokwi.com/projects/new/esp32-s3).
-2. For each of the six names in the [visual-parts guide](chips/README.md), click **+**, select **Custom Chip**, enter the exact name, choose C and click **Create Chip**.
+2. For each `-visual` name used by this view in the [visual-parts guide](chips/README.md), click **+**, select **Custom Chip**, enter the exact name, choose C and click **Create Chip**.
 3. Replace the created `.chip.json` and `.chip.c` contents with the matching repository files. Online filenames are flat; repository files are grouped under `chips/`. Move or remove the automatically added instances as you go so they do not cover the editor toolbar; the final JSON restores them in their intended positions.
 4. Finally replace `diagram.json` with [this source](diagram.json), removing the temporary instances and restoring the maintained view.
 5. Hover over endpoints for labels. Use **F** with the diagram focused or the **Fit** menu, then zoom/pan as needed. See [editor controls](https://docs.wokwi.com/guides/diagram-editor).
 
-Viewing needs no simulation run or chip compilation. Saving online is optional; Git holds the source. The template sketch is unrelated example code. The original C stubs only print an illustration notice when initialized; they implement no device behavior or gauge firmware.
+Viewing needs no simulation run or chip compilation. Saving online is optional; Git holds the source. The template sketch is unrelated example code. The original `-visual` C stubs only print an illustration notice when initialized; the L03 `-header` stubs do nothing; they implement no device behavior or gauge firmware.
 
 ## VS Code and future simulation
 
@@ -69,7 +73,7 @@ Future synthetic measurements can exercise shared calibration, validity, peaks, 
 
 ### Refresh the PNG
 
-[render-preview.mjs](render-preview.mjs) loads the source and six visual definitions into an unsaved online Wokwi project and captures only the diagram canvas in light mode. It does not save, share or start the simulation. The PNG contains no editor UI or template sketch. Node.js and Puppeteer are optional documentation tools; they are not firmware dependencies. Run from the repository root:
+[render-preview.mjs](render-preview.mjs) loads the source and only the custom definitions used by the selected view into an unsaved online Wokwi project and captures the diagram canvas in light mode. It derives expected parts from the source, checks every connected terminal, and does not save, share or start the simulation. The PNG contains no editor UI or template sketch. Node.js and Puppeteer are optional documentation tools; they are not firmware dependencies. Run from the repository root:
 
 ```powershell
 npm install --prefix _staging/work/wokwi/tools puppeteer@25.12.0

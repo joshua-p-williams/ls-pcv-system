@@ -20,6 +20,8 @@ Calibrate the sensor, ADC and chosen input circuit together using the [test plan
 
 The planned gauge uses a GM 16238399-style low-range FTP sensor and a three-terminal pigtail. Supplied purchase details confirm the following items; compatibility and electrical behavior still require verification.
 
+The [printed pressure-tap prototype](../../../cad/pressure-tap/README.md) provides a top sensor pocket and internal sensing passage; sensor seal/retention and post-anneal fit remain Q22.
+
 See [A04: PCV system overview](../../architecture/pcv-system.md) for the proposed upstream pressure tap and sensor mounting questions, and [A01: overall gauge architecture](../../architecture/gauge-system.md) for the conditioned electrical measurement path.
 
 See [P04: FTP sensor and pigtail interface](../../pinouts/ftp-sensor.md) for connector-view conventions, the sourced working terminal map and assembly checks.
@@ -31,7 +33,7 @@ See [P04: FTP sensor and pigtail interface](../../pinouts/ftp-sensor.md) for con
 | Aftermarket FTP sensor, listing cross-references 16196060 / 16238399 / 12219388 | [Amazon B0CNZ2Q1F2](https://www.amazon.com/dp/B0CNZ2Q1F2) | USD 7.89 |
 | HiSport 13585316 fuel tank pressure sensor connector | [Amazon B09NVW46W2](https://www.amazon.com/dp/B09NVW46W2) | USD 7.99 |
 
-The FTP sensor is reported on hand; the pigtail has not yet arrived. Purchased quantities and installation status remain unspecified. Prices are recorded as supplied, without assuming per-unit or pack pricing. The sensor listing's OEM-number references describe claimed compatibility, not proof of an OEM-manufactured sensor. PT2782 and PT2646 remain historical connector cross-references rather than separately purchased items.
+The FTP sensor and pigtail are reported on hand. Purchased quantities and installation status remain unspecified. Prices are recorded as supplied, without assuming per-unit or pack pricing. The sensor listing's OEM-number references describe claimed compatibility, not proof of an OEM-manufactured sensor. PT2782 and PT2646 remain historical connector cross-references rather than separately purchased items.
 
 ## Supplied product references
 

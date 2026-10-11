@@ -1,6 +1,6 @@
 # ESP32-S3 N16R8 bench-board interface
 
-P01 documents the bench controller used by the [gauge architecture](../architecture/gauge-system.md). The header map below is transcribed from the supplied product image. Electrical functions are qualified against Espressif references where applicable; the received board, PCB revision and wiring have not been verified. The purchased board has not yet arrived; all supplied images are online references. [W01](../wiring/bench/README.md#proposed-signal-allocation) proposes project GPIO assignments, subject to actual-board verification.
+P01 documents the bench controller used by the [gauge architecture](../architecture/gauge-system.md). The header map below is transcribed from the supplied product image. Electrical functions are qualified against Espressif references where applicable; the received board, PCB revision and wiring have not been verified. The purchased board is reported on hand; all supplied images are online references. [W01](../wiring/bench/README.md#proposed-signal-allocation) proposes project GPIO assignments, subject to actual-board verification.
 
 ## Board identity and evidence
 

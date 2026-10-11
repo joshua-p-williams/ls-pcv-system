@@ -8,6 +8,8 @@ Markdown explains the design, Mermaid shows architecture and workflows, WireViz 
 
 The real bench uses solderable protoboard with secure connections and removable modules. Adopting Wokwi does not change that construction decision. Its view describes an arrangement and connections, not exact solder holes, copper paths, mounting dimensions or purchased-board geometry.
 
+[L01](../simulation/wokwi/README.md) remains the functional overview. [L03](../simulation/wokwi/breadboard/README.md) adds a separate native-breadboard placement/jumper view with explicit rail taps and signal strips. Both derive connectivity from W01 and share visual definitions; their separation serves distinct documentation purposes rather than creating independent electrical designs. L02 remains reserved for enclosure placement.
+
 ## Organization and source control
 
 Maintain the initial JSON and adjacent guide under `simulation/wokwi/`, linked from hardware documentation. One diagram can serve illustration and later simulation when the connections agree. Avoid a duplicate `docs/hardware/` tree or copied pinout/BOM records. Add distinct board/configuration diagrams only when needed, with explicit differences.

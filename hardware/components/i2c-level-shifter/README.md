@@ -14,7 +14,7 @@ The module does not generate 3.3 V or 5 V and is not a galvanic isolator. Supply
 
 ## Purchased module
 
-**hiBCTR four-channel bidirectional logic level converter**, listed as BSS138 MOSFET-based, [Amazon B0DSZBC8K6](https://www.amazon.com/dp/B0DSZBC8K6). One **10-module pack was purchased for USD 6.88 total**. Receipt and operation have not been reported. Use one module per controller build; allocation of the remaining stock is unspecified. See the [BOM](../../bom/parts.md).
+**hiBCTR four-channel bidirectional logic level converter**, listed as BSS138 MOSFET-based, [Amazon B0DSZBC8K6](https://www.amazon.com/dp/B0DSZBC8K6). One **10-module pack was purchased for USD 6.88 total**. The pack is reported on hand; operation remains unverified. Use the supplied images and adopted terminal map for layout and wiring design; complete the normal bus and power checks during bring-up. Use one module per controller build; allocation of the remaining stock is unspecified. See the [BOM](../../bom/parts.md).
 
 ![Vendor module overview](../../../media/reference/i2c-level-shifter/module-overview.jpg)
 

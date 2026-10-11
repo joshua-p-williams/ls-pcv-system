@@ -1,0 +1,5 @@
+{
+  "name": "ADS1115 header",
+  "author": "LS PCV System contributors",
+  "pins": ["V", "G", "SCL", "SDA", "ADDR", "ALERT", "A0", "A1", "A2", "A3", "", "", "", "", "", "", "", "", "", ""]
+}

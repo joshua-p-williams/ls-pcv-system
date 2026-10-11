@@ -16,10 +16,10 @@ flowchart TD
     catchCan["Catch can: oil separation"]
     relief["One-way relief valve: outward only"]
     atmosphere["Atmosphere"]
-    pressureTap["Proposed pressure tap: before restrictor"]
+    pressureTap["Printed pressure-tap prototype: before restrictor"]
     restrictor["PCV restrictor: 3 mm baseline"]
     intakeReturn["Throttle body: return to intake vacuum"]
-    ftpSensor["FTP pressure sensor: mount TBD"]
+    ftpSensor["FTP sensor in top pocket: seal/retention pending"]
     gauge["Gauge: conditioning / ADS1115 / ESP32-S3 / display"]
 
     freshAir -->|"Filtered fresh air"| passengerCover
@@ -29,7 +29,7 @@ flowchart TD
     catchCan -->|"Normal evacuation path"| pressureTap
     pressureTap --> restrictor
     restrictor --> intakeReturn
-    pressureTap ---|"Pressure sense hose; proposed"| ftpSensor
+    pressureTap ---|"Internal sensing passage"| ftpSensor
     ftpSensor -.->|"Electrical pressure signal"| gauge
 
     classDef fluid fill:#e8f3fc,stroke:#245a81,color:#142c3e
@@ -52,18 +52,18 @@ The relief branch is intended to open only when can pressure exceeds atmospheric
 
 ## Proposed pressure sensing and gauge location
 
-Show one [FTP pressure sensor](../components/fuel-tank-pressure-sensor/README.md), sensing the catch-can outlet line upstream of the restrictor through a tee or equivalent pressure port. This is a proposed implementation of the existing upstream-of-restrictor measurement requirement; the tee/port and physical sensor mount remain to be selected.
+The [printed inline pressure-tap prototype](../../cad/pressure-tap/README.md) implements the upstream-of-restrictor sensing location. Two separate hose barbs connect its main flow bore to the line; an internal 3 mm passage connects the bore to the top pocket for one [FTP sensor](../components/fuel-tank-pressure-sensor/README.md). The PAHT-CF print is reported complete; annealing, joint sealing, sensor fit/retention and installed placement remain pending. No separate sensing hose is required by this prototype geometry.
 
 The measurement is pressure at that tap, relative to atmosphere, displayed in inH2O with negative values indicating vacuum. It is a proxy for crankcase pressure: losses through the hose and catch can may cause a difference that needs assessment. No sensor belongs on the intake-vacuum side of the restrictor for this intended measurement.
 
-Mounting bracket, adapter, sense-hose routing and protection from collected liquid remain TBD. Preserve the sensor's atmospheric reference as required by documentation for the actual sensor. No additional pressure or temperature sensors are selected by this diagram.
+Final mounting/support, barb-joint sealing, sensor-pocket seal and protection from collected liquid remain TBD. Preserve the sensor's atmospheric reference as required by documentation for the actual sensor. No additional pressure or temperature sensors are selected by this diagram.
 
 The gauge is a functional destination, with its exact driver-visible mounting location TBD. Its single block includes [conditioning and ADS1115](../components/adc/README.md), the [ESP32-S3 controller and GC9A01 display](../components/gauge-electronics/README.md). The [overall gauge architecture (A01)](gauge-system.md) expands this block. Detailed power distribution and exact electrical connections are deferred to their selected architecture/interface artifacts.
 
 ## Remaining decisions and evidence
 
 - Confirm throttle-body port identities, catch-can port assignments, fittings, hose sizes and final routing.
-- Review the proposed upstream pressure tap and choose the sensor's physical mount and adapter.
+- Validate the printed tap, barb sealing/retention and sensor fit after the planned anneal; choose its supported installation position.
 - Confirm valve orientation and bench-test opening/reseating and leakage before vehicle use.
 - Verify physical restrictor bore, sensor calibration and actual pressure behavior using the [test plan](../../docs/testing/test-plan.md).
 

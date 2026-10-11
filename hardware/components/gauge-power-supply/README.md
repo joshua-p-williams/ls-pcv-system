@@ -16,7 +16,7 @@ Output-current capacity also does not establish the current available from a con
 
 ## Selected hardware
 
-Selected converter: **SSLHONG DC 8-60 V input, USB-C 5 V / 3 A buck converter**, [Amazon B09NVG35CX](https://www.amazon.com/dp/B09NVG35CX). Supplied notes confirm purchase for **USD 13.99**. The converter has not yet arrived. Quantity and purchase date remain unspecified; operation is unverified. See the [BOM](../../bom/parts.md).
+Selected converter: **SSLHONG DC 8-60 V input, USB-C 5 V / 3 A buck converter**, [Amazon B09NVG35CX](https://www.amazon.com/dp/B09NVG35CX). Supplied notes confirm purchase for **USD 13.99**. The converter is reported on hand. Quantity and purchase date remain unspecified; operation is unverified. See the [BOM](../../bom/parts.md).
 
 See [A01: overall gauge architecture](../../architecture/gauge-system.md) for the converter within the planned gauge power path. See [A02: power architecture](../../architecture/power-system.md) for planned supply modes, distribution, returns and unresolved USB-power handling.
 

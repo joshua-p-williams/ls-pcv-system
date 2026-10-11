@@ -17,6 +17,8 @@ Read a component page first to understand its job and operating principle, then 
 | [Gauge power supply](gauge-power-supply/README.md) | Converter specifications, integration and mounting references |
 | [Check valve / relief valve](check-valve-relief-valve/README.md) | Relief component, published specifications and validation needs |
 
+Mechanical designs with existing CAD-centered guides: [PCV restrictor](../../cad/pcv-restrictor/README.md) and [pressure-tap block/barbs](../../cad/pressure-tap/README.md). These guides retain the geometry and fabrication record without duplicating it in a second component folder.
+
 ## Adding a component
 
 Create a descriptive lowercase kebab-case folder here and add it to this index. A component may be a purchased module or a built subassembly such as the RC input filter; document its function either way. For built circuits, record the internal connectivity and design values, while the BOM distinguishes constituent stock parts from purchases. Explain the component's purpose, selected design, source evidence and unresolved integration details. Keep closely related items together when they share a useful record; create additional subfolders only with content that needs them.

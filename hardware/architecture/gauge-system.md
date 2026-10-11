@@ -8,19 +8,20 @@ A01 describes the planned single-channel, single-display gauge and its bench and
 flowchart TD
     tap["PCV pressure tap: upstream of restrictor"]
     sensor["FTP pressure sensor"]
-    conditioning["Analog filtering and protection"]
+    conditioning["470 ohm / 1 uF RC filter; added protection TBD"]
     adc["ADS1115 acquisition module: 5 V"]
     translator["Bidirectional I2C level translator"]
     controller["ESP32-S3 controller: one board per build"]
     display["GC9A01 display: 3.3 V; live pressure and min/max"]
-    controls["User controls: zero and peak reset; hardware TBD"]
-    source["Switched vehicle supply / selected bench source"]
+    controls["One multifunction button: zero / peak reset"]
+    source["Vehicle supply / bench DC for converter mode"]
+    usbSource["W01: computer OR standalone native USB"]
     protection["Input fuse and protection: design TBD"]
     converter["SSLHONG converter: nominal 5 V output"]
-    distribution["Power distribution and returns: rail details TBD"]
+    distribution["Nominal 5 V distribution and common returns"]
     future["Future channels / displays / logging / Holley link"]
 
-    tap ---|"Pressure sense hose"| sensor
+    tap ---|"Pressure-sensing passage/interface"| sensor
     sensor -->|"Analog voltage"| conditioning
     conditioning -->|"Filtered analog signal; no divider"| adc
     adc <-->|"I2C: 5 V side"| translator
@@ -34,7 +35,9 @@ flowchart TD
     distribution ==>|"Shared 5 V branch"| adc
     distribution ==>|"5 V side reference"| translator
     controller ==>|"3V3 low-side reference"| translator
-    distribution ==>|"Verified board input required"| controller
+    distribution ==>|"Converter mode only: board input TBD"| controller
+    usbSource ==>|"W01 only: one USB source"| controller
+    controller ==>|"W01 only: L21 nominal 5 V output"| distribution
     controller ==>|"Selected 3V3 module supply"| display
     controller -.->|"Optional expansion; not initial scope"| future
 
@@ -43,12 +46,12 @@ flowchart TD
     classDef interaction fill:#e8f4e8,stroke:#376b37,color:#173717
     classDef optional fill:#f3f3f3,stroke:#666,color:#333,stroke-dasharray:5 5
     class tap,sensor,conditioning,adc,translator,controller measurement
-    class source,protection,converter,distribution power
+    class source,usbSource,protection,converter,distribution power
     class controls,display interaction
     class future optional
 ```
 
-**Legend:** solid thin arrows are signals; the bidirectional arrow is the I2C interface; the line without an arrow is pressure sensing; thick arrows are conceptual power paths; the dashed arrow denotes optional future scope. Every path is planned. Arrow styles distinguish function, not evidence quality. The distribution block includes supply/return planning; separate ground wires and connector pins are not shown.
+**Legend:** solid thin arrows are signals; the bidirectional arrow is the I2C interface; the line without an arrow is pressure sensing; thick arrows are conceptual power paths; the dashed arrow denotes optional future scope. Converter-mode and W01 USB-mode power arrows are alternatives, not simultaneous sources or a loop to wire together. Every path is planned. Arrow styles distinguish function, not evidence quality. The distribution block includes supply/return planning; separate ground wires and connector pins are not shown.
 
 ## Controller variants and first-build scope
 
@@ -56,18 +59,18 @@ Use one controller per build: the **ESP32-S3 N16R8 development board** for initi
 
 Start with one FTP sensor, one ADS1115 module and one 1.28-inch GC9A01 display. Firmware converts readings using measured calibration, maintains signed pressure and independent positive/negative peaks, and renders live and min/max values in inH2O. Negative pressure means vacuum. Acquisition and peak capture remain independent of display smoothing. Invalid readings/calibration should be visible rather than presented as zero.
 
-User controls provide deliberate atmospheric zero and peak reset; count, type and pin assignments are TBD. Zero requires the pressure port to be equalized to atmosphere and must not happen automatically with the engine running. No firmware or control hardware is implemented by this diagram. See [firmware requirements](../../firmware/README.md).
+One normally open multifunction button provides deliberate atmospheric-zero confirmation and peak reset. W01 proposes GPIO6 to ground with an internal pull-up; Q24/Q25 define the gestures. Switch selection and firmware integration/testing remain pending. Zero requires the pressure port to be equalized to atmosphere and must not happen automatically with the engine running. No firmware or control hardware is implemented by this diagram. See [firmware requirements](../../firmware/README.md).
 
 ## Interfaces and unresolved decisions
 
 | Boundary | Current intent | Still to establish |
 | --- | --- | --- |
-| PCV to sensor | Proposed tap at catch-can outlet before restrictor, as shown in [A04](pcv-system.md) | Physical tap, sense hose, mount/adapter, liquid protection and pressure difference from crankcase |
+| PCV to sensor | Proposed tap at catch-can outlet before restrictor, as shown in [A04](pcv-system.md) | Printed [tap prototype](../../cad/pressure-tap/README.md) present; post-anneal fit, sealing/retention, mounting, liquid protection and pressure difference from crankcase remain to verify |
 | Sensor to conditioning | Analog signal from the selected FTP sensor; planned 5 V sensor supply | Actual pinout, range, reference arrangement and calibration |
 | Conditioning to ADC | Built 470 ohm / 1 uF RC filter ahead of 5 V ADS1115 A0; no divider | Actual stock parts, loading/response, power/fault behavior and input limits; [component guide](../components/rc-input-filter/README.md) |
 | ADC to controller | I2C through translator: ADC at 5 V, ESP32 side at 3.3 V | hiBCTR BSS138 selected; actual pull-ups/bus checks, address, GPIOs and conversion rate pending; +/-6.144 V selected |
 | Controller to display | SPI plus module control signals | 3.3 V VCC/logic selected from listing; GPIOs, current/backlight, driver and readability |
-| Controls to controller | Deliberate zero and peak reset | Button count/type, wiring, debounce and interaction design |
+| Controls to controller | Deliberate zero and peak reset | One button and gestures selected; W01 proposes GPIO6; physical switch, debounce timing and implementation checks remain |
 | Power to electronics | Converter output feeds the planned gauge supply arrangement | Fuse/protection, rail generation/capacity, returns, grounding and load budget |
 
 The [ADC notes](../components/adc/README.md) contain preliminary conditioning values, not a final schematic. This diagram deliberately shows the conditioning boundary rather than implying a direct sensor-to-ADC connection. [P04](../pinouts/ftp-sensor.md) supplies an adopted family terminal map; the measured transfer curve remains calibration work.
@@ -82,7 +85,7 @@ A selected bench source can exercise the converter path shown here. W01 selects 
 
 Additional conditioned sensors, displays, logging and a possible digital Holley interface remain optional. No expansion wiring, spare-pin assignment or timing capacity is established here. [A03: pressure measurement signal chain](measurement-system.md) expands calibration, validity handling and the separate peak/display paths. Detailed firmware and wiring remain separate work.
 
-Before physical assembly, verify the component interfaces and power arrangement, then create the selected harness and follow the [test plan](../../docs/testing/test-plan.md). No bench or vehicle verification is claimed. Track further diagram selection in the [inventory](../DIAGRAMS.md).
+Before physical assembly, verify the component interfaces and power arrangement, then assemble the [documented W01 harness](../wiring/bench/README.md) and follow the [test plan](../../docs/testing/test-plan.md). No bench or vehicle verification is claimed. Track further diagram selection in the [inventory](../DIAGRAMS.md).
 
 ## Diagram validation
 

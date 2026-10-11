@@ -6,7 +6,7 @@ The supplied references support a YD-style 44-position ESP32-S3 development-boar
 
 The staged notes associate Amazon B0D93DLB6Q with YEJMKJ branding and a YD/VCC-GND board family. The rear product image carries YEJMKJ branding and visibly reads `YD-ESP32-23` and `2022-V1.3`; retain that transcription rather than silently replacing it with the family's commonly used YD-ESP32-S3 name. These markings identify the pictured reference, not a confirmed received revision.
 
-The images are product illustrations, including loose header strips, promotional captions and third-party branding. All supplied images were collected online; none depicts the project's physical board. The purchased N16R8 board has not yet arrived, so physical identification and electrical checks await receipt. The front image shows ESP32-S3-WROOM-1 and N16R8 markings. Its 22 labels per side agree with P01's existing row order, including `5Vin` near the bottom left. The colored pin chart simplifies that label to 5V; it does not prove this pin supplies USB-derived power.
+The images are product illustrations, including loose header strips, promotional captions and third-party branding. All supplied images were collected online; none depicts the project's physical board. The purchased N16R8 board is now reported on hand; normal as-built comparison and electrical checks remain assembly/bring-up work. The front image shows ESP32-S3-WROOM-1 and N16R8 markings. Its 22 labels per side agree with P01's existing row order, including `5Vin` near the bottom left. The colored pin chart simplifies that label to 5V; it does not prove this pin supplies USB-derived power.
 
 | Imported reference | What it contributes |
 | --- | --- |

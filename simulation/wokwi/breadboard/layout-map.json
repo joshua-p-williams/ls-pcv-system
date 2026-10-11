@@ -1,0 +1,54 @@
+{
+  "breadboard_type": "wokwi-breadboard",
+  "rail_aliases": {
+    "tp": "RAILS:3V3",
+    "tn": "RAILS:GND",
+    "bp": "RAILS:5V",
+    "bn": "RAILS:GND"
+  },
+  "signal_aliases": {
+    "2b": "R1:1",
+    "8b": "R1:2"
+  },
+  "helper_connections": [
+    [
+      "BB1:bn.3",
+      "BB1:tn.3",
+      "black",
+      [
+        "h-45.20",
+        "v-174.00"
+      ]
+    ],
+    [
+      "BB1:2b.j",
+      "R1:1",
+      "brown",
+      []
+    ],
+    [
+      "R1:2",
+      "BB1:8b.j",
+      "pink",
+      []
+    ]
+  ],
+  "power_taps": {
+    "J1:3V3.1": "tp.23",
+    "J2:VCC": "tp.25",
+    "LS1:LV": "tp.15",
+    "J1:5V": "bp.23",
+    "J3:V": "bp.5",
+    "FTP:C": "bp.1",
+    "LS1:HV": "bp.12",
+    "J1:GND.1": "bn.23",
+    "J2:GND": "tn.25",
+    "J3:G": "bn.6",
+    "J3:ADDR": "bn.7",
+    "LS1:GND_HV": "bn.11",
+    "LS1:GND_LV": "bn.15",
+    "FTP:A": "bn.2",
+    "C1:GND": "bn.9",
+    "S1:2.r": "bn.20"
+  }
+}

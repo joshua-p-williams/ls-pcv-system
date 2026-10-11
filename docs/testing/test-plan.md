@@ -23,6 +23,10 @@ For gauge bench work, start with the documented [power integration checks](../..
 
 [W01's phased assembly guide](../../hardware/wiring/bench/README.md#phased-assembly-and-verification) adds configuration-specific prerequisites and section views for the N16R8 USB bench setup. Resolve each phase's marked interfaces before connection or power; converter checks apply only when that source is introduced. Q30/Q31 define native USB, IN-OUT closed, USB-OTG open, nominal USB-fed 5 V and 3.3 V display power. Include actual diode/cable drop and source/load margin in phase checks. The harness draft and rendering checks are not bench-test results.
 
+The [pressure tap](../../cad/pressure-tap/README.md) and restrictor have annealing planned. Record completion/settings and post-process dimensions, then verify sensor sealing, both barb joints, retention and clear sensing passages before pressure testing. No annealing result is implied by a saved CAD or slicer file.
+
+Firmware-dependent checks below require implemented acquisition/control software; unpowered continuity and independent voltage/pressure-reference measurements can precede it.
+
 ## 2. Characterize the sensor on the bench
 
 1. Verify terminal positions and electrical compatibility before applying power.

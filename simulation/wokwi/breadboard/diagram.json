@@ -1,0 +1,380 @@
+{
+  "version": 1,
+  "author": "LS PCV System contributors",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "wokwi-breadboard",
+      "id": "BB1",
+      "left": 130,
+      "top": 80,
+      "attrs": {}
+    },
+    {
+      "type": "board-esp32-s3-devkitc-1",
+      "id": "J1",
+      "top": 150,
+      "left": 760,
+      "attrs": {
+        "flashSize": "16",
+        "psramSize": "8",
+        "psramType": "octal",
+        "serialInterface": "USB_SERIAL_JTAG"
+      }
+    },
+    {
+      "type": "chip-pcv-gc9a01-visual",
+      "id": "J2",
+      "top": 180,
+      "left": 950,
+      "attrs": {}
+    },
+    {
+      "type": "chip-pcv-level-shifter-header",
+      "id": "LS1",
+      "top": 130,
+      "left": 450,
+      "attrs": {},
+      "rotate": 270
+    },
+    {
+      "type": "chip-pcv-ads1115-header",
+      "id": "J3",
+      "top": 130,
+      "left": 260,
+      "attrs": {},
+      "rotate": 270
+    },
+    {
+      "type": "chip-pcv-ftp-visual",
+      "id": "FTP",
+      "top": 150,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "R1",
+      "top": 231.60000000000002,
+      "left": 165.6,
+      "attrs": {
+        "value": "470"
+      },
+      "rotate": 0
+    },
+    {
+      "type": "chip-pcv-capacitor-visual",
+      "id": "C1",
+      "top": 320,
+      "left": 225,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "S1",
+      "top": 430,
+      "left": 865,
+      "attrs": {
+        "color": "blue",
+        "label": "S1"
+      }
+    },
+    {
+      "id": "title",
+      "type": "wokwi-text",
+      "left": 20,
+      "top": -70,
+      "attrs": {
+        "text": "L03 - Placement proposal / virtual breadboard (DRAFT)\nConnectivity checked against W01; real module hole assignments NOT defined.\nUse P01-P06 for physical terminals; this is not a breadboard insertion guide."
+      }
+    },
+    {
+      "id": "rails-top",
+      "type": "wokwi-text",
+      "left": 130,
+      "top": 0,
+      "attrs": {
+        "text": "TOP + = 3.3 V / TOP - = GND\nBOTTOM + = nominal 5 V / BOTTOM - = GND"
+      }
+    },
+    {
+      "id": "adc-note",
+      "type": "wokwi-text",
+      "left": 245,
+      "top": 40,
+      "attrs": {
+        "text": "J3 / single 10-pin header\nComponent-side order: P03"
+      }
+    },
+    {
+      "id": "translator-note",
+      "type": "wokwi-text",
+      "left": 450,
+      "top": 40,
+      "attrs": {
+        "text": "LS1 / HV above LV\nOrder: component reference"
+      }
+    },
+    {
+      "id": "controller-note",
+      "type": "wokwi-text",
+      "left": 735,
+      "top": 20,
+      "attrs": {
+        "text": "J1 / separately supported\nHeader access; USB at bottom"
+      }
+    },
+    {
+      "id": "sensor-note",
+      "type": "wokwi-text",
+      "left": 0,
+      "top": 100,
+      "attrs": {
+        "text": "FTP / supported\noff-board sensor"
+      }
+    },
+    {
+      "id": "display-note",
+      "type": "wokwi-text",
+      "left": 925,
+      "top": 110,
+      "attrs": {
+        "text": "J2 / display\n3.3 V; SPI"
+      }
+    },
+    {
+      "id": "rc-note",
+      "type": "wokwi-text",
+      "left": 135,
+      "top": 420,
+      "attrs": {
+        "text": "R1 470 ohm / C1 1 uF\nRaw row 2b / OUT row 8b\nC1 is a passive part, not a module"
+      }
+    },
+    {
+      "id": "button-note",
+      "type": "wokwi-text",
+      "left": 855,
+      "top": 500,
+      "attrs": {
+        "text": "S1 / supported off-board\nGPIO6 / NO contact to GND"
+      }
+    },
+    {
+      "id": "USB_SOURCE",
+      "type": "wokwi-text",
+      "left": 700,
+      "top": 580,
+      "attrs": {
+        "text": "5 V: native USB -> J1 L21 -> bottom +\nOne USB source; no external 5 V injection\nIN-OUT closed / USB-OTG open\nActual USB/header geometry: P01"
+      }
+    },
+    {
+      "id": "legend",
+      "type": "wokwi-text",
+      "left": 20,
+      "top": 720,
+      "attrs": {
+        "text": "Orange 3.3 V / red nominal 5 V / black common ground.\nGreen data / yellow clock; white reset / blue CS / violet DC / gray button.\nBrown raw signal / pink OUT/A0. Do not join the two positive rails.\nHeader ORDER follows references; body size and row spacing are illustrative.\nExplicit wires define connections; module insertion contacts are not modeled.\nReal build: soldered sockets, cable support, dry fit; no fixed cut lengths."
+      }
+    }
+  ],
+  "connections": [
+    [
+      "J1:3V3.1",
+      "BB1:tp.23",
+      "orange",
+      []
+    ],
+    [
+      "J1:GND.1",
+      "BB1:bn.23",
+      "black",
+      []
+    ],
+    [
+      "J1:5V",
+      "BB1:bp.23",
+      "red",
+      []
+    ],
+    [
+      "J1:5",
+      "J2:RST",
+      "white",
+      []
+    ],
+    [
+      "J1:10",
+      "J2:CS",
+      "blue",
+      []
+    ],
+    [
+      "J1:4",
+      "J2:DC",
+      "violet",
+      []
+    ],
+    [
+      "J1:11",
+      "J2:SDA",
+      "green",
+      []
+    ],
+    [
+      "J1:12",
+      "J2:SCL",
+      "yellow",
+      []
+    ],
+    [
+      "BB1:tp.25",
+      "J2:VCC",
+      "orange",
+      []
+    ],
+    [
+      "BB1:tn.25",
+      "J2:GND",
+      "black",
+      []
+    ],
+    [
+      "BB1:bp.5",
+      "J3:V",
+      "red",
+      []
+    ],
+    [
+      "BB1:bn.6",
+      "J3:G",
+      "black",
+      []
+    ],
+    [
+      "LS1:HV1",
+      "J3:SDA",
+      "green",
+      []
+    ],
+    [
+      "LS1:HV2",
+      "J3:SCL",
+      "yellow",
+      []
+    ],
+    [
+      "BB1:bn.7",
+      "J3:ADDR",
+      "black",
+      []
+    ],
+    [
+      "J1:6",
+      "S1:1.r",
+      "gray",
+      []
+    ],
+    [
+      "BB1:bn.20",
+      "S1:2.r",
+      "black",
+      []
+    ],
+    [
+      "BB1:bp.1",
+      "FTP:C",
+      "red",
+      []
+    ],
+    [
+      "BB1:bn.2",
+      "FTP:A",
+      "black",
+      []
+    ],
+    [
+      "FTP:B",
+      "BB1:2b.f",
+      "brown",
+      []
+    ],
+    [
+      "BB1:8b.f",
+      "J3:A0",
+      "pink",
+      []
+    ],
+    [
+      "BB1:bn.9",
+      "C1:GND",
+      "black",
+      []
+    ],
+    [
+      "J1:8",
+      "LS1:LV1",
+      "green",
+      []
+    ],
+    [
+      "J1:9",
+      "LS1:LV2",
+      "yellow",
+      []
+    ],
+    [
+      "BB1:tp.15",
+      "LS1:LV",
+      "orange",
+      []
+    ],
+    [
+      "BB1:bp.12",
+      "LS1:HV",
+      "red",
+      []
+    ],
+    [
+      "BB1:bn.15",
+      "LS1:GND_LV",
+      "black",
+      []
+    ],
+    [
+      "BB1:bn.11",
+      "LS1:GND_HV",
+      "black",
+      []
+    ],
+    [
+      "BB1:8b.g",
+      "C1:OUT",
+      "pink",
+      []
+    ],
+    [
+      "BB1:bn.3",
+      "BB1:tn.3",
+      "black",
+      [
+        "h-45.2",
+        "v-174"
+      ]
+    ],
+    [
+      "BB1:2b.j",
+      "R1:1",
+      "brown",
+      []
+    ],
+    [
+      "R1:2",
+      "BB1:8b.j",
+      "pink",
+      []
+    ]
+  ],
+  "dependencies": {}
+}
