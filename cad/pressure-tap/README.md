@@ -10,10 +10,10 @@ The tap measures local line pressure. Hose and catch-can losses can make this di
 
 | Part | Native source | Mesh export | Slicer project |
 | --- | --- | --- | --- |
-| Pressure-tap block | [FreeCAD](source/pressure-tap.FCStd) | [STL](exports/pressure-tap.stl) | [3MF](prints/pressure-tap.3mf) |
-| Separate hose barb | [FreeCAD](source/pressure-tap-hose-barb.FCStd) | [STL](exports/pressure-tap-hose-barb.stl) | [3MF](prints/pressure-tap-hose-barb.3mf) |
+| Pressure-tap block | [FreeCAD](source/pressure-tap.FCStd) | [STL](exports/pressure-tap.stl) | [3MF](printing/pressure-tap.3mf) |
+| Separate hose barb | [FreeCAD](source/pressure-tap-hose-barb.FCStd) | [STL](exports/pressure-tap-hose-barb.stl) | [3MF](printing/pressure-tap-hose-barb.3mf) |
 
-The assembly has two barb receivers; the separate barb model serves both sides. The existing `prints/` path is retained. Both 3MF projects identify QIDI Studio settings for X-Plus 4, a 0.4 mm nozzle, 0.2 mm layers and the QIDI PAHT-CF profile. These are saved settings, not a verified print log. Export tessellation settings and exact source-to-export revision history were not supplied.
+The assembly has two barb receivers; the separate barb model serves both sides. Slicer projects are stored in `printing/`. Both 3MF projects identify QIDI Studio settings for X-Plus 4, a 0.4 mm nozzle, 0.2 mm layers and the QIDI PAHT-CF profile. These are saved settings, not a verified print log. Export tessellation settings and exact source-to-export revision history were not supplied.
 
 ## Saved block geometry
 

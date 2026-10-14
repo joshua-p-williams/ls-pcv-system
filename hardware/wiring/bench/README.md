@@ -148,6 +148,10 @@ Use the full diagram and selected firmware configuration. Check combined startup
 
 Promote the documented connections to assembly-ready only as their evidence is recorded. Bench success does not validate the XIAO power path, vehicle transients or W05 installation.
 
+## Solder-side carrier layout
+
+Use [L04’s illustrated solder plan](protoboard/solder-plan.md) for reported module coordinates, proposed bus/filter/button placement and colored point-to-point wiring. Its [source and generation guide](protoboard/README.md) checks all electrical nets against W01. It is a physical implementation proposal; contact pairing, package fit and powered behavior still need assembly checks.
+
 ## Rendering and validation
 
 Tested with Python 3.12.10, WireViz 0.4.1 and Graphviz 16.1.0. The [pinned Python requirements](requirements.txt) are drawing tools, not firmware dependencies. Install [Graphviz](https://graphviz.org/download/) separately and put `dot` on PATH; the Python graphviz package does not supply that executable. See [WireViz documentation](https://github.com/wireviz/WireViz) for its native format and CLI.

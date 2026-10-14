@@ -1,5 +1,7 @@
 # Wokwi bench illustration and simulation
 
+For actual carrier pad coordinates and solder routes, use [L04](../../hardware/wiring/bench/protoboard/README.md). Generated SVG/PNG is preferred for that static assembly task; Wokwi retains its interactive illustration and future simulation role.
+
 **L01 state: Draft; complete intended bench connectivity, not assembly-ready.** [diagram.json](diagram.json) illustrates the controller substitute, display, ADS1115, BSS138 translator, FTP sensor, built RC filter, button and supply distribution. The [W01 harness](../../hardware/wiring/bench/README.md) owns the electrical design; [interface-map.json](interface-map.json) maps its terminals into this view. The complete USB cable is annotated because the virtual board has no matching cable endpoint.
 
 See the [adoption decision](../../docs/wokwi-adoption.md), [standard](../../docs/diagramming-and-wiring-standard.md) and [inventory](../../hardware/DIAGRAMS.md). No gauge firmware or functioning peripheral models are included. Construction remains solderable protoboard with secure connections, removable modules and mechanical support.

@@ -1,0 +1,22 @@
+{
+  "renderer": "Puppeteer",
+  "node": "v24.15.0",
+  "sources": {
+    "generate-plan.py": "d27ed8285f6e4d8699d34d171abbfa4d97ff117f416d2ea369c5d32e9ab0297e",
+    "render-board.py": "90cd722d32c33b3b51dab591324c225b560c1a3cce56121da282268af9f359b2",
+    "export-png.mjs": "71cbf2ff83d52e66f9581a81050df9f282cb26184ed5df62868df08213fd0137",
+    "../bench-harness.yml": "9fd5208733972fa7e8c556b8aabb85f99c0d8c655bb8cd3743ea9349efe6fc80"
+  },
+  "files": {
+    "board-overview.svg": "cf3481e3d9754bc09ac93bba7bd228993d58d2d7f430b04ac593686a4a5b0ccc",
+    "board-overview.png": "60904c1221cc377f2977e77aac0e8674d0e9258662c048ee15e996b3854ed379",
+    "board-ground-power.svg": "624ccb8f7f96035db8bc8f852f17aa8a329b220349514bbff7639566aba5dcf5",
+    "board-ground-power.png": "db9bd4c3c37fd09f5b2b2d5af3111883ce4d6becbea3c70130791b3d78b57d9c",
+    "board-digital.svg": "b5a6c1afc2737be75760e8474495bdd7a495cbc24014d44e1db547c1dd23987b",
+    "board-digital.png": "ddfb34d7aa08046f7cc3c800bb0acaa088816cc173b471ac4564ef42e5017588",
+    "board-sensor-button.svg": "2ae8d70cd8ceed50c2ec7eb00db839e53c6d5ea868d968b0dcab81fe89f9d38d",
+    "board-sensor-button.png": "52481586013a8bcaed7ad7042155b65fea7e80ba6f1a0473fc825dd4a018ce94"
+  },
+  "puppeteer": "25.12.0",
+  "browser": "Chrome/154.0.8037.57"
+}

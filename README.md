@@ -81,6 +81,7 @@ Primary pressure unit: **inH2O**, relative to atmosphere; negative means vacuum.
 | [L01 / Wokwi](simulation/wokwi/README.md) | Complete intended bench connections, visual-part mappings and future simulation limits |
 | [Wokwi adoption](docs/wokwi-adoption.md) | Tool responsibilities and illustration/simulation scope |
 | [Mechanical designs](cad/README.md) | Restrictor and pressure-tap CAD, exports, slicer projects and fabrication status |
+| [L04 solder-side protoboard layout](hardware/wiring/bench/protoboard/README.md) | Illustrated solder schedule, physical coordinates and reproducible SVG/PNG views checked against W01 |
 | [L03 bench placement](simulation/wokwi/breadboard/README.md) | Carrier grouping and jumper routing, with physical-fit limitations |
 | [cad/pcv-restrictor/](cad/pcv-restrictor/README.md) | Restrictor design intent and source/export conventions |
 | [Hardware components](hardware/components/README.md) | Component descriptions, design decisions and import records |

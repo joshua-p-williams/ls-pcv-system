@@ -26,7 +26,12 @@ Paths in code are planned destinations, not links to existing artifacts. As docu
 | W05 | 4 | Vehicle gauge harness | WireViz `wiring/vehicle/gauge-harness.yml` | Separate design after source/fuse/ground/routing/connectors and bench findings are resolved |
 | L02 | 4 | Gauge enclosure/electronics placement | Draw.io layout or CAD-associated view | After display/enclosure choices; choose destination with CAD work to avoid duplicate drawings |
 | L03 | 4 | Bench carrier placement and jumper routing | Wokwi [guide](../simulation/wokwi/breadboard/README.md), [JSON](../simulation/wokwi/breadboard/diagram.json) and [PNG](../simulation/wokwi/breadboard/diagram-preview.png) | **Draft placement proposal**. Explicit virtual connections/rail groups checked against W01/L01; real module hole assignments and header clearance are not defined. Native breadboard with compact grouping; real construction remains solderable protoboard |
+| L04 | 4 | Solder-side protoboard wiring: which physical pads receive each wire? | [Illustrated plan](wiring/bench/protoboard/solder-plan.md), [sources and checks](wiring/bench/protoboard/README.md), [SVG](wiring/bench/protoboard/generated/board-overview.svg) and [PNG](wiring/bench/protoboard/generated/board-overview.png) | **Draft; document checks reviewed**. Reported module coordinates; proposed buses, RC/button placement and routes. Net/color checks against W01; button contacts, fit and electrical operation remain unverified |
 | S01 | Conditional | Analog conditioning/protection circuit | KiCad under `schematics/` if warranted | Revisit if component-level connectivity needs a real schematic/ERC; not selected now |
+
+## Physical assembly reference
+
+[L04](wiring/bench/protoboard/README.md) adds the selected carrier’s solder-side grid, illustrated wire schedule and reproducible SVG/PNG views. It implements W01 connectivity without replacing L01’s functional or L03’s breadboard views.
 
 ## Next documentation
 

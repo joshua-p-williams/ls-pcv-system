@@ -1,10 +1,14 @@
 # Adopt Wokwi for electronics illustrations and firmware simulation
 
-**Status: Adopted.** Wokwi is the preferred tool for instructional component-and-wire views, temporary solderless breadboard illustrations when useful, and virtual ESP32 firmware testing. It provides maintainable JSON connections. [L01](../simulation/wokwi/README.md) covers complete intended bench connectivity using native and original terminal-only parts; functioning system simulation is future work.
+## Current tool boundary
+
+Wokwi remains adopted for interactive component/breadboard illustrations and future ESP32 firmware simulation. Generated SVG with PNG previews is preferred for coordinate-based physical assembly layouts such as [L04](../hardware/wiring/bench/protoboard/README.md). Existing L01/L03 views remain available; new static illustrations do not require Wokwi when a maintained SVG generator better expresses placement and solder routes. This supplements the original adoption rather than claiming that graphical placeholders simulate electronics. Follow the [diagramming standard](diagramming-and-wiring-standard.md) for format selection.
+
+**Status: Adopted, supplemented by generated SVG for coordinate-based layouts.** Wokwi is preferred for interactive component-and-wire views, temporary solderless breadboard illustrations when useful, and virtual ESP32 firmware testing. It provides maintainable JSON connections. [L01](../simulation/wokwi/README.md) covers complete intended bench connectivity using native and original terminal-only parts; functioning system simulation is future work.
 
 ## Responsibilities
 
-Markdown explains the design, Mermaid shows architecture and workflows, WireViz defines harness connectivity, and Wokwi illustrates components/connections and supports simulation. Draw.io remains available for installation or spatial illustrations that these tools do not express well. KiCad owns electrical schematics and PCB designs when warranted. DIY Layout Creator may be considered for detailed permanent perfboard layouts; it is not a current dependency.
+Markdown explains the design, Mermaid shows architecture and workflows, WireViz defines harness connectivity, generated SVG/PNG shows coordinate-based physical layouts, and Wokwi supports interactive component illustrations and simulation. Draw.io remains available for spatial illustrations that benefit from manual graphical editing. KiCad owns electrical schematics and PCB designs when warranted. DIY Layout Creator remains an optional alternative if its editing tools improve a future layout task; it is not a current dependency.
 
 The real bench uses solderable protoboard with secure connections and removable modules. Adopting Wokwi does not change that construction decision. Its view describes an arrangement and connections, not exact solder holes, copper paths, mounting dimensions or purchased-board geometry.
 

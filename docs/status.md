@@ -20,6 +20,10 @@ This page summarizes the design, available hardware records and remaining work. 
 
 Additional [bench-board references](../hardware/components/esp32-s3-dev-board/bench-board-reference.md) and the Espressif module datasheet are imported. Q04/Q05 are Investigating: product imagery supports a YD-style candidate but does not verify the received board; Q30 now selects native USB, IN-OUT closed, USB-OTG open and L21 output using the official family schematic. Normal rail and load checks remain Q05/Q12; extra photos are not a design prerequisite.
 
+## Solder-side assembly layout
+
+[L04](../hardware/wiring/bench/protoboard/README.md) now documents the reported carrier/module coordinates and proposed bus strips, 470 ohm / 1 uF filter, on-board button and off-board sensor wiring. The illustrated plan and SVG/PNG sources are adopted; all non-USB electrical nets/colors are checked against W01. This is document evidence, not completed soldering or powered operation. Button contact pairing, stock-part/body fit and rail/functional checks remain pending. Generated SVG with PNG previews is preferred for coordinate-based assembly layouts; existing Wokwi views remain useful for interactive illustrations and future simulation.
+
 ## Next work
 
 [L03](../simulation/wokwi/breadboard/README.md) separates carrier placement/jumper routing from L01's functional overview. It uses a native Wokwi breadboard with explicit rail taps, common-ground bridge and distinct raw/OUT strips. Compact grouping retains W01 connectivity and colors; translating virtual module footprints to the actual solderable carrier and physical bring-up remain assembly work. L02 stays reserved for enclosure placement.
@@ -97,7 +101,7 @@ One multifunction button is selected for both controller configurations, with [B
 
 W01 requires a [sturdy movable assembly](../hardware/wiring/README.md#bench-construction-and-retention), using a solderable protoboard carrier, soldered female header sockets and removable male-header modules, with mechanical support and strain relief. Protoboard and male/female header strips are on hand; nominal 2.54 mm pitch is accepted for planning. Q16 is resolved: soldered or secure removable connections may be mixed at assembler discretion. W01 retains responsibility for electrical connectivity and wire requirements; actual terminations and layout belong in the build record.
 
-W01 and L03 provide the current assembly references; no separate assembly guide is required. Mechanical wiring and unpowered checks may precede firmware. Minimal bench firmware is the next software task; functional display/button/ADC tests wait for its implementation.
+W01 owns the electrical connections; L04 provides the carrier-specific solder plan, while L03 remains the breadboard illustration. Mechanical wiring and unpowered checks may precede firmware. Minimal bench firmware is the next software task; functional display/button/ADC tests wait for its implementation.
 
 ## Open decisions
 

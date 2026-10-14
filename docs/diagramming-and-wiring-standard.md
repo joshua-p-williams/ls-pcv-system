@@ -10,13 +10,16 @@ This standard defines formats, locations, evidence labels and review practices f
 | System, pneumatic, power, signal or data flow | Mermaid embedded in Markdown | Relationships and conceptual boundaries, not exact harness wiring |
 | Firmware modes, sequencing, test decisions | Mermaid state, sequence or flowchart in Markdown | Choose the diagram type that answers the question |
 | Exact connector-to-connector wiring | WireViz `.yml` | Pin mapping, cables, splices, shields, wire color/gauge/length |
-| Electronics component-and-wire illustration; temporary solderless breadboard view | Wokwi `diagram.json` | Recognizable components and colored terminal-to-terminal leads, synchronized with the harness |
+| Coordinate-based solder/protoboard assembly, pad maps and deterministic spatial illustrations | Generated SVG plus PNG previews; maintained generator/data source | Preferred when exact placement and clear static documentation are the main purpose; preserve source evidence and validate against wiring authority |
+| Interactive electronics component-and-wire illustration; temporary solderless breadboard view | Wokwi `diagram.json` | Recognizable components and colored terminal-to-terminal leads, synchronized with the harness |
 | Virtual ESP32 firmware testing | Wokwi JSON and build configuration | Document synthetic inputs, model coverage and differences from physical hardware |
 | Other installation or spatial illustration | Editable `.drawio.svg` | When other formats do not express placement well |
-| Detailed permanent perfboard layout | DIY Layout Creator, if needed | Optional future hole/copper map; no current tooling dependency |
+| Layout editing that benefits from a dedicated perfboard tool | DIY Layout Creator, if needed | Optional alternative when its editing tools materially improve the task; generated SVG is the default for the present coordinate-based layout |
 | Custom circuitry, electrical-rule checking or PCB | KiCad native project | Introduce when circuit complexity warrants it; no PCB is required to justify a real circuit schematic |
 
 Markdown owns explanatory context; Mermaid owns conceptual relationships; pinout pages own terminal identity/evidence; WireViz owns designed point-to-point connectivity; the existing BOM owns purchases. Wokwi provides a synchronized instructional view and virtual model, not a competing wiring authority. A generated harness BOM describes build requirements, not purchased inventory. Native CAD remains authoritative for dimensions. See the [Wokwi adoption decision](wokwi-adoption.md).
+
+Generated SVG is a first-class documentation approach, distinct from editable Draw.io SVG. Prefer it for deterministic pad placement, assembly overlays and small spatial illustrations that benefit from programmatic generation and readable previews. Wokwi remains valuable for interactive component views and virtual firmware testing; a new static hardware illustration does not automatically require a Wokwi version. Retain existing useful views and avoid duplicating sources solely to satisfy a tool convention.
 
 ## Locations and naming
 
@@ -27,6 +30,7 @@ Markdown owns explanatory context; Mermaid owns conceptual relationships; pinout
 | `hardware/architecture/` | System, PCV, power and measurement architecture in Markdown/Mermaid |
 | `hardware/pinouts/` | Verified or explicitly unresolved module/connector interface tables |
 | `hardware/wiring/bench/` | Development harness source and accompanying build notes |
+| `hardware/wiring/bench/protoboard/` | L04 generator, physical coordinate map and solder plan; SVG/PNG outputs and fingerprints in its `generated/` folder |
 | `hardware/wiring/vehicle/` | Separate vehicle harness source and installation notes |
 | `hardware/wiring/<configuration>/generated/` | WireViz renderings next to their owning source |
 | `simulation/wokwi/` | Maintained Wokwi illustration/simulation JSON, physical mappings, model limits and opening instructions |
@@ -73,6 +77,8 @@ Evidence labels on facts/connections: **Planned**, **Manufacturer Spec**, **Vend
 WireViz YAML is the editable connectivity source. Resolve errors against evidence, correct the source and regenerate; never manually repair only the output. Commit SVG as the default browsable render with each selected harness. HTML and TSV are optional when useful; PNG/PDF are derivatives only when needed. Keep generated files trackable, and update them with their sources.
 
 Specify planned conductor colors in the harness source and show them in renders and connection schedules. Start with [W01's color convention](../hardware/wiring/bench/generated/connections.md#wire-color-convention) for new project wiring: black ground, red 5 V, orange 3.3 V and labeled signal colors. Keep unresolved color choices explicit. Distinguish designed wire colors from observed factory leads; color never establishes an unknown terminal function. Labels remain authoritative, and as-built records capture substitutions. A whole factory-cable symbol does not specify its internal conductor colors.
+
+For generated coordinate-based SVG, maintain the generator and coordinate/route data beside the owning assembly documents. Define viewing face, row/column direction, repeated labels, units and the source of physical coordinates. Distinguish proposed parts/routes from reported or measured placements. Mark endpoints, buses and insulated crossings clearly. Check electrical-net equivalence against the harness, occupied-pad collisions, output freshness and visual clarity; do not treat these checks as physical verification or circuit-rule checking. Generate PNG previews from the SVGs, embed sectional views near instructions, and record source/output hashes and tool versions. [L04](../hardware/wiring/bench/protoboard/README.md) is the current example.
 
 Editable Draw.io SVG must include embedded diagram data. Reopen it to verify editability and check its repository preview. If editable SVG is unsuitable, keep `.drawio` source plus a clearly labeled SVG derivative. See the [official editable-image guidance](https://www.drawio.com/docs/manual/collaboration/diagram-data-image-formats/).
 

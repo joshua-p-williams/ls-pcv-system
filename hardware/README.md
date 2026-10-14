@@ -14,6 +14,8 @@ Start with the [diagram inventory](DIAGRAMS.md) to choose upcoming documentation
 
 Use the [gauge integration guide](components/gauge-electronics/README.md#reading-and-building-path) for the learning and assembly path. Separate component guides cover the [N16R8 development board](components/esp32-s3-dev-board/README.md), [XIAO](components/xiao-esp32s3/README.md), [GC9A01 display](components/gc9a01-display/README.md), [ADC](components/adc/README.md), [sensor/pigtail](components/fuel-tank-pressure-sensor/README.md), [power supply](components/gauge-power-supply/README.md), and [relief valve](components/check-valve-relief-valve/README.md). Interface pages link to these explanations; the BOM retains procurement responsibility.
 
+The [L04 solder-side protoboard layout](wiring/bench/protoboard/README.md) provides an illustrated physical implementation of W01, with reported module coordinates and proposed solder routes.
+
 ## Organization
 
 Keep this directory as the entry point for hardware documentation. Only shared navigation and inventory documents live directly here; group substantive content by purpose in the directories above. New component records belong in `components/<component>/` and are listed in the [component index](components/README.md).

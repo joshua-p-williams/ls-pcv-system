@@ -1,5 +1,7 @@
 # Bench protoboard arrangement
 
+For the reported carrier, use [L04’s solder-side layout and illustrated schedule](protoboard/README.md). This page remains general construction guidance; L04 supplies the specific pad coordinates and reproducible drawings.
+
 **Draft placement proposal.** This plan turns [W01's electrical connections](README.md) into a sturdy, serviceable bench assembly. It uses the on-hand nominal 2.54 mm solderable protoboard, male headers and female socket strips. Module dimensions, carrier size and pad pattern do not need to be documented exhaustively to plan the arrangement; check that they fit during a dry placement before soldering.
 
 The [L01 Wokwi view](../../../simulation/wokwi/README.md) and [PNG](../../../simulation/wokwi/diagram-preview.png) explain the connections. Their virtual module footprints and positions are illustrative. The sketch below proposes physical zones, viewed from the component side; it is not to scale and contains no connector pin-order or solder-pad instructions. W01 remains the wiring authority.

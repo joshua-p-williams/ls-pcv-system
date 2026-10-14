@@ -97,8 +97,9 @@ def main():
         raise SystemExit("\n".join(sorted(errors)))
     # L03 first validates L01 against W01, then its rail/strip projection.
     subprocess.run([sys.executable, "simulation/wokwi/breadboard/check.py"], check=True)
+    subprocess.run([sys.executable, "hardware/wiring/bench/protoboard/check-layout.py"], check=True)
     print(f"PASS: {len(documents)} Markdown files: local links, anchors and case; JSON/SVG syntax; "
-          "W01 generation fingerprints, schedule and derived connections; L01/L03 wiring. "
+          "W01 generation fingerprints, schedule and derived connections; L01/L03 wiring; L04 layout and outputs. "
           "No firmware or hardware tests performed.")
 
 
