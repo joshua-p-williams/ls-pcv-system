@@ -1,0 +1,7 @@
+I want to develop the firmware for this project using the spec-driven milestone workflow in `firmware/docs/developing-with-codex/README.md`. Follow that process for the entire firmware effort.
+
+Start with a conversation-only brainstorm. Read `AGENTS.md`, `README.md`, `docs/status.md`, `firmware/README.md`, and the relevant hardware sources. Ask focused questions to understand the intended firmware behavior, physical assembly state, assumptions, and constraints. Do not create or modify files during the brainstorm.
+
+After the brainstorm, stop and wait for my explicit approval before writing the milestone roadmap. For each approved milestone, create exactly one document at a time in this order: `feature.md`, `research.md`, `architecture.md`, `plan.md`, and `tasks.md`. Stop after each document and wait for my review and explicit approval before proceeding. Do not implement until all five documents are approved and I explicitly select an implementation phase. Implement only that phase, verify it, reconcile evidence or deviations into the documents, report the result, and stop for my direction.
+
+Treat published/listing information and project decisions as working assumptions where the repository says so; distinguish them from physical measurements and validated behavior. Never infer that a successful build proves wiring, calibration, or engine suitability. If any requirement or evidence gap materially changes a connection or behavior, ask about that point before committing to a design.

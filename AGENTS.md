@@ -100,3 +100,11 @@
 - For future code, add reproducible build/test commands to `firmware/README.md` or the relevant tool README and run checks appropriate to the change.
 - For CAD, record the tool/version and geometry/export checks actually performed. For hardware work, distinguish bench/vehicle validation from document review.
 - Report what changed, checks performed, and any unverified behavior or missing artifacts. Update `docs/status.md` when decisions or milestones change.
+
+## Firmware development workflow
+
+- Follow [`firmware/docs/developing-with-codex/README.md`](firmware/docs/developing-with-codex/README.md) for firmware work. The five-document milestone cycle applies before implementation; the [milestone register](firmware/docs/milestones/README.md) records only an agreed sequence.
+- Start each new firmware effort with a conversation-only brainstorm. Do not create files or code during that brainstorm. Agree the milestone order before drafting its first feature document.
+- For each approved milestone, create `feature.md`, `research.md`, `architecture.md`, `plan.md`, and `tasks.md` in that order, exactly one document at a time. Stop after each and wait for explicit review and approval before drafting the next.
+- Do not implement until all five documents for that milestone are approved. Implement only the task phase the user explicitly selects; verify that phase, reconcile findings into its documents, report the result, and stop for direction.
+- Keep firmware assumptions and decisions consistent with hardware component documents, W01 connectivity, L04's reported solder-side layout, and measured bring-up evidence. Physical assembly, a successful build, and measured electrical behavior are distinct evidence states.

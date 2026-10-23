@@ -2,7 +2,7 @@
 
 L04 translates [W01's electrical connections](../README.md) into a solder plan for the reported 27-column by 22-row carrier. It shows where module terminals meet the board, where to place the filter and button, and how to route colored wires between the solder pads. Start with the [illustrated solder plan](solder-plan.md) and [coordinate map](coordinate-map.md).
 
-**Document state: Draft; connectivity and rendering reviewed.** Module coordinates are reported physical positions. Bus strips, R1/C1, button placement and routing are proposals, not a completed or electrically tested assembly. Check the button contact pair and actual package clearance during assembly. Firmware and measured operation remain pending.
+**Document state: Draft; connectivity and rendering reviewed.** The development protoboard was reported physically assembled on 2026-10-22. The exact as-built differences from L04 and electrical bring-up results have not yet been recorded. L04's module coordinates are reported physical positions; its bus strips, R1/C1, button placement and routing remain the documented plan until reconciled with the build. Firmware and measured operation remain pending.
 
 ## Views and orientation
 

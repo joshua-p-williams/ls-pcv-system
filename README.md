@@ -92,7 +92,7 @@ Primary pressure unit: **inH2O**, relative to atmosphere; negative means vacuum.
 | [Gauge power supply](hardware/components/gauge-power-supply/README.md) | Converter selection, power plan, and mounting reference |
 | [Check valve / relief](hardware/components/check-valve-relief-valve/README.md) | Purchased valve, vendor claims, and relief-validation needs |
 | [Datasheets](hardware/datasheets/README.md) | Preserved vendor revisions and official source links |
-| [firmware/](firmware/README.md) | Gauge requirements and planned ESP32-S3 development environment |
+| [firmware/](firmware/README.md) | Gauge requirements, Codex development workflow and planned ESP32-S3 environment |
 | [docs/testing/](docs/testing/test-plan.md) | Planned bench and vehicle validation |
 | [Open questions](docs/open-questions.md) | Follow-up questions, evidence needed and bench-harness dependencies |
 | [docs/status.md](docs/status.md) | Next work and unresolved decisions |
@@ -124,7 +124,7 @@ Ignored directories are local only. On a fresh clone, create the inbox with `New
 
 1. Verify physical variants, measured bores, and slicer behavior against the [adopted restrictor CAD design](cad/pcv-restrictor/README.md).
 2. Confirm current parts status and final plumbing; the earlier vented installation is documented separately.
-3. Lay out the bench using W01 and L03, perform unpowered connection and rail checks, then introduce bench firmware for peripheral tests. The selected RC circuit and ADC configuration candidates are documented; remaining electrical and firmware checks are still open.
+3. The development protoboard is reported assembled. Reconcile the as-built wiring and record continuity/rail checks, then discuss and agree firmware milestones using the [Codex workflow](firmware/docs/developing-with-codex/README.md). The selected RC circuit and ADC configuration candidates are documented; remaining electrical and firmware checks are still open.
 4. Characterize the sensor and relief valve on the bench before vehicle tuning.
 
 This design is specific to this engine until evidence supports broader use. The gauge is a diagnostic instrument, not a certified safety device. See the [test plan](docs/testing/test-plan.md) for validation gates.
