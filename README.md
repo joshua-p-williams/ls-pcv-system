@@ -110,7 +110,7 @@ Use the BOM for current purchase/inventory facts, component READMEs for current 
 
 Use UTF-8, LF line endings, descriptive lowercase kebab-case names where practical, and explicit units. Preserve native CAD source and raw measurements. For important changes, record the reason, evidence, validation, and unresolved questions alongside the affected component.
 
-No firmware build exists yet. Documentation and wiring checks are available in [tools/check-repository.py](tools/check-repository.py). With [W01's Python drawing dependencies](hardware/wiring/bench/README.md#rendering-and-validation) installed, run `python tools/check-repository.py` from the repository root. It checks public Markdown links/anchors and filename case, generated W01 source/renderer fingerprints and schedule, and L01/L03 connectivity. It does not build firmware or validate hardware. Also run `git diff --check` and `git diff --cached --check`, review new files and the staged versions, and visually inspect changed diagrams.
+The M00 heartbeat firmware builds on Windows, and an N16R8 upload over native USB with recurring serial heartbeat has been demonstrated on COM3; manual BOOT/RESET entry was needed. Reset with the monitor closed and heartbeat after reopening have also been confirmed. Native Linux build/upload remain pending. Documentation and wiring checks are available in [tools/check-repository.py](tools/check-repository.py). With [W01's Python drawing dependencies](hardware/wiring/bench/README.md#rendering-and-validation) installed, run `python tools/check-repository.py` from the repository root. It checks public Markdown links/anchors and filename case, generated W01 source/renderer fingerprints and schedule, and L01/L03 connectivity. It does not build firmware or validate hardware. Also run `git diff --check` and `git diff --cached --check`, review new files and the staged versions, and visually inspect changed diagrams.
 
 ## Private intake workflow
 
@@ -124,7 +124,7 @@ Ignored directories are local only. On a fresh clone, create the inbox with `New
 
 1. Verify physical variants, measured bores, and slicer behavior against the [adopted restrictor CAD design](cad/pcv-restrictor/README.md).
 2. Confirm current parts status and final plumbing; the earlier vented installation is documented separately.
-3. The development protoboard is reported assembled. Reconcile the as-built wiring and record continuity/rail checks, then discuss and agree firmware milestones using the [Codex workflow](firmware/docs/developing-with-codex/README.md). The selected RC circuit and ADC configuration candidates are documented; remaining electrical and firmware checks are still open.
+3. Continue M00 by building and uploading the same firmware configuration on native Linux. Windows N16R8 upload and heartbeat behavior have been demonstrated, including boot with the monitor closed. The development protoboard is reported assembled; reconcile its as-built wiring and record continuity/rail checks separately from firmware verification. The selected RC circuit and ADC configuration candidates are documented; remaining electrical and firmware checks are still open.
 4. Characterize the sensor and relief valve on the bench before vehicle tuning.
 
 This design is specific to this engine until evidence supports broader use. The gauge is a diagnostic instrument, not a certified safety device. See the [test plan](docs/testing/test-plan.md) for validation gates.

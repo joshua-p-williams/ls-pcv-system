@@ -1,8 +1,17 @@
 # Crankcase pressure gauge firmware
 
-Status: no firmware implementation or dependencies yet. Firmware work follows the [Codex spec-driven development workflow](docs/developing-with-codex/README.md): agree milestone order, then review `feature.md`, `research.md`, `architecture.md`, `plan.md` and `tasks.md` one at a time before implementation. The [milestone register](docs/milestones/README.md) records the agreed initial development-foundation and interactive display/button milestones; later milestones will be added as work progresses. The selected direction is **ESP32-S3**, with an N16R8 development board and XIAO ESP32-S3 finished-gauge target. The first display is a **240 x 240 GC9A01 SPI TFT**. Planned development uses PlatformIO, the Arduino framework for ESP32, and C/C++. See [gauge integration guide](../hardware/components/gauge-electronics/README.md) and [procurement BOM](../hardware/bom/parts.md). This supersedes the earlier Nano/OLED candidates.
+Status: the M00 project scaffold and minimal heartbeat firmware are in place. The Windows build, N16R8 upload, and recurring USB serial heartbeat have been demonstrated; native Linux build/upload remain pending. The one-time startup print was not captured during USB reset/reconnect. Because firmware intentionally does not wait for serial, it may have been emitted before the monitor reattached. Display, button, sensor, ADC, calibration, and gauge behavior are not implemented. Firmware work follows the [Codex spec-driven development workflow](docs/developing-with-codex/README.md): agree milestone order, then review `feature.md`, `research.md`, `architecture.md`, `plan.md` and `tasks.md` one at a time before implementation. The [milestone register](docs/milestones/README.md) records the agreed initial development-foundation and interactive display/button milestones; later milestones will be added as work progresses. The selected direction is **ESP32-S3**, with an N16R8 development board and XIAO ESP32-S3 finished-gauge target. The first display is a **240 x 240 GC9A01 SPI TFT**. Planned development uses PlatformIO, the Arduino framework for ESP32, and C/C++. See [gauge integration guide](../hardware/components/gauge-electronics/README.md) and [procurement BOM](../hardware/bom/parts.md). This supersedes the earlier Nano/OLED candidates.
 
-Separate PlatformIO environments should eventually share application code while isolating board-specific GPIO/configuration. Exact board definitions and platform/library versions remain unselected. W01 proposes the N16R8 pin map; the XIAO allocation remains open. No firmware environment files exist yet.
+Separate PlatformIO environments should share application code while isolating board-specific GPIO/configuration. M00 selects the official `espressif32@8.0.0` platform and uses a project-local N16R8 profile; XIAO allocation and its future environment remain open. See the [M00 feature documents](docs/features/M00-development-foundation/feature.md) for the reviewed scope, research, architecture, implementation plan, and phase checklist.
+
+## Getting started
+
+Open `firmware/` in VS Code and use the PlatformIO extension to build the `n16r8` environment.
+The [development environment guide](docs/development-environment.md) explains native Windows and
+Linux setup, PlatformIO CLI equivalents, upload, and serial monitoring. From a terminal in this
+directory, `pio run` builds the project. A Windows upload and recurring serial heartbeat have
+been verified; the setup guide records the observed manual bootloader entry and reset/reconnect
+behavior. Native Linux verification remains pending.
 
 See [A01: overall gauge architecture](../hardware/architecture/gauge-system.md) for acquisition, controller, display and control boundaries, and [A04: PCV system overview](../hardware/architecture/pcv-system.md) for the pressure being observed. Both are planned-system drafts, not verified hardware configurations.
 

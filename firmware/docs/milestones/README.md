@@ -1,6 +1,8 @@
 # Firmware milestones
 
-This folder records the agreed order of firmware milestones. Each milestone gets its own directory named `<ID>-<short-slug>` and follows the five-document workflow in [Developing with Codex](../developing-with-codex/README.md).
+This folder records the agreed order of firmware milestones. The milestone list is the roadmap;
+the review artifacts for each milestone live in `../features/<ID>-<short-slug>/` and follow the
+five-document workflow in [Developing with Codex](../developing-with-codex/README.md).
 
 ## Agreed initial sequence
 
@@ -21,6 +23,14 @@ unresolved pin assignments or expanding this into a broad standards project.
 the firmware. Proving that loop early exposes toolchain or USB issues before they are entangled
 with sensor and display behavior.
 
+The [M00 brainstorm](../features/M00-development-foundation/brainstorm.md) preserves the initial
+discussion that informed the specification. The [M00 feature](../features/M00-development-foundation/feature.md)
+defines its outcome and scope, and [M00 research](../features/M00-development-foundation/research.md)
+records the evidence and selected toolchain. The [M00 architecture](../features/M00-development-foundation/architecture.md)
+describes the project structure and runtime design, and the [M00 plan](../features/M00-development-foundation/plan.md)
+orders implementation and verification work. The [M00 tasks](../features/M00-development-foundation/tasks.md)
+provide the phase checklist for implementation after the documents are approved.
+
 ### M01 — Interactive display and button
 
 On the N16R8 bench setup, initialize the GC9A01 display and read the multifunction button. Provide
@@ -36,8 +46,7 @@ those interfaces be exercised before analog measurement and pressure behavior ad
 
 ## How to use this sequence
 
-This list is an ordering aid, not implementation authorization. Each milestone requires its own
-five documents in the order described by [Developing with Codex](../developing-with-codex/README.md),
-with review between documents. Implementation requires explicit selection of an approved task
-phase. No feature documents or firmware implementation have been started by agreeing this
-sequence.
+This list is an ordering aid, not implementation authorization. Each milestone follows the five
+documents in [Developing with Codex](../developing-with-codex/README.md), with review between
+documents. Implementation requires approval of the completed documents and explicit selection of
+an approved task phase.
