@@ -44,6 +44,10 @@ milestone.
 patterns for a hardware input, a visual output, board configuration, and diagnostics. It lets
 those interfaces be exercised before analog measurement and pressure behavior add complexity.
 
+The [M01 brainstorm](../features/M01-interactive-display-button/brainstorm.md) records the
+current display, synthetic-data, temporary page-navigation, and research discussion. It is input
+to the feature review, not an implementation specification.
+
 ## How to use this sequence
 
 This list is an ordering aid, not implementation authorization. Each milestone follows the five
