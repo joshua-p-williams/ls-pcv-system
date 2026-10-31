@@ -3,8 +3,9 @@
 This guide sets up the firmware project in VS Code with PlatformIO and provides matching command
 line instructions. The supported M00 workflows are native Windows and native Linux; WSL is not a
 substitute for the native Linux verification environment. The project uses the Arduino framework
-on the ESP32-S3 N16R8 development board. Its first program reports startup and sends a periodic
-USB serial heartbeat.
+on the ESP32-S3 N16R8 development board. The current M01 build reports startup and a periodic
+USB serial heartbeat, polls the proposed GPIO6 multifunction button, and reports synthetic gauge
+state changes over USB. The display is not initialized yet.
 
 The project is configured for PlatformIO Espressif 32 **8.0.0**, which supplies Arduino-ESP32
 **3.3.12**. These versions are selected for M00. The project has built successfully on Windows 11
@@ -113,3 +114,69 @@ unless the selected device actually requires it.
 
 A successful firmware build or USB serial session does not verify the protoboard's peripheral
 wiring or electrical behavior.
+
+## Native host tests
+
+The `native` PlatformIO environment runs hardware-independent C++ tests on the development
+computer. It builds the `gauge-core` private library and Unity tests without compiling
+`src/main.cpp`, Arduino, LVGL, LovyanGFX, or connecting a controller. This checks pressure-band
+boundaries, synthetic value generation, history timing, extrema, and page behavior; it does not
+verify ESP32 integration or physical hardware.
+
+PlatformIO's native environment uses the host's GCC toolchain rather than installing one itself.
+On Windows, install the toolchain as follows:
+
+1. Download and install MSYS2 from the [official MSYS2 site](https://www.msys2.org/).
+2. Launch the UCRT64 shell from PowerShell. This explicit command avoids accidentally opening
+   another MSYS2 environment such as MINGW64:
+
+   ```powershell
+   & 'C:\msys64\msys2_shell.cmd' -defterm -here -no-start -ucrt64
+   ```
+
+   In the new shell, `echo $MSYSTEM` should print `UCRT64` (not `MINGW64`), and `which pacman`
+   should locate `/usr/bin/pacman`. Install GCC, which includes both the C and C++ compilers:
+
+   ```bash
+   pacman -S mingw-w64-ucrt-x86_64-gcc
+   ```
+
+3. Add the UCRT64 binary directory to the Windows `PATH`. For the default MSYS2 installation this
+   is `C:\msys64\ucrt64\bin`.
+4. Open a new VS Code terminal and verify that both compilers are available:
+
+   ```powershell
+   gcc --version
+   g++ --version
+   ```
+
+On Debian or Ubuntu Linux, install the host compiler with `sudo apt update` followed by
+`sudo apt install build-essential`, then verify `gcc --version` and `g++ --version`. Install
+PlatformIO through the VS Code extension as above, or use the existing PlatformIO Core CLI.
+
+From `firmware/`, run the appropriate PlatformIO command for the host:
+
+```text
+# Windows (PlatformIO IDE terminal)
+platformio.exe test -e native
+
+# Linux
+pio test -e native
+```
+
+In VS Code, use the integrated terminal opened in `firmware/`; PlatformIO's test tasks can also
+select the `native` environment. The command reports each Unity test and exits unsuccessfully if a
+test fails. The `n16r8` environment remains the normal firmware build and upload target; the native
+test environment is not a substitute for `pio run -e n16r8` or physical verification.
+
+PlatformIO's official [Native platform guide](https://docs.platformio.org/en/latest/platforms/native.html)
+documents host compiler prerequisites, the [mingw-w64 MSYS2 guide](https://www.mingw-w64.org/getting-started/msys2/)
+documents the Windows package installation, and the [Unity framework guide](https://docs.platformio.org/en/latest/advanced/unit-testing/frameworks/unity.html)
+documents native test support.
+
+### M01 host-test verification status
+
+**Windows passed:** Windows 11 Pro, MSYS2 UCRT64 GCC/G++ 16.2.0, PlatformIO Core 6.2.0, native
+platform 1.2.1, Unity 2.6.1. `platformio.exe test -e native` ran from `firmware/` in the UCRT64
+shell using the PlatformIO Core executable installed in the user profile; all 12 tests passed.
+Native Linux has not yet been tested; use the same test sources and `pio test -e native` there.

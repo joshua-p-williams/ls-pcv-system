@@ -43,7 +43,7 @@ The ESP32-S3 already contains ADC inputs.
 
 But crankcase pressure is a particularly good application for the ADS1115 because we're looking for **small pressure differences around atmospheric pressure**, not something enormous like 0–100 PSI.
 
-For example, imagine the FTP sensor operates over roughly a 0.5–4.5 V range. A very small crankcase-pressure change might only move its output by a few millivolts.
+For an illustrative voltage-resolution comparison, imagine a sensor output spanning roughly 0.5–4.5 V; a small pressure change may move its output by only a few millivolts. This is a voltage example, not a claim that pressure varies symmetrically across that voltage span. For the advertised GM 16238399 family, the available service reference points are asymmetric: approximately `+4.5 inH2O` at `0.5 V`, atmosphere at `1.3–1.7 V`, and `−14 inH2O` at approximately `4.5 V`. See the [FTP sensor record](../fuel-tank-pressure-sensor/README.md#published-reference-points-for-the-advertised-gm-family); those family points still require calibration against the installed aftermarket sensor.
 
 For a simplified comparison, a 12-bit converter spanning 0-3.3 V would have nominal code spacing of:
 

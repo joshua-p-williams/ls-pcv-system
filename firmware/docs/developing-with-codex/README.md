@@ -202,6 +202,13 @@ detailed procedure remains readable and maintainable.
 A practical shortcut: Codex can help draft an instruction-file summary from the project
 documents. Review that draft and decide what belongs in durable instructions.
 
+For this repository, the durable firmware conventions are collected in the
+[firmware coding standards](../coding-standards.md), while the canonical project workflow remains
+in `AGENTS.md` and this guide. The
+[firmware decision records](../decisions/README.md) capture selected design trade-offs. Feature
+architecture documents still define the actual layers and interfaces for each milestone; do not
+try to prescribe those details in a cross-project coding standard.
+
 
 It is useful to prove the process on a small first milestone. Its scope should exercise the
 approved documents, implementation and verification without attempting the whole gauge at once.

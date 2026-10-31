@@ -12,11 +12,11 @@ flowchart TD
     adc["ADS1115: new conversion"]
     acquire["ESP32-S3: acquire counts, timestamp and status"]
     calibrate["Apply measured calibration and accepted zero offset"]
-    valid{"Sample and calibrated result valid?"}
+    valid{"Sample, calibration and pressure domain valid?"}
     accepted["Valid signed pressure in inH2O"]
     peaks["Update min/max from each accepted sample"]
     smooth["Display smoothing only"]
-    fault["Mark invalid or stale; do not substitute zero"]
+    fault["Mark invalid, stale or out of range; do not extrapolate"]
     state["Gauge state: live value, min/max, validity and age"]
     display["GC9A01: render at display cadence"]
     calibration["Calibration record for actual sensor and ADC chain"]
@@ -58,7 +58,7 @@ flowchart TD
 
 The [PCV overview (A04)](pcv-system.md) proposes sensing the catch-can outlet line before the restrictor. This measures pressure at the tap relative to atmosphere, not intake manifold pressure. Hose/catch-can losses may separate tap pressure from actual crankcase pressure; sensor mounting and this difference need evaluation. No second pressure sensor is selected here.
 
-The [overall gauge architecture (A01)](gauge-system.md) supplies system context. Per [A02](power-system.md), the FTP sensor and ADS1115 share regulated 5 V. I2C translation connects the ADC to the ESP32's 3.3 V logic. Select +/-6.144 V for the assumed 0-5 V signal envelope; no divider compensation applies. The initial [470 ohm / 1 uF RC filter](../components/rc-input-filter/README.md) is selected; its physical response and any justified additional protection remain Q17, with translator selection resolved under Q28 and physical bus checks under Q29.
+The [overall gauge architecture (A01)](gauge-system.md) supplies system context. Per [A02](power-system.md), the FTP sensor and ADS1115 share regulated 5 V. I2C translation connects the ADC to the ESP32's 3.3 V logic. Select +/-6.144 V for the assumed 0-5 V signal envelope; no divider compensation applies. The initial [470 ohm / 1 uF RC filter](../components/rc-input-filter/README.md) is selected; its physical response and any justified additional protection remain Q17, with translator selection resolved under Q28 and physical bus checks under Q29. The sensor’s cited family reference points are asymmetric (`−14` to `+4.5 inH2O`); see the [sensor record](../components/fuel-tank-pressure-sensor/README.md#published-reference-points-for-the-advertised-gm-family).
 
 ## Stage responsibilities
 
@@ -69,11 +69,11 @@ The [overall gauge architecture (A01)](gauge-system.md) supplies system context.
 | ADS1115 conversion | New raw conversion counts | Chip/module identity, channel, gain, mode, address and supported conversion rate |
 | Acquisition | Counts, sample timestamp/age and acquisition status | Readiness detection, timeouts and measured effective sample cadence |
 | Calibration | Signed inH2O using an identified calibration record and accepted zero correction | Measured transfer model, coefficient units, validity range and matching hardware/configuration |
-| Validity handling | Accepted result or explicit invalid/stale state | Testable limits and fault detection; no invented numeric thresholds |
+| Validity handling | Accepted result only inside calibration's valid pressure domain; explicit invalid, stale or out-of-range state otherwise | Actual calibrated bounds and fault detection; no invented numeric limits |
 | Peak path | Lowest and highest accepted pressure since the chosen reset boundary | Reset/initialization policy, persistence and measured response |
 | Display path | Smoothed live indication plus independent min/max and status | Smoothing method and display cadence/readability |
 
-Input checks occur before conversion as needed; the single validity diamond summarizes checks across acquisition, calibration and the resulting pressure. Missing/mismatched calibration, failed reads and stale samples must not become valid numbers. Detection of every physical fault is not guaranteed by this diagram: disconnected sensors or implausible values require an actual detection design and tests.
+Input checks occur before conversion as needed; the single validity diamond summarizes checks across acquisition, calibration and the resulting pressure. Missing/mismatched calibration, failed reads, stale samples and pressures outside the calibration domain must not become valid numbers. Firmware must not extrapolate pressure beyond calibrated endpoints. Show out-of-range distinctly from electrical/ADC faults and from engine warning/danger classification; do not substitute a numeric endpoint. Detection of every physical fault is not guaranteed by this diagram: disconnected sensors or implausible values require an actual detection design and tests.
 
 ## Calibration and zero
 
@@ -91,7 +91,7 @@ Use each new accepted conversion for peak tracking before display-only smoothing
 
 The [ADC plan](../components/adc/README.md) records provisional acquisition and display-rate goals. A supported ADS1115 rate and actual throughput must be selected/measured together; no timing guarantee is established here. Pneumatic response, sensor response, analog filtering and ADC conversion already limit bandwidth before software sees a reading. Bypassing display smoothing does not imply every physical pressure spike is captured.
 
-Invalid or stale samples do not update valid live pressure or min/max. Show validity/age explicitly; any retained last-good value must be identified as such. Retained peaks describe valid samples only and do not prove coverage during a fault interval. Initialize peaks from an accepted sample rather than inventing a zero reading. Exact stale limits, fault recovery, reset behavior and alarm thresholds remain design tasks.
+Invalid, stale or out-of-calibration samples do not update valid live pressure or min/max. Show validity/age explicitly; an out-of-range reading should indicate direction (below or above calibrated range) without claiming an exact pressure. Any retained last-good value must be identified as such. Retained peaks describe valid samples only and do not prove coverage during a fault interval. Initialize peaks from an accepted sample rather than inventing a zero reading. Exact stale limits, fault recovery, reset behavior, calibrated bounds and engine warning thresholds remain design tasks.
 
 ## Validation and next work
 

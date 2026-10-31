@@ -72,7 +72,12 @@ def main():
         if name.startswith("_staging/") or path.suffix.lower() == ".fcbak":
             errors.append(f"Private or backup artifact is tracked: {name}")
         if path.suffix == ".json":
-            json.loads(path.read_text(encoding="utf-8"))
+            json_text = path.read_text(encoding="utf-8")
+            # VS Code's extensions.json is JSONC, so its documented full-line
+            # comments are valid there even though json.loads rejects them.
+            if path.name == "extensions.json" and path.parent.name == ".vscode":
+                json_text = re.sub(r"(?m)^\s*//.*(?:\n|$)", "", json_text)
+            json.loads(json_text)
         if path.suffix == ".svg":
             ET.parse(path)
 

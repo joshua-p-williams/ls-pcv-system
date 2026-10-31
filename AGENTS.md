@@ -104,6 +104,7 @@
 ## Firmware development workflow
 
 - Follow [`firmware/docs/developing-with-codex/README.md`](firmware/docs/developing-with-codex/README.md) for firmware work. The five-document milestone cycle applies before implementation; the [milestone register](firmware/docs/milestones/README.md) records only an agreed sequence.
+- Apply [`firmware/docs/coding-standards.md`](firmware/docs/coding-standards.md) to firmware code. The feature definition states required behavior and quality outcomes; research verifies technical facts, architecture defines module boundaries and interfaces, and ADRs record consequential decisions.
 - Start each new firmware effort with a conversation-only brainstorm. Do not create files or code during that brainstorm. Agree the milestone order before drafting its first feature document.
 - For each approved milestone, create `feature.md`, `research.md`, `architecture.md`, `plan.md`, and `tasks.md` in that order, exactly one document at a time. Stop after each and wait for explicit review and approval before drafting the next.
 - Do not implement until all five documents for that milestone are approved. Implement only the task phase the user explicitly selects; verify that phase, reconcile findings into its documents, report the result, and stop for direction.

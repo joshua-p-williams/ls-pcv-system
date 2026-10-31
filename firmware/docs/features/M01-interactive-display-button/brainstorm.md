@@ -1,8 +1,10 @@
 # M01 — Interactive Display and Button Brainstorm
 
-This note captures the current discussion for M01. It is input to the feature definition, not a
-feature specification, implementation plan, or authorization to implement. Review and revise it
-before drafting `feature.md`.
+This note preserves the discussion and alternatives that informed M01. The feature definition in
+`feature.md` states the agreed outcome and acceptance criteria; this brainstorm remains context,
+not an implementation plan or authorization to implement.
+
+> **Research update:** The initial `-16, -8, -3, 0 inH2O` demo thresholds and exploratory `-20 to +10 inH2O` dial were superseded after family-level sensor research. M01's architecture uses `-12, -8, -3, 0` with a `-14 to +4.5 inH2O` synthetic span to remain within the published reference envelope. These remain UI test values, not engine limits. See the [research](research.md) and [sensor reference](../../../../hardware/components/fuel-tank-pressure-sensor/README.md#published-reference-points-for-the-advertised-gm-family).
 
 ## Desired outcome
 
@@ -119,20 +121,23 @@ milestone/design work and are not implemented or changed by this demo mapping.
 
 ## Research notes
 
-Research reviewed on 2026-10-25 and 2026-10-28 informs candidates, not a final
-graphics-stack selection:
+Research reviewed on 2026-10-25 and 2026-10-28 informed the candidates below. The physical display
+proof is recorded in the [exploratory graphics spike](../../../experiments/lvgl-gc9a01/README.md),
+and the M01 graphics-stack selection is recorded in [ADR 0001](../../decisions/0001-m01-graphics-stack.md);
+broader production architecture remains subject to feature review:
 
 - **BetterButton:** The [project README](https://github.com/joshua-p-williams/BetterButton) and
   [header](https://github.com/joshua-p-williams/BetterButton/blob/master/BetterButton.h) describe
   click, double-click, and long-press events, a button wired from a GPIO to ground, and polling
-  through `input()`. The header currently defines 60 ms debounce, 500 ms double-click monitoring,
-  and 2000 ms long-press constants. These are library defaults, not approved M01 timing
-  requirements. The implementation and compatibility with this firmware still need review; pin
-  an exact revision and preserve its license terms if adopted.
+  through `input()`. The library is authored for this project, and its source is approved for
+  copying or adaptation into this repository. The header currently defines 60 ms debounce, 500 ms
+  double-click monitoring, and 2000 ms long-press constants. These are library defaults, not
+  approved M01 timing requirements. Feature research should verify the implementation, ESP32
+  compatibility, API use, and source revision; permission to use it is settled.
 - **LVGL 9:** The [LVGL 9 scale widget](https://lvgl.io/docs/open/9.2/widgets/scale) supports
   circular scales, ticks, labels, and styled sections. LVGL also provides arcs and labels useful
-  for the planned pages. Do not copy LVGL 8 `lv_meter` examples as if they were the LVGL 9 API;
-  verify how a separate needle or marker should be rendered in the selected version.
+  for the planned pages. Do not copy LVGL 8 `lv_meter` examples as if they were the LVGL 9 API.
+  LVGL 9.2.2 is selected as the M01 starting version after the physical display proof.
 - **Crankcase-pressure references:** A [GM diagnostic article](https://www.centerlearning.com/tmswebtree/techlink/images/issues/arcv_pdf/3_01_e.pdf)
   says specifications vary by engine family and recommends comparison with a known-good engine.
   GM documents for other families show materially different hot-idle ranges: [PIP5197B for
@@ -143,8 +148,8 @@ graphics-stack selection:
   specifications for the 2002 LS1 or this modified 408 and custom PCV system; they demonstrate
   why those values should not be copied as its validated limits.
 - **LovyanGFX:** Its [project documentation](https://github.com/lovyan03/LovyanGFX) lists Arduino
-  ESP32 support and the GC9A01 display controller, making it a candidate low-level display driver
-  if LVGL is selected.
+  ESP32 support and the GC9A01 display controller. LovyanGFX 1.2.35 is selected as LVGL's M01
+  display driver after the physical display proof.
 - **TFT_eSPI:** The [project](https://github.com/Bodmer/TFT_eSPI) includes a GC9A01 setup example
   and provides direct drawing primitives. It is a candidate if the UI remains simple enough to
   draw by hand without a full GUI framework; its setup and pin configuration need to match this
@@ -164,27 +169,31 @@ graphics-stack selection:
   In particular, review both repository metadata and README license statements before reusing
   code from the cited Custom-Car-Gauge project; no community source has been selected or copied.
 
-The current preference is to evaluate a minimal working display slice before committing to a
-GUI framework: verify GC9A01 initialization, draw a signed zero-centered dial and update a marker,
-then decide whether the multi-page interface benefits enough from LVGL to justify its integration
-and configuration. This is a research direction, not yet an adopted library decision.
+The initial recommendation was to evaluate a minimal working display slice before committing to a
+GUI framework. That proof is now retained in the isolated
+[LVGL/GC9A01 spike](../../../experiments/lvgl-gc9a01/README.md), which was built and reviewed on the
+N16R8 with the physical display. LVGL 9.2.2 and LovyanGFX 1.2.35 rendered the signed dial, colored
+bands, status indicator, and moving needle with acceptable appearance after iterative fixes to
+RGB565 color ordering, the value hub, and needle alignment. This demonstrates technical and visual
+feasibility for continuing M01 with this stack; it does not finalize the production graphics
+architecture or satisfy M01, which still includes button input and the three planned screens. The
+isolated project remains separate from the default firmware environment.
 
 ## Recommended answers for feature review
 
 - **Numeric demo thresholds:** start M01 with the four demo-only candidates listed above. Preserve
   the source and limitation beside each constant in code. They are for exercising the display,
   not production defaults; live thresholds require engine-specific baseline evidence.
-- **Min/max page:** accumulate minimum and maximum since the demo starts. A later reset action can
-  be specified with production peak capture rather than added to this temporary gesture map.
+- **Min/max page:** M01 adopts minimum and maximum accumulation for the current run, as captured in
+  `feature.md`. A later reset action can be specified with production peak capture rather than
+  added to this temporary gesture map.
 - **Hardware assumptions:** use the existing W01/P05 connections and accepted component/listing
   assumptions. Perform ordinary unpowered continuity, polarity/rail, display-initialization, and
   button-response checks during bring-up. Require additional investigation only if a concrete
   mismatch or failed check changes the design.
-- **Graphics stack:** include a focused LVGL 9 compatibility spike with the GC9A01: initialize the
-  panel, render a zero-centered signed scale with colored sections, and move an indicator. Keep
-  LovyanGFX as the likely display-driver candidate and compare hand-drawn rendering only as needed
-  to understand integration cost. Do not make a visual designer mandatory or turn the spike into
-  a broad library survey.
+- **Graphics stack:** the focused LVGL 9 / LovyanGFX / GC9A01 proof is complete and supports using
+  the tested versions as M01's starting stack. A visual designer remains optional; do not turn the
+  milestone into a broad library survey.
 
 ## Code structure, comments, decisions, and tests
 

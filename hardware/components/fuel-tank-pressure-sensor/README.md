@@ -59,6 +59,26 @@ The received sensor is reported to have no markings. Use the purchased listing's
 
 Use the nominal 5 V analog interface for conditioning design. Source additional output/pressure expectations from family documentation and label their application to this part as an assumption. Zero, slope and usable measurement range will be checked during normal calibration; those measurements need not precede circuit drafting. Product photographs alone provide no calibration equation or pressure limits.
 
+### Published reference points for the advertised GM family
+
+The 2002 Impala 3.4 L service description gives these output reference points for the GM 16238399 sensor listed for the 2002 Impala:
+
+| Pressure relative to atmosphere | Published signal reference |
+| ---: | ---: |
+| `+4.5 inH2O` | `0.5 ± 0.2 V` |
+| `0 inH2O` (atmospheric) | `1.3–1.7 V` |
+| `−14 inH2O` | approximately `4.5 V` |
+
+For this documented family, signal voltage falls as pressure becomes more positive and rises as vacuum increases. These are service-document reference points, not a guaranteed accuracy specification, full transfer curve, or documented clipping/saturation behavior. The service page does not establish behavior beyond the stated points. [2002 Impala FTP sensor service description](https://charm.li/Chevrolet/2002/Impala%20V6-3.4L%20VIN%20E/Repair%20and%20Diagnosis/Powertrain%20Management/Computers%20and%20Control%20Systems/Fuel%20Tank%20Pressure%20Sensor/Description%20and%20Operation/) and [GM parts catalog listing for 16238399](https://www.gmpartsgiant.com/parts-list/2002-chevrolet-impala/fuel_system_exhaust_emission_system/fuel_tank_filler_pipe.html).
+
+The listing for the unmarked purchased sensor claims compatibility with several GM part numbers, including 16238399. That claim makes approximately `−14 to +4.5 inH2O` a useful **family-level working envelope for planning calibration**, but it does not validate that exact pressure span or transfer curve on the received aftermarket unit. Do not assume linearity between the published points without testing. Do not extend a pressure conversion beyond the actual calibrated domain, and do not treat voltage at an ADC rail as proof of a particular pressure.
+
+Calibration must record its valid minimum and maximum pressure. Firmware should return an explicit out-of-range state outside those bounds, rather than extrapolating a numeric pressure. Sensor saturation, an out-of-calibration pressure, and an electrical/ADC fault are distinct conditions; the exact saturation voltage and pressure for this unit remain unknown until characterized. Use an `OUT OF RANGE` indication (optionally with a direction such as below/above calibrated range), not a fabricated endpoint value. A calibrated range may be narrower than the family reference envelope.
+
+### Implications for gauge limits
+
+The family reference envelope is an instrumentation constraint, not an engine-health threshold. The provisional hot-idle tuning target is approximately `−3 to −5 inH2O`, possibly extending toward `−8 inH2O`; this is a tuning objective, not a measured normal band. For a preliminary, configurable gauge policy after calibration, use `−8 to −3 inH2O` as a broad target band, warning bands outside it, and positive pressure (`>0 inH2O`) as a conservative danger candidate. A lower-danger candidate at `−12 inH2O` can exercise the low-side display while remaining inside the family reference envelope, but has no engine-specific evidence and must not be treated as a validated critical limit. These candidates must be reviewed against the actual calibration and repeatable idle/cruise/WOT baselines. Do not assign any numeric threshold beyond the calibrated domain; if a condition crosses a calibrated endpoint, report out-of-range rather than a pressure value or a more extreme alarm number. No production thresholds are established.
+
 See the [firmware requirements](../../../firmware/README.md), [calibration/test plan](../../../docs/testing/test-plan.md), and [BOM](../../bom/parts.md).
 
 ## Import record - 2026-10-06
