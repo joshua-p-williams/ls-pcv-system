@@ -59,8 +59,10 @@ button and display.
 
 - [x] Add the N16R8 button configuration using the W01 GPIO6 proposal and a GPIO pull-up; keep the
   board-specific pin definition out of the hardware-independent core.
-- [x] Implement the BetterButton input adapter and poll it on every nonblocking main-loop pass.
-  Translate click, double-click, and long-press events to the temporary M01 actions.
+- [x] Implement the BetterButton input adapter and translate click, double-click, and long-press
+  events to the temporary M01 actions. The initial main-loop polling implementation was later
+  replaced with a dedicated FreeRTOS polling task and bounded gesture queue after integrated timing
+  measurements showed LVGL servicing could block the main loop for hundreds of milliseconds.
 - [x] Keep the display/UI and gesture library out of the application-state rules. Ensure a missing
   or failed button does not stop the firmware loop or serial startup diagnostics.
 - [x] Build and upload the N16R8 firmware. Manually verify click value generation, double-click
@@ -110,27 +112,57 @@ step from the visible span and all four boundaries, so each boundary is a native
 are generated from tick pressure values rather than hand-counted indices, with selected two-unit
 context labels. The colored ribbon sections continue to use the same boundaries. The trend keeps
 its threshold shading and now includes the current reading/status and compact history context.
-On 2026-10-30, physical review of the latest uploaded build confirmed the gauge labels now align
-with the colored bands and the display looks good. The remaining integrated checks below are still
-open; this review does not establish full page cycling, cadence, rollover, or boundary behavior.
+On 2026-10-30, physical review of the latest uploaded build confirmed the gauge labels align with
+the colored bands and the display looks good. Follow-up checks verified page cycling, one-second
+history sampling, and physical trend rollover. Exact threshold behavior is covered by host tests;
+visual agreement at the exact transition values remains to be confirmed if needed.
+On 2026-10-31, the display and gestures were reported responsive with the monitor open and closed,
+and opening the monitor did not reset the page. Clicks remained intermittent: nine of ten deliberate
+quarter-second presses registered in one series; 17 or 18 of 20 registered in a later series.
+Temporary instrumentation measured maximum gaps between button polls of 664,714 us, 392,204 us,
+and 398,280 us. In the two detailed timing reports, LVGL servicing accounted for 656,737 us and
+381,836 us respectively; button polling, gesture handling, sampling, and sample-triggered rendering
+each took less than 7 ms. This identifies synchronous LVGL service as the source of the long polling
+gaps. The firmware now moves button polling to a higher-priority FreeRTOS task and queues gestures
+for handling by the main loop. The subsequent physical test confirmed the change: more than 50
+deliberate click gestures registered without a miss.
+The captured event logs also show normal single-click values; double-click values classified as both
+warning and danger within the synthetic span; a long press changing Gauge to Trend; and the history
+reaching 30/30. A later physical check confirmed the complete Gauge → Trend → Min/Max → Gauge cycle
+and that extrema remained intact on the min/max page. The physical trend graph also showed old
+samples being replaced by the new reading over approximately 30 seconds while the history remained
+at 30/30, confirming rollover behavior.
 
-- [ ] Run the normal `n16r8` PlatformIO build and upload; record dependency versions and commands.
-- [ ] Verify all three pages on the physical GC9A01 and exercise every button gesture, including
-  the revised scale labels and trend layout. **Partial result:** the latest upload's gauge labels
-  align with the colored bands and the display was reported to look good. Record remaining
-  readability, colors, gauge direction/zero placement, page cycling, and any observed rendering or
-  layout issues.
+- [x] Run the normal `n16r8` PlatformIO build and upload; record dependency versions and commands.
+  On 2026-10-31, `platformio.exe run -e n16r8` passed with Espressif32 8.0.0, Arduino-ESP32 3.3.12,
+  LVGL 9.2.2, and LovyanGFX 1.2.35; the N16R8 was then uploaded for the physical checks below.
+- [x] Verify all three pages on the physical GC9A01 and exercise every button gesture, including
+  the revised scale labels and trend layout. The gauge labels align with the colored bands and the
+  display was reported to look good. Gauge → Trend → Min/Max → Gauge page cycling worked, and the
+  min/max values remained intact across navigation. More than 50 deliberate clicks registered
+  without a miss after moving button polling to a separate FreeRTOS task. Double-clicks generated
+  warning and danger values, and long-press navigation worked. Boundary color agreement remains an
+  open check.
 - [ ] Verify a click produces a new value in the normal demo band and a double-click produces a
-  warning/danger value inside the visual span. Confirm the display classification and colored
-  sections agree at and around all four boundaries.
-- [ ] Verify the trend records the current value on one-second ticks independently of the active
+  warning/danger value inside the visual span. **Partial result:** captured logs show normal click
+  values and warning/danger double-click values within the synthetic span. Confirm on-screen
+  classification and colored sections at and around all four boundaries.
+- [x] Verify the trend records the current value on one-second ticks independently of the active
   page, retains only the latest 30 samples after rollover, and begins with an honest partial
-  history.
-- [ ] Verify current-run extrema follow accepted synthetic readings and are not reset by page
+  history. The history counter advanced at one-second cadence, logs showed an honest partial count
+  before reaching `30/30`, and physical testing confirmed older graph samples were replaced by the
+  new reading over approximately 30 seconds while the count stayed full.
+- [x] Verify current-run extrema follow accepted synthetic readings and are not reset by page
   changes. Verify the long press cycles gauge → trend → min/max → gauge without altering session
-  data.
+  data. Captured event logs show extrema tracking synthetic readings; the physical min/max page
+  displayed those extrema, and the full page cycle preserved them.
 - [ ] Verify button polling, display service, history timing, and USB diagnostics remain responsive
-  together. Confirm firmware does not wait indefinitely for serial-monitor availability.
+  together. **Partial result:** monitor-closed responsiveness was reported restored after setting
+  the USB CDC transmit timeout to zero and removing the heartbeat; no display reset occurred when
+  stopping the monitor in the latest test. Verify gesture/event messages with the monitor open and
+  confirm the one-second history cadence and 30-sample rollover with it closed. **One-second
+  cadence and rollover confirmed** by the trend history counter and physical observation; repeat
+  the monitor-closed responsiveness check with the latest button-polling-task build.
 - [ ] Record manual hardware results separately from host-test results. Do not claim sensor,
   ADS1115, calibration, electrical validation, production alarm behavior, XIAO, or vehicle behavior.
 

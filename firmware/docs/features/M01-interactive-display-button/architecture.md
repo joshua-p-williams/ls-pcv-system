@@ -50,8 +50,10 @@ prevents independent copies of the same thresholds from drifting apart.
 
 ## Data flow
 
-1. `BetterButtonInput` polls BetterButton on every main-loop pass and reports a gesture when one is
-   available. Polling must not wait for a gesture or delay LVGL service.
+1. A small FreeRTOS input task polls `BetterButtonInput` once per scheduler tick and posts each
+   recognized gesture to a bounded queue. This keeps sampling independent of long synchronous LVGL
+   refreshes. The task does not access application state or LVGL. If the queue fills, the newest
+   event is dropped rather than blocking input sampling.
 2. `M01Interaction` maps the gesture. A click asks `DemoPressureSource` for a value in the normal
    band; a double-click asks it to select a warning or danger band and choose a value within that
    band; a long press advances the page without changing the pressure.
@@ -97,10 +99,12 @@ must reflect the same configuration.
 
 ## Scheduling and UI behavior
 
-Use elapsed-time comparisons rather than `delay()` or blocking waits. Each main-loop pass should:
+Use elapsed-time comparisons rather than blocking waits. The input task polls the switch at a short,
+fixed scheduler interval; the main loop consumes queued gestures and should:
 
 1. Read the current millisecond counter.
-2. Poll and dispatch available button events.
+2. Dispatch queued button events on the main loop, keeping all application-state and LVGL access in
+   that context.
 3. Record each due one-second trend sample from the current synthetic reading, advancing the
    rolling buffer once per elapsed sample interval without tying it to the active screen.
 4. Refresh the display from the latest session snapshot when state changes; continue servicing
@@ -114,8 +118,10 @@ choice can show elapsed-time labels and a signed pressure axis while preserving 
 order.
 
 Use LVGL's scale/section and label widgets for the gauge, its chart for the signed trend, and labels
-for minimum/maximum values. Use the LVGL animation/timer facilities for visible transitions without
-blocking the input loop. Keep the existing partial-buffer display approach as the starting point;
+for minimum/maximum values. Use the LVGL animation/timer facilities for visible transitions. The
+current synchronous display refresh can occupy the main loop for hundreds of milliseconds, so button
+sampling runs in its separate task while LVGL and application state remain on the main loop. Keep
+the existing partial-buffer display approach as the starting point;
 do not add double buffering, DMA tuning, or a fixed frame-rate subsystem without a demonstrated M01
 need.
 

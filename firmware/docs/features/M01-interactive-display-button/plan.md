@@ -28,8 +28,10 @@ production alarm limits, XIAO support, or settings persistence.
    repeatable commands. Test threshold inclusivity, generator bounds and seeded behavior, time
    cadence, history fill/rollover, extrema, and gesture-to-state transitions before hardware work.
 3. **Integrate the physical button and interaction loop.** Add the N16R8-specific input adapter using
-   W01's GPIO6 proposal and the reviewed BetterButton API. Poll it on each nonblocking loop pass,
-   translate emitted events to the temporary M01 mapping, and update the application session.
+   W01's GPIO6 proposal and the reviewed BetterButton API. Poll it frequently, translate emitted
+   events to the temporary M01 mapping, and update the application session. The integrated display
+   uses a lightweight FreeRTOS polling task because measured synchronous LVGL refreshes can hide
+   short button transitions. Dispatch gestures and access LVGL from one application context.
    Preserve the current generated value, history, and extrema when navigating pages. Build the
    N16R8 firmware and verify each physical gesture and diagnostics before adding display rendering.
 4. **Build the three display pages.** Initialize the GC9A01 through LovyanGFX and LVGL using the
