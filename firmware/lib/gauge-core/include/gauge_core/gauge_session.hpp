@@ -5,6 +5,8 @@
 
 namespace gauge_core {
 
+/// Owns one current reading, derived band, current-run extrema, page, and history.
+/// It deliberately does not know about Arduino clocks, GPIO, or LVGL widgets.
 class GaugeSession {
  public:
   /// Create an empty session using the supplied shared demo configuration.
@@ -32,14 +34,17 @@ class GaugeSession {
   DisplaySnapshot snapshot() const;
 
  private:
+  /// Append one timed sample, overwriting the oldest when the ring is full.
   void appendSample(PressureTenthsInH2O pressure);
 
   DemoBandConfig config_;
   PressureClassifier classifier_;
   DisplaySnapshot state_{};
+  /// Circular storage: ringStart_ names the oldest retained sample.
   std::array<PressureTenthsInH2O, kHistoryCapacity> ring_{};
   std::size_t ringStart_ = 0;
   std::size_t ringCount_ = 0;
+  /// First sampleAt() call establishes a time origin but records nothing.
   bool sampleClockStarted_ = false;
   std::uint32_t lastSampleMs_ = 0;
 };

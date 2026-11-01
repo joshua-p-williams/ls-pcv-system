@@ -1,17 +1,17 @@
 # Firmware development environment
 
 This guide sets up the firmware project in VS Code with PlatformIO and provides matching command
-line instructions. The supported M00 workflows are native Windows and native Linux; WSL is not a
-substitute for the native Linux verification environment. The project uses the Arduino framework
-on the ESP32-S3 N16R8 development board. The current M01 build reports startup and a periodic
-USB serial heartbeat, polls the proposed GPIO6 multifunction button, and reports synthetic gauge
-state changes over USB. The display is not initialized yet.
+line instructions. The current firmware runs the M01 synthetic gauge demonstration on the ESP32-S3
+N16R8 development board: it reads the multifunction button, draws three GC9A01 pages, and reports
+gesture/state events over USB serial when a monitor is listening. The display and button operate
+without a computer; serial output is optional diagnostics, not a heartbeat or runtime dependency.
+Native Windows and native Linux are supported development environments; WSL does not count as the
+native Linux verification environment.
 
-The project is configured for PlatformIO Espressif 32 **8.0.0**, which supplies Arduino-ESP32
-**3.3.12**. These versions are selected for M00. The project has built successfully on Windows 11
-using PlatformIO Core 6.2.0. An upload over the selected native USB connection and recurring serial
-heartbeat have also been observed on Windows. Native Linux build/upload and several Windows runtime
-checks remain pending; treat untested host-specific details below as expected patterns until checked.
+The project pins PlatformIO Espressif 32 **8.0.0**, which supplies Arduino-ESP32 **3.3.12**. The
+N16R8 firmware has built and uploaded from Windows using PlatformIO Core 6.2.0. The same N16R8,
+button, and display configuration has been exercised on the bench. Native Linux host tests, build,
+and upload remain pending; treat host-specific Linux steps below as instructions to verify.
 
 ## Prerequisites
 
@@ -22,8 +22,9 @@ checks remain pending; treat untested host-specific details below as expected pa
 - On native Linux, install `python3-venv` if it is not already available. PlatformIO's extension
   uses a Python virtual environment during setup.
 - Connect the N16R8 development board through its W01-selected native USB port when uploading or
-  using the serial monitor. The carrier revision and actual port enumeration have not yet been
-  recorded.
+  using the serial monitor. Windows COM3 was observed on the development computer, but the port
+  must be selected from the current host's device list. The received carrier revision is not
+  identified by the firmware build profile.
 
 ## Open the project in VS Code
 
@@ -63,7 +64,7 @@ Select the port shown by `pio device list` rather than committing a machine-spec
 native USB interface is expected to appear as a `COM` port on Windows and commonly as `/dev/ttyACM*`
 on Linux. These names are examples only; confirm the actual device on the host.
 
-## Build, upload, and observe the heartbeat
+## Build, upload, and observe M01
 
 Build before connecting hardware:
 
@@ -77,10 +78,11 @@ With the N16R8 board connected to the W01-selected native USB port, upload the f
 pio run -t upload
 ```
 
-Open the serial monitor before resetting the board to see the startup message. The program also
-prints `heartbeat` about once per second, so a monitor opened after startup can observe later
-activity. The main loop does not wait for a monitor and uses elapsed-time scheduling instead of a
-long blocking delay. Serial diagnostics are optional and do not initialize project peripherals.
+Open the serial monitor at 115200 baud to see startup information and gesture/state diagnostics.
+The firmware does not print a periodic heartbeat and does not wait for the monitor to open. A
+gesture changes the synthetic reading or page; the trend history samples once per second. The USB
+CDC transmit timeout is set to zero so optional diagnostic output cannot wait indefinitely for a
+host. Closing or reopening the monitor should not reset the display or stop button/display behavior.
 
 ## Host-specific USB notes
 
@@ -93,7 +95,7 @@ device permissions. Windows 10 and later generally install the native ESP32-S3 U
 driver automatically when online. Do not install a different driver or change Linux permissions
 unless the selected device actually requires it.
 
-## M00 verification record
+## Initial M00 Windows setup observations
 
 - **Windows build:** Passed on Windows 11 Pro, OS build 26200, with PlatformIO Core 6.2.0. The
   command `platformio.exe run -v` completed from `firmware/` using Espressif 32 8.0.0 and
@@ -101,16 +103,31 @@ unless the selected device actually requires it.
   flash. The generated link used the `qio_opi` framework libraries and included the PSRAM
   initializer; the 8 MB capacity is specified by the selected N16R8 module, not measured by this
   compile.
-- **Windows upload/serial:** The VS Code PlatformIO upload task detected **COM3** on the
+- **Windows upload/serial:** The M00 VS Code PlatformIO upload task detected **COM3** on the
   W01-selected native USB connection. Automatic connection failed with “No serial data received.”
   Holding BOOT while pressing and releasing RESET/EN entered download mode, after which upload
-  succeeded. Recurring heartbeat output was observed at the configured 115200 baud. Resetting with
-  the monitor closed caused a Windows USB disconnect/reconnect notification; after reopening the
-  monitor, heartbeat output returned without another intentional reset. The one-time startup line
-  was not captured; this is consistent with the firmware's intentional no-wait-for-serial behavior.
-  The upload log did not capture the PlatformIO Core/extension version.
+  succeeded. M00's recurring heartbeat was observed at 115200 baud. Closing the monitor produced a
+  Windows USB disconnect/reconnect notification; reopening the monitor restored heartbeat output.
+  This is historical M00 behavior. M01 removes the heartbeat and has since been verified not to
+  reset or stall when the monitor opens or closes. The upload log did not capture the PlatformIO
+  Core/extension version.
 - **Native Linux build:** Pending.
 - **Native Linux VS Code setup, upload, and serial checks:** Pending.
+
+## M01 verification record
+
+The N16R8 build uses Espressif 32 8.0.0, Arduino-ESP32 3.3.12, LVGL 9.2.2, and LovyanGFX 1.2.35.
+On 2026-11-01, `platformio.exe run -e n16r8` passed after the gauge scale labels were changed to
+whole-unit increments. The physical display review confirmed the labels from `-14` through `+4`
+were readable; the visible scale still extends to `+4.5 inH2O` without labeling that half-unit
+endpoint.
+
+Physical N16R8 testing also confirmed all three pages and the complete long-press page cycle,
+normal/warning/danger demo color agreement, more than 50 consecutive registered clicks after
+button polling moved to a FreeRTOS task, one-second trend sampling, partial startup history,
+30-sample rollover, retained min/max values, and responsive operation with the serial monitor open
+or closed. These checks cover synthetic UI behavior only; they do not verify the FTP sensor, ADC,
+calibration, vehicle operation, or production alarm thresholds.
 
 A successful firmware build or USB serial session does not verify the protoboard's peripheral
 wiring or electrical behavior.

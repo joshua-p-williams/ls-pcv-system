@@ -9,9 +9,17 @@ the display and input hardware together before sensor acquisition and engine mea
 introduced.
 
 The display proof showed that the selected GC9A01 can render the gauge concept on the N16R8. The
-tested LVGL/LovyanGFX stack is recorded in [ADR 0001](../../decisions/0001-m01-graphics-stack.md);
-the proof remains an isolated experiment while M01 integrates the reviewed behavior into the
-firmware project.
+tested LVGL/LovyanGFX stack is recorded in [ADR 0001](../../decisions/0001-m01-graphics-stack.md).
+The proof remains an isolated learning artifact; M01 implements the reviewed behavior in the
+maintained firmware project.
+
+## Implementation status
+
+M01 now builds and runs on the N16R8 with a physical GC9A01 display and button. The gauge, trend,
+and current-run min/max pages, temporary demo gestures, display bands, serial-monitor independence,
+one-second history, and rollover have been exercised on the bench. The Windows gauge-core test suite
+passes 12/12 cases. Native Linux tests/build/upload remain pending. See [tasks](tasks.md) for the
+recorded commands and observations. Sensor/ADC acquisition and calibration remain outside M01.
 
 ## Why it matters
 
@@ -38,7 +46,9 @@ engine.
   synthetic/demo label.
 - The gauge page displays the current signed value and unit, distinguishes vacuum from pressure
   around a marked zero reference, shows a moving indicator, and presents a status that is visually
-  distinct from pressure sign.
+  distinct from pressure sign. It labels whole-unit values through `+4 inH2O`; the `+4.5 inH2O`
+  scale endpoint is represented by the colored span and needle range but intentionally left
+  unlabeled to keep the dial readable.
 - Four demo-only thresholds classify values into lower danger, lower warning, normal, upper
   warning, and upper danger bands. Use `-12`, `-8`, `-3`, and `0 inH2O` so the synthetic display
   exercises its lower danger band within the cited family-level `-14 to +4.5 inH2O` reference
@@ -68,8 +78,9 @@ engine.
   On-device checks separately verify display initialization, all page transitions, button gestures,
   and visible updates.
 - Implementation follows the [firmware coding standards](../../coding-standards.md): document
-  public contracts and non-obvious behavior, keep application rules separate from hardware and UI
-  details, and use focused abstractions rather than speculative framework layers.
+  every function/method and explain embedded concepts, public contracts, units, and non-obvious
+  behavior; keep application rules separate from hardware/UI details and use focused abstractions
+  rather than speculative framework layers.
 - M01's gesture mapping and synthetic source are explicitly temporary. They do not change the
   planned production button behavior, implement zeroing or reset actions, or provide real engine
   monitoring.

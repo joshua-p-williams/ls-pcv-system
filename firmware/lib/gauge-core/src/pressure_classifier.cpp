@@ -2,6 +2,7 @@
 
 namespace gauge_core {
 
+/// Apply shared interval rules and leave result untouched on invalid input.
 bool PressureClassifier::classify(PressureTenthsInH2O pressure,
                                   const DemoBandConfig& config,
                                   PressureBand& result) const {

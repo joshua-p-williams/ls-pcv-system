@@ -2,15 +2,16 @@
 
 ## Purpose and scope
 
-This document records the implementation-relevant findings for M01. It supports the feature
-definition and upcoming architecture discussion; it does not define the final module structure or
-authorize implementation. M01 is a synthetic demonstration on the N16R8 bench configuration,
-not a crankcase measurement or a validated alarm system.
+This document records evidence and technical findings used by M01's approved design. Concrete
+module boundaries are in [architecture](architecture.md), and implementation/verification outcomes
+are in [tasks](tasks.md). M01 is a synthetic demonstration on the N16R8 bench configuration, not a
+crankcase measurement or a validated alarm system.
 
 ## Project constraints confirmed
 
 - The default firmware project is PlatformIO with Arduino, pinned to `espressif32@8.0.0`, and targets
-  the project-local `esp32-s3-n16r8` board profile. Its current program is the M00 heartbeat.
+  the project-local `esp32-s3-n16r8` board profile. The current program is the M01 synthetic gauge;
+  M00's heartbeat was the scaffold that preceded it.
 - W01 is the connectivity authority. The current display assignments are GPIO4 for DC, GPIO5 for
   reset, GPIO10 for chip select, GPIO11 for MOSI, and GPIO12 for clock. The multifunction button
   connects its assigned GPIO to ground and uses the controller's input pull-up. Consult W01 and its
@@ -140,23 +141,16 @@ checks separate and manual on the N16R8. See [PlatformIO Unit Testing](https://d
 [Unity support](https://docs.platformio.org/en/latest/advanced/unit-testing/frameworks/unity.html),
 and [the Native platform requirements](https://docs.platformio.org/en/latest/platforms/native.html).
 
-## Research conclusions and remaining design inputs
+## Conclusions used by M01 and remaining design inputs
 
-The existing evidence is sufficient to proceed to M01 architecture: retain the selected LVGL 9.2.2
-and LovyanGFX 1.2.35 stack for this milestone, use BetterButton as the planned input library subject
-to compile/bring-up verification, and test the application rules independently of the display.
-Neither a broad library re-evaluation nor a visual designer is needed.
+M01 uses LVGL 9.2.2 and LovyanGFX 1.2.35, the project-authored BetterButton source at the recorded
+MIT revision, and PlatformIO Unity tests for the hardware-independent C++ core. These choices have
+been compiled and exercised on the N16R8 as recorded in [tasks](tasks.md). No visual designer or
+additional graphics library is required for this milestone.
 
-The architecture discussion should resolve or explicitly choose defaults for:
-
-1. **M01 gauge span:** resolved as the family-reference span `-14` to `+4.5 inH2O` for synthetic
-   UI work only; live numeric bounds remain calibration-dependent.
-2. **Host-test configuration:** apply the Unity/native recommendation in the architecture and
-   document the Windows GCC prerequisite alongside the Linux host-toolchain requirement.
-3. **BetterButton integration:** select a source layout, pin the upstream revision, compile the
-   library, and verify gesture timing on the physical button. The user has already approved its use;
-   this is an implementation/provenance check rather than a permission question.
-
-The initial lower-danger value `-16` and exploratory `-20 to +10` span are superseded by the sourced
-family reference envelope. M01 uses `-12, -8, -3, 0 inH2O` strictly to exercise the display states;
-they do not define production operating limits.
+The `-14` to `+4.5 inH2O` span and `-12, -8, -3, 0 inH2O` bands are used only to exercise the
+synthetic UI within published family reference points. They do not define the installed sensor's
+calibrated range, engine operating limits, or production alarm thresholds. Future live measurement
+work still needs sensor-specific calibration/fault behavior, acquisition timing, XIAO configuration,
+and validated operating thresholds. Native Linux host-test/build/upload verification also remains
+pending for the project environment.

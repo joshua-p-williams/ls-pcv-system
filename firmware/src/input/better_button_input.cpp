@@ -5,10 +5,13 @@ namespace input {
 
 BetterButtonInput::BetterButtonInput(std::uint8_t gpioPin) : button_(gpioPin) {}
 
+/// Delegate GPIO initialization to BetterButton, which selects INPUT_PULLUP.
 void BetterButtonInput::begin() {
   button_.begin();
 }
 
+/// Convert library-specific integer event codes into the shared application enum.
+/// The rest of the firmware therefore does not depend on BetterButton's macros.
 bool BetterButtonInput::poll(gauge_core::Gesture& gesture) {
   // BetterButton::input() is a nonblocking poll. Translate only known event codes;
   // an idle poll and any unexpected code leave application state untouched.

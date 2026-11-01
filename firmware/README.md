@@ -1,22 +1,59 @@
 # Crankcase pressure gauge firmware
 
-Status: the M00 project scaffold and minimal heartbeat firmware are in place. The Windows build, N16R8 upload, and recurring USB serial heartbeat have been demonstrated; native Linux build/upload remain pending. The one-time startup print was not captured during USB reset/reconnect. Because firmware intentionally does not wait for serial, it may have been emitted before the monitor reattached. M01 Phase 1 pinned LVGL 9.2.2 and LovyanGFX 1.2.35 and added the project-authored [BetterButton library](lib/better-button/README.md) at a recorded upstream revision. Phase 2 adds the hardware-independent [gauge core](lib/gauge-core/README.md), deterministic synthetic pressure state, and a PlatformIO Unity host-test environment. The Windows host suite passed all 12 tests with MSYS2 UCRT64 GCC/G++ 16.2.0; native Linux verification remains pending. Phase 3 adds the GPIO6 BetterButton adapter and synthetic USB diagnostics; click, double-click, long-press page transition, and heartbeat behavior were observed on the uploaded board on 2026-10-30. Phase 4 integrates the W01-mapped GC9A01 and gauge, trend, and min/max pages. Physical review caught and corrected a label-indexing error; the latest upload was reported to have gauge labels aligned with the colored bands and to look good. Remaining page-cycle, cadence, and boundary checks are still open. Sensor, ADC, and calibration behavior are not implemented. The separate [LVGL/GC9A01 exploratory spike](experiments/lvgl-gc9a01/README.md) remains a learning artifact; M01 now has one production implementation in `src/`. The selected stack follows [ADR 0001](docs/decisions/0001-m01-graphics-stack.md). Firmware work follows the [Codex spec-driven development workflow](docs/developing-with-codex/README.md): agree milestone order, then review `feature.md`, `research.md`, `architecture.md`, `plan.md` and `tasks.md` one at a time before implementation. Follow the [firmware coding standards](docs/coding-standards.md). The [milestone register](docs/milestones/README.md) records the agreed initial development-foundation and interactive display/button milestones; later milestones will be added as work progresses. The selected direction is **ESP32-S3**, with an N16R8 development board and XIAO ESP32-S3 finished-gauge target. The first display is a **240 x 240 GC9A01 SPI TFT**. Planned development uses PlatformIO, the Arduino framework for ESP32, and C/C++. See [gauge integration guide](../hardware/components/gauge-electronics/README.md) and [procurement BOM](../hardware/bom/parts.md). This supersedes the earlier Nano/OLED candidates.
+M01 implements a synthetic interactive gauge on the N16R8 development board and GC9A01 display.
+Its gauge, trend, min/max pages, button gestures, and demo band colors have been exercised on the
+physical bench setup. The Windows firmware build and upload succeeded; the Windows Unity host suite
+passed 12/12 tests. Native Linux host tests and upload remain pending. **The firmware does not yet
+read the FTP sensor or ADS1115, and its demo pressures and status boundaries are not measured or
+validated engine limits.**
 
-Separate PlatformIO environments should share application code while isolating board-specific GPIO/configuration. M00 selects the official `espressif32@8.0.0` platform and uses a project-local N16R8 profile; XIAO allocation and its future environment remain open. See the [M00 feature documents](docs/features/M00-development-foundation/feature.md) for the reviewed scope, research, architecture, implementation plan, and phase checklist.
+M01's main purpose is to prove the display, interaction, and maintainable software boundaries
+before sensor acquisition is introduced. The [M01 feature documents](docs/features/M01-interactive-display-button/)
+record scope, research, architecture, plan, and phase evidence. The [LVGL/GC9A01 exploratory
+spike](experiments/lvgl-gc9a01/README.md) remains a separate learning reference; the maintained
+implementation is under `src/` and `lib/`. The graphics selection is recorded in [ADR 0001](docs/decisions/0001-m01-graphics-stack.md).
+
+Firmware work follows the [Codex spec-driven development workflow](docs/developing-with-codex/README.md)
+and [coding standards](docs/coding-standards.md). The [milestone register](docs/milestones/README.md)
+records M00 development foundations and M01 interactive display/button work. PlatformIO targets
+ESP32-S3 with Arduino; the current environment is the N16R8 bench board. The XIAO ESP32-S3 remains
+the planned finished-gauge target and requires its own board configuration and verification.
+
+## How the firmware is organized
+
+`setup()` and `loop()` are entry points supplied by the Arduino framework. `setup()` initializes
+the button, display, and event queue once. `loop()` repeatedly handles queued gestures, records
+elapsed-time trend samples, and services display animations. One FreeRTOS task polls the button
+because an SPI display refresh can occupy the loop task long enough to miss short presses. It sends
+only gesture values through a bounded queue; the loop task remains the sole owner of gauge-session
+state and LVGL calls.
+
+| Code | Responsibility |
+|---|---|
+| `src/main.cpp` | Connects concrete board adapters to the gauge core and runs the Arduino application. |
+| `src/board/n16r8/` | W01-based pin aliases for the N16R8 carrier. |
+| `src/input/` | Converts BetterButton's GPIO event codes to the shared gesture type. |
+| `src/display/` | Uses LVGL for screens/widgets/animation and LovyanGFX for SPI panel setup/pixel transfer. |
+| `lib/gauge-core/` | Hardware-independent C++ rules for demo pressure bands, session state, timed history, extrema, and gestures. |
+| `lib/better-button/` | Project-authored button gesture library with its source revision and MIT license. |
+| `test/test_gauge_core/` | Unity tests for the hardware-independent gauge core. |
+
+PlatformIO selects the ESP32 platform, Arduino framework, compiler, and libraries in
+[`platformio.ini`](platformio.ini). Arduino supplies embedded startup, GPIO, and time APIs. FreeRTOS
+is the task/queue scheduler included by ESP32 Arduino. LVGL is the graphics toolkit; LovyanGFX is
+the hardware display driver. Unity runs the C++ core tests on the development computer, without
+building or simulating the ESP32, display, or button.
 
 ## Getting started
 
-Open `firmware/` in VS Code and use the PlatformIO extension to build the `n16r8` environment.
-The [development environment guide](docs/development-environment.md) explains native Windows and
-Linux setup, PlatformIO CLI equivalents, upload, and serial monitoring. From a terminal in this
-directory, `pio run` builds the project. A Windows upload and recurring serial heartbeat have
-been verified; the setup guide records the observed manual bootloader entry and reset/reconnect
-behavior. Native Linux verification remains pending.
+Open `firmware/` in VS Code and use the PlatformIO extension to build or upload the `n16r8`
+environment. The [development environment guide](docs/development-environment.md) explains native
+Windows/Linux setup, VS Code and CLI workflows, serial-port selection, and host tests. From a
+terminal in this directory, run `pio run -e n16r8` to build.
 
-M01 adds a hardware-independent [gauge core](lib/gauge-core/README.md) and a PlatformIO `native`
-test environment. With a host GCC toolchain installed, run `pio test -e native` from `firmware/`;
-the setup guide documents Windows and Linux prerequisites. These tests do not exercise the
-physical button, display, or ESP32 adapters.
+The hardware-independent [gauge core](lib/gauge-core/README.md) has a PlatformIO `native` test
+environment. With a host GCC toolchain installed, run `pio test -e native`; these tests cover the
+core rules but do not exercise physical GPIO, the display, or ESP32/FreeRTOS integration.
 
 See [A01: overall gauge architecture](../hardware/architecture/gauge-system.md) for acquisition, controller, display and control boundaries, and [A04: PCV system overview](../hardware/architecture/pcv-system.md) for the pressure being observed. Both are planned-system drafts, not verified hardware configurations.
 
@@ -28,15 +65,19 @@ Use [P02: XIAO interface](../hardware/pinouts/xiao-esp32s3.md) for the XIAO alia
 
 ## Board configurations
 
-The [Wokwi bench illustration](../simulation/wokwi/README.md) covers the intended measurement chain using original visual placeholders where no functional model is selected. No runnable project simulation exists yet. When PlatformIO environments are introduced, add `wokwi.toml` beside the maintained diagram under `simulation/wokwi/`, with paths to actual firmware/ELF outputs and explicit registration of any compiled custom chips; select that configuration in VS Code. Preserve hardware GPIO decisions, identify synthetic measurements and keep measurement logic independent of physical versus simulated acquisition. Visual stubs provide no device behavior; virtual geometry does not establish physical compatibility.
+The [Wokwi bench illustration](../simulation/wokwi/README.md) documents intended hardware connections with original visual placeholders where no functional model is selected. It is not a runnable project simulation. When simulation support is introduced, point Wokwi at real build outputs, identify synthetic inputs, and keep W01 wiring decisions authoritative; visual stubs do not establish device behavior or physical compatibility.
 
-Use explicit build-time configurations for the N16R8 development board and standard XIAO ESP32-S3, selected through separate PlatformIO environments when firmware is introduced. Both use ESP32-S3, so chip identity alone does not identify the carrier or its wiring. Automatic board detection is not a requirement; the build/upload target must be chosen explicitly.
+Use explicit build-time configurations for the N16R8 development board and standard XIAO ESP32-S3. Both use ESP32-S3, so chip identity alone does not identify the carrier or its wiring. The current PlatformIO environment targets N16R8; an XIAO environment has not been added. Select the build/upload target explicitly.
 
 Each configuration must identify its board and harness revision, GPIO mapping, bus assignments, enabled peripherals/controls, and applicable memory, USB and upload settings. Use named functions such as display chip-select and ADC clock rather than scattering board-specific pin numbers through application code. Keep peripheral settings and calibration identity explicit where the assembled hardware differs; calibration is not interchangeable merely because the controller profile changes.
 
-Share measurement, calibration, peak tracking and display behavior across boards. Require a supported board configuration rather than silently falling back to another pin map, and expose the selected configuration in startup diagnostics. Check both builds and validate each on its matching hardware; building successfully does not verify wiring or power compatibility. Exact environment IDs, GPIOs and implementation remain pending.
+Share measurement, calibration, peak tracking and display behavior across boards. Require a supported board configuration rather than silently falling back to another pin map, and expose the selected configuration in startup diagnostics. Check both builds and validate each on its matching hardware; a successful build does not verify wiring or power compatibility. The XIAO environment and GPIO allocation remain future work.
 
-## Intended first implementation
+## Future live-measurement work
+
+The following describes the later calibrated gauge direction; none of this acquisition behavior is
+implemented by M01. Use the linked hardware records and future feature documents to establish
+sensor/ADC interfaces, calibration, fault states, and validated operating thresholds before coding.
 
 - Read the actual GM-style FTP sensor through the selected ADS1115 external ADC and required signal conditioning; the shared 5 V supply and +/-6.144 V range are selected; the initial analog filter is 470 ohm / 1 uF; rate/address candidates, filter response and any additional protection remain under review. See the [ADC plan](../hardware/components/adc/README.md).
 - Apply measured calibration and display signed pressure in `inH2O`.
@@ -46,15 +87,27 @@ Share measurement, calibration, peak tracking and display behavior across boards
 
 Never automatically zero while the engine runs. Zero requires the pressure port to be equalized to atmosphere. One multifunction button is selected; its initial gesture mapping is selected below; W01 proposes GPIO6 to ground for the N16R8; XIAO allocation and physical switch selection remain open. Persistent user settings are required as described below; storage details, warning thresholds, sampling rate and filtering parameters remain design decisions.
 
-W01 selects native ESP32-S3 USB for programming/console/debugging; configure the matching USB interface when firmware is introduced and preserve GPIO19/20. UART COM remains a separate recovery option, not the W01 source. Firmware must run the gauge without a computer attached. USB diagnostics must not indefinitely block startup or acquisition while waiting for host enumeration or a serial-console connection.
+W01 selects native ESP32-S3 USB for programming and diagnostics; the current N16R8 environment
+enables its USB CDC serial interface and preserves GPIO19/20. UART remains a separate recovery
+option, not the W01 source. Firmware runs the demo without a computer attached, and optional
+diagnostics cannot wait indefinitely for host enumeration or a serial monitor.
 
 ## Multifunction button
 
-Use one multifunction button for both controller configurations, with [BetterButton](https://github.com/joshua-p-williams/BetterButton) as the planned input library. Its README documents click, double-click and long-press events, a normally open button from GPIO to ground, and an internal pull-up configured by `begin()`. This is the intended interface direction; W01 proposes GPIO6 and documents its signal/ground cable; the physical switch and any additional filtering remain to be selected, and XIAO GPIO allocation is separate.
+M01 currently uses [BetterButton](lib/better-button/README.md) on the N16R8 GPIO6 input. A click
+generates a normal synthetic value, a double-click generates a warning/danger value, and a long
+press advances through the three demo pages. This mapping exists only to exercise M01 and does not
+define final in-car controls. W01 documents the proposed wiring; XIAO GPIO allocation is separate.
 
-The reviewed [header](https://github.com/joshua-p-williams/BetterButton/blob/master/BetterButton.h) defines 2000 ms long-press, 500 ms double-click monitoring and 60 ms debounce constants. These are upstream reference values, not accepted gauge timing requirements. The README and header were reviewed; implementation audit, ESP32-S3 compatibility and behavior under display/acquisition load remain pending. Pin an exact revision and retain license attribution when integrating; no dependency or source code has been imported yet.
+The retained library source is MIT-licensed and its imported revision, timing behavior, and local
+adapter are documented in its [README](lib/better-button/README.md). Its 60 ms debounce, 500 ms
+double-click window, and 2000 ms long-press values are library settings, not final in-car timing
+requirements. Physical N16R8 testing confirmed responsive M01 gesture handling under display load.
 
-Read button events regularly and handle each returned event once. Keep gesture detection separate from gauge actions and avoid blocking measurement or peak capture. Q24 selects the following initial actions in the normal gauge view:
+The future live gauge interaction decisions below are separate from M01's synthetic demo mapping.
+Read button events regularly and handle each returned event once. Keep gesture detection separate
+from gauge actions and avoid blocking measurement or peak capture. Q24 selects the following
+initial actions in the normal gauge view:
 
 | Gesture | Action |
 | --- | --- |
@@ -86,7 +139,11 @@ Persist accepted changes rather than continuously writing unchanged settings. De
 
 ## Hardware prerequisites
 
-Document verified sensor terminal positions, signal voltage range, external ADC input limits/reference and bus logic, board power inputs, display supply/interface, grounding, and power protection. W01 proposes N16R8 GPIOs for the ADC's I2C and display's SPI interfaces; XIAO allocation remains separate. A 5 V sensor supply does not establish compatibility with a 3.3 V input. Draft wiring identifies unresolved connections with question IDs; confirm compatibility before treating those connections as assembly-ready or attaching hardware.
+Before live acquisition, document verified sensor terminals, signal voltage range, ADC input limits,
+board power interfaces, grounding, and protection. W01 proposes N16R8 GPIOs for the ADC's I2C and
+display SPI; XIAO allocation remains separate. A 5 V sensor supply does not establish compatibility
+with a 3.3 V input. Resolve the affected W01 questions and verify circuit behavior before connecting
+the sensor or ADC.
 
 Use calibration of the actual sensor rather than an assumed OE transfer function. Each calibration record must define its valid pressure bounds. Firmware may report numeric pressure only within that calibrated domain; outside it, report out-of-range and direction without extrapolating or substituting an endpoint. Keep out-of-range distinct from electrical/ADC faults and from engine warning/danger classification. The advertised GM family reference points are planning evidence, not validated limits for the installed aftermarket sensor. Retain raw ADC data and reference information alongside the [calibration records](../data/README.md).
 
@@ -98,4 +155,7 @@ Keep acquisition, calibration, filtering, peak capture, display, buttons, and pe
 
 Render a shared gauge state rather than coupling sensor/calibration code to GC9A01 or its 240 x 240 resolution. The initial goal is one pressure display; multiple small displays or a larger approximately 2.1-inch module remain future options pending readability evaluation.
 
-When firmware implementation begins, document exact tool versions, setup, build, upload, and test commands here. Software checks should cover calibration/sign conventions, invalid inputs, peak preservation, and zero/reset behavior; bench checks must establish actual electrical and timing behavior.
+For each future acquisition feature, document tool versions and reproducible commands in its feature
+records and the development guide. Software tests should cover calibration/sign conventions,
+invalid inputs, peak preservation, and zero/reset behavior; separate bench checks must establish
+electrical behavior and timing.

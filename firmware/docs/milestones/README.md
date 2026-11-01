@@ -33,12 +33,10 @@ provide the phase checklist for implementation after the documents are approved.
 
 ### M01 — Interactive display and button
 
-On the N16R8 bench setup, initialize the GC9A01 display and read the multifunction button. Provide
-a simple visible response to a button action, such as changing a displayed counter or status, and
-report useful events over USB serial. Use the documented bench wiring as the starting point and
-resolve only the display, input, or board details that materially affect this demonstration. Do
-not include sensor acquisition, ADC behavior, calibration, or engine-related logic in this
-milestone.
+On the N16R8 bench setup, demonstrate the gauge interface using a physical GC9A01 and multifunction
+button. The implemented version displays signed synthetic pressure, status colors, a one-second
+30-sample trend, and current-run extrema; temporary gestures change demo values and cycle the pages.
+It does not include sensor acquisition, ADC behavior, calibration, or engine-related logic.
 
 **Why second:** This small vertical slice gives immediate feedback while establishing practical
 patterns for a hardware input, a visual output, board configuration, and diagnostics. It lets
@@ -46,8 +44,10 @@ those interfaces be exercised before analog measurement and pressure behavior ad
 
 The [M01 brainstorm](../features/M01-interactive-display-button/brainstorm.md) preserves the
 display, synthetic-data, temporary page-navigation, and research discussion. The
-[M01 feature definition](../features/M01-interactive-display-button/feature.md) captures the
-proposed outcome and acceptance criteria for review; it is not authorization to implement.
+[M01 feature definition](../features/M01-interactive-display-button/feature.md) defines scope and
+acceptance criteria, and [M01 tasks](../features/M01-interactive-display-button/tasks.md) record
+implementation and physical verification. Integrated N16R8 checks are complete; Phase 6 closeout
+is in progress, with native Linux host tests/build/upload still pending.
 
 ## How to use this sequence
 

@@ -1,16 +1,22 @@
 # Firmware Coding Standards
 
-These standards make firmware easier to understand, verify, and extend. Apply them as practical
-guidance, not as a reason to add layers or comments that do not clarify the design. Feature
-architecture documents define the concrete modules and interfaces for each milestone.
+These standards make firmware easier to understand, verify, and extend. The source is also an
+instructional resource for readers who may be new to Arduino, FreeRTOS, LVGL, or embedded C++.
+When choosing between a useful explanation and an unexplained implementation detail, favor the
+explanation. Comments should clarify design and concepts without merely narrating obvious syntax.
+Feature architecture documents define the concrete modules and interfaces for each milestone.
 
 ## Explain the code
 
-- Document public types and functions with Doxygen-style comments. State purpose, parameters,
-  units, return meaning, side effects, and important preconditions or failure behavior where
-  relevant.
-- Add useful comments to nontrivial internal functions and algorithms. Explain intent, constraints,
-  and why a choice was made; do not narrate syntax that is already clear from the code.
+- Give every function and method a concise Doxygen-style summary, including private helpers and
+  test functions. State what it does and why it exists; document parameters, units, return meaning,
+  side effects, preconditions, and failure behavior where relevant.
+- Add comments inside nontrivial algorithms to explain concepts, timing, ownership, invariants,
+  constraints, and reasons for a choice. Assume the reader may understand C++ but not the specific
+  Arduino, ESP32, FreeRTOS, LVGL, or driver-library API being used.
+- Explain a library's role at its integration boundary: what it provides, what the project adapter
+  does, and which task/context is allowed to call it. Link to the component README or feature
+  architecture for longer explanations instead of duplicating large reference sections inline.
 - Keep comments beside the behavior they explain. Mark synthetic/demo behavior, provisional values,
   hardware assumptions, and replacement points explicitly so they cannot be mistaken for measured
   behavior or production rules.

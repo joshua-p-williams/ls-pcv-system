@@ -14,10 +14,18 @@
 
 namespace {
 
+// BetterButton is a polling state machine, so it must be called frequently.
+// LVGL's synchronous SPI refresh can occupy Arduino's loop task for hundreds
+// of milliseconds; a separate FreeRTOS task keeps button sampling independent.
 // One FreeRTOS tick is short relative to BetterButton's 60 ms debounce window.
 constexpr TickType_t kButtonPollIntervalTicks = 1;
+// The queue transfers small gesture events only. UI and session objects remain
+// owned by loop(), avoiding concurrent access to LVGL or gauge state.
 constexpr std::size_t kPendingGestureCapacity = 8;
 
+// These objects form the application's composition root: the synthetic source
+// feeds the hardware-independent session through the temporary M01 interaction,
+// while board-specific adapters connect the session to GPIO and the display.
 gauge_core::DemoPressureSource demoPressureSource;
 gauge_core::GaugeSession gaugeSession;
 gauge_core::M01Interaction interaction(demoPressureSource, gaugeSession);
@@ -27,6 +35,7 @@ bool displayReady = false;
 QueueHandle_t gestureQueue = nullptr;
 bool buttonPollingTaskReady = false;
 
+/// Return a lowercase status name for USB diagnostic records.
 const char* pressureBandName(gauge_core::PressureBand band) {
   switch (band) {
     case gauge_core::PressureBand::kDanger: return "danger";
@@ -36,6 +45,7 @@ const char* pressureBandName(gauge_core::PressureBand band) {
   return "unknown";
 }
 
+/// Return a concise stable page name for optional USB diagnostics.
 const char* pageName(gauge_core::Page page) {
   switch (page) {
     case gauge_core::Page::kGauge: return "gauge";
@@ -45,6 +55,7 @@ const char* pageName(gauge_core::Page page) {
   return "unknown";
 }
 
+/// Return a concise stable gesture name for optional USB diagnostics.
 const char* gestureName(gauge_core::Gesture gesture) {
   switch (gesture) {
     case gauge_core::Gesture::kClick: return "click";
@@ -54,6 +65,8 @@ const char* gestureName(gauge_core::Gesture gesture) {
   return "unknown";
 }
 
+/// Print the current synthetic session state without making serial mandatory.
+/// Pressure is logged in tenths of inH2O to avoid floating-point formatting.
 void reportDemoState(const char* eventName) {
   const gauge_core::DisplaySnapshot snapshot = gaugeSession.snapshot();
   if (!snapshot.hasPressure) {
@@ -71,6 +84,9 @@ void reportDemoState(const char* eventName) {
       static_cast<int>(snapshot.minimumRecorded), static_cast<int>(snapshot.maximumRecorded));
 }
 
+/// Poll the button independently of display rendering and queue recognized input.
+/// A zero-timeout queue send keeps this higher-priority task nonblocking; if the
+/// queue is full, dropping the newest gesture is preferable to stalling polling.
 void buttonPollingTask(void*) {
   for (;;) {
     gauge_core::Gesture gesture;
@@ -83,6 +99,8 @@ void buttonPollingTask(void*) {
   }
 }
 
+/// Apply a gesture and refresh the UI from a fresh immutable session snapshot.
+/// This function runs only on the Arduino loop task, which owns LVGL access.
 void processGesture(gauge_core::Gesture gesture) {
   if (interaction.handle(gesture)) {
     reportDemoState(gestureName(gesture));
@@ -94,6 +112,9 @@ void processGesture(gauge_core::Gesture gesture) {
 
 }  // namespace
 
+/// Arduino framework entry point called once after reset.
+/// Initializes diagnostics, input, display and the gesture queue, then seeds the
+/// display with one synthetic normal value. Startup never waits for USB serial.
 void setup() {
   Serial.begin(115200);
   // USB can remain physically connected after its monitor stops reading. Keep
@@ -113,6 +134,9 @@ void setup() {
 
   gestureQueue = xQueueCreate(kPendingGestureCapacity, sizeof(gauge_core::Gesture));
   if (gestureQueue != nullptr) {
+    // ESP32 runs loop() in a low-priority Arduino task. Priority 2 gives the
+    // short GPIO poll task a chance to observe brief presses during SPI flushes.
+    // It sends only enum values; it never calls LVGL or edits GaugeSession.
     buttonPollingTaskReady =
         xTaskCreateUniversal(buttonPollingTask, "buttonPoll", 3072, nullptr, 2,
                              nullptr, ARDUINO_RUNNING_CORE) == pdPASS;
@@ -134,6 +158,10 @@ void setup() {
   }
 }
 
+/// Arduino framework's repeatedly called application task.
+/// Drain input events, collect one-second trend samples, and service LVGL timers.
+/// There are no long delays: display animations and history timing depend on
+/// this function being called often, while the separate task polls the button.
 void loop() {
   const std::uint32_t now = millis();
   gauge_core::Gesture gesture;

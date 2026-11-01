@@ -2,15 +2,22 @@
 
 ## Purpose and scope
 
-This document describes the M01 implementation design for the approved
-[feature](feature.md), informed by the [research](research.md). It defines the responsibilities,
-data flow, and test boundary for a synthetic display demonstration on the N16R8 bench setup. It
-does not implement the feature or authorize work beyond the later reviewed task phases.
+This document describes the M01 design for the approved [feature](feature.md), informed by the
+[research](research.md). It defines module responsibilities, data flow, and test boundaries for a
+synthetic display demonstration on the N16R8 bench setup. The implementation and verification
+record is in [tasks](tasks.md); this design does not include live sensor acquisition or production
+alarm behavior.
 
 M01 uses the existing PlatformIO Arduino project, the N16R8, W01 wiring, the physical GC9A01
 display, LVGL 9.2.2, LovyanGFX 1.2.35, and the project-authored BetterButton library. The finished-
 gauge XIAO configuration, sensor/ADC acquisition, calibration, production thresholds, and persistent
 settings remain outside this design.
+
+The implementation keeps the gauge core independent of embedded libraries. Arduino runs `setup()`
+once and repeatedly calls `loop()`. A FreeRTOS task polls BetterButton because the physical SPI
+flush can block the loop long enough to miss short presses; that task sends only gesture enums through
+a queue. The loop owns the session state and all LVGL calls. This ownership rule avoids requiring
+mutexes around the UI/session objects and is explained beside the code in `src/main.cpp`.
 
 ## Design approach
 
@@ -29,7 +36,7 @@ contract now.
 
 | Part | Responsibility | Depends on |
 | --- | --- | --- |
-| `DemoPressureSource` | Holds the current synthetic pressure and produces a bounded new value for a normal, warning, or danger request. Accept an injectable/seedable random source so tests are deterministic. | Standard C++ and demo band/range configuration |
+| `DemoPressureSource` | Produces a bounded synthetic value for a normal, warning, or danger request. A seedable generator makes tests repeatable; the current value is held by `GaugeSession`. | Standard C++ and demo band/range configuration |
 | `PressureClassifier` | Classifies one signed pressure value using the four ordered M01 thresholds. This is the only place that implements threshold comparisons. | Standard C++ |
 | `GaugeSession` | Holds the current pressure, derived status, active page, 30-entry rolling history, and current-run minimum/maximum. Accepts pressure updates, samples, and page changes through small explicit methods. | `PressureClassifier`, standard C++ |
 | `M01Interaction` | Maps click to a normal demo request, double-click to a warning/danger request, and long press to the next page. Applies generated pressure to `GaugeSession`; it does not contain display code. | `DemoPressureSource`, `GaugeSession` |

@@ -5,7 +5,7 @@
 
 namespace gauge_core {
 
-// M01-only demo mapping. Future in-car gesture behavior is not established here.
+/// M01-only demo mapping. Future in-car gesture behavior is not established here.
 class M01Interaction {
  public:
   /// Bind the demo source and the application session for one M01 interaction.

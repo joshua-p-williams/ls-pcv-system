@@ -12,6 +12,13 @@ The plan follows the reviewed [feature](feature.md), [research](research.md), an
 [architecture](architecture.md). It does not add sensor acquisition, calibration implementation,
 production alarm limits, XIAO support, or settings persistence.
 
+## Implementation status
+
+The implementation sequence through integrated N16R8 verification has been carried out; see
+[tasks](tasks.md) for build/test commands and physical results. Phase 5 hardware checks are complete.
+Phase 6 documentation/repository closeout is underway. Native Linux host tests and build/upload
+remain unverified and are not represented as passed.
+
 ## Sequence
 
 1. **Prepare pinned dependencies and input provenance.** Inspect the BetterButton implementation

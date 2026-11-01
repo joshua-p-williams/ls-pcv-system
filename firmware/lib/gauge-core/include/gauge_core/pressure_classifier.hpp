@@ -4,6 +4,7 @@
 
 namespace gauge_core {
 
+/// Applies the M01 band rules without Arduino or display-library dependencies.
 class PressureClassifier {
  public:
   /// Classify a signed demo pressure using the shared threshold boundaries.

@@ -4,6 +4,7 @@
 
 namespace gauge_core {
 
+/// Produces repeatable synthetic values for exercising the M01 UI without sensors.
 class DemoPressureSource {
  public:
   /// Create a deterministic pseudo-random source.
@@ -23,10 +24,13 @@ class DemoPressureSource {
   bool nextWarningOrDanger(const DemoBandConfig& config, PressureTenthsInH2O& result);
 
  private:
+  /// Advance the deterministic PRNG state and return its next 32-bit value.
   std::uint32_t nextRandom();
+  /// Select a value in the inclusive interval [low, high].
   bool nextInclusive(PressureTenthsInH2O low, PressureTenthsInH2O high,
                      PressureTenthsInH2O& result);
 
+  /// Current deterministic generator state; it is not a measurement or seed log.
   std::uint32_t state_;
 };
 

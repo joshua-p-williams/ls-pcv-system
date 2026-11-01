@@ -73,7 +73,7 @@ button and display.
   gauge → trend while preserving the pressure and extrema. Heartbeats continued between events.
   The log showed `history=30/30` when observed; because monitoring began after the board was running,
   this does not establish startup fill time or cadence. Values are synthetic; display integration
-  and full physical page cycling remain for later verification.
+  and full physical page cycling were deferred to the following phases and are recorded below.
 
 ## Phase 4: GC9A01 and three-page display
 
@@ -97,10 +97,9 @@ button and display.
 
   **Build evidence:** `platformio.exe run -e n16r8` passed on 2026-10-30 with Espressif32 8.0.0,
   Arduino-ESP32 3.3.12, LVGL 9.2.2, and LovyanGFX 1.2.35. The latest image uses 92,820 bytes RAM
-  (28.3%) and 1,077,651 bytes flash (16.4%). This verifies compilation and size only; the refinements
-  have not yet been uploaded for another visual review. The host test invocation from regular
-  PowerShell could not find GCC/G++; the previously recorded UCRT64 suite passed 12/12 before this
-  display-only phase.
+  (28.3%) and 1,077,651 bytes flash (16.4%). At the end of Phase 4, the display refinements still
+  awaited physical review; Phase 5 records the subsequent upload and verification. The native tests
+  use MSYS2 UCRT64 because the regular PowerShell environment did not expose GCC/G++.
 
 ## Phase 5: Integrated N16R8 verification
 
@@ -109,13 +108,16 @@ trace renders; the current-run min/max page looked acceptable. The first trend r
 its numeric context, but its manually indexed scale labels were wrong: `-8` was attached to the
 `-10` tick and `-3` was half a unit off. The latest implementation derives an evenly spaced tick
 step from the visible span and all four boundaries, so each boundary is a native LVGL tick. Labels
-are generated from tick pressure values rather than hand-counted indices, with selected two-unit
-context labels. The colored ribbon sections continue to use the same boundaries. The trend keeps
+are generated from tick pressure values rather than hand-counted indices. The current dial labels
+each whole `inH2O` value from `-14` through `+4`; its half-unit marks and `+4.5` upper endpoint are
+unlabeled. The colored ribbon sections continue to use the same boundaries. The trend keeps
 its threshold shading and now includes the current reading/status and compact history context.
 On 2026-10-30, physical review of the latest uploaded build confirmed the gauge labels align with
 the colored bands and the display looks good. Follow-up checks verified page cycling, one-second
-history sampling, and physical trend rollover. Exact threshold behavior is covered by host tests;
-visual agreement at the exact transition values remains to be confirmed if needed.
+history sampling, and physical trend rollover. The display labels were subsequently changed to
+show every whole-number value from `-14` through `+4`, while leaving the `+4.5` endpoint unlabeled;
+the uploaded result was confirmed readable on 2026-11-01. Physical testing also confirmed displayed
+classifications and colored sections agree at the configured normal, warning, and danger bands.
 On 2026-10-31, the display and gestures were reported responsive with the monitor open and closed,
 and opening the monitor did not reset the page. Clicks remained intermittent: nine of ten deliberate
 quarter-second presses registered in one series; 17 or 18 of 20 registered in a later series.
@@ -136,17 +138,20 @@ at 30/30, confirming rollover behavior.
 - [x] Run the normal `n16r8` PlatformIO build and upload; record dependency versions and commands.
   On 2026-10-31, `platformio.exe run -e n16r8` passed with Espressif32 8.0.0, Arduino-ESP32 3.3.12,
   LVGL 9.2.2, and LovyanGFX 1.2.35; the N16R8 was then uploaded for the physical checks below.
+  A further build passed on 2026-11-01 after changing gauge labels to whole-unit increments; that
+  image was uploaded and the denser labels were confirmed readable on the physical display.
 - [x] Verify all three pages on the physical GC9A01 and exercise every button gesture, including
-  the revised scale labels and trend layout. The gauge labels align with the colored bands and the
-  display was reported to look good. Gauge → Trend → Min/Max → Gauge page cycling worked, and the
-  min/max values remained intact across navigation. More than 50 deliberate clicks registered
-  without a miss after moving button polling to a separate FreeRTOS task. Double-clicks generated
-  warning and danger values, and long-press navigation worked. Boundary color agreement remains an
-  open check.
-- [ ] Verify a click produces a new value in the normal demo band and a double-click produces a
-  warning/danger value inside the visual span. **Partial result:** captured logs show normal click
-  values and warning/danger double-click values within the synthetic span. Confirm on-screen
-  classification and colored sections at and around all four boundaries.
+  the revised scale labels and trend layout. The gauge labels align with the colored bands, and the
+  denser whole-number labels from -14 through +4 were confirmed readable on the physical display;
+  the +4.5 span endpoint remains unlabeled. Gauge → Trend → Min/Max → Gauge page cycling worked,
+  and the min/max values remained intact across navigation. More than 50 deliberate clicks
+  registered without a miss after moving button polling to a separate FreeRTOS task. Double-clicks
+  generated warning and danger values, long-press navigation worked, and the displayed
+  classifications and colored sections agreed with the generated values at the configured bands.
+- [x] Verify a click produces a new value in the normal demo band and a double-click produces a
+  warning/danger value inside the visual span. Physical testing confirmed the displayed
+  classifications and colored sections agree with the generated values, including the configured
+  normal, warning, and danger transitions.
 - [x] Verify the trend records the current value on one-second ticks independently of the active
   page, retains only the latest 30 samples after rollover, and begins with an honest partial
   history. The history counter advanced at one-second cadence, logs showed an honest partial count
@@ -156,35 +161,38 @@ at 30/30, confirming rollover behavior.
   changes. Verify the long press cycles gauge → trend → min/max → gauge without altering session
   data. Captured event logs show extrema tracking synthetic readings; the physical min/max page
   displayed those extrema, and the full page cycle preserved them.
-- [ ] Verify button polling, display service, history timing, and USB diagnostics remain responsive
-  together. **Partial result:** monitor-closed responsiveness was reported restored after setting
-  the USB CDC transmit timeout to zero and removing the heartbeat; no display reset occurred when
-  stopping the monitor in the latest test. Verify gesture/event messages with the monitor open and
-  confirm the one-second history cadence and 30-sample rollover with it closed. **One-second
-  cadence and rollover confirmed** by the trend history counter and physical observation; repeat
-  the monitor-closed responsiveness check with the latest button-polling-task build.
-- [ ] Record manual hardware results separately from host-test results. Do not claim sensor,
-  ADS1115, calibration, electrical validation, production alarm behavior, XIAO, or vehicle behavior.
+- [x] Verify button polling, display service, history timing, and USB diagnostics remain responsive
+  together. Physical testing with the latest button-polling-task build confirmed responsive
+  gestures and display updates with the serial monitor open or closed, no display reset when
+  opening or closing the monitor, one-second trend updates, and 30-sample rollover.
+- [x] Record manual hardware results separately from host-test results. The observations above are
+  physical N16R8/GC9A01/button checks; the Windows Unity suite is recorded separately in Phase 2.
+  These checks do not demonstrate sensor, ADS1115, calibration, electrical validation, production
+  alarm behavior, XIAO, or vehicle behavior.
 
 ## Phase 6: Documentation and closeout
 
-- [ ] Update the firmware README and development guide with actual dependency/source revisions,
-  build, host-test, upload, monitor, and host-toolchain instructions.
-- [ ] Record BetterButton provenance/license, build and test results, host platform/compiler
+- [x] Update the firmware README and development guide with actual dependency/source revisions,
+  build, host-test, upload, monitor, and host-toolchain instructions. Include a code map explaining
+  Arduino entry points, FreeRTOS polling/queue ownership, the gauge core, LVGL, and LovyanGFX.
+- [x] Add instructional source comments explaining every function/method and non-obvious embedded
+  concept without changing behavior; align `coding-standards.md` with the requested comment depth.
+- [x] Record BetterButton provenance/license, build and test results, host platform/compiler
   versions, N16R8/display setup, physical observations, and any deviations from the approved
-  architecture.
-- [ ] Confirm all displayed ranges and thresholds are labeled synthetic/demo-only; preserve the
-  calibration-defined no-extrapolation requirement for future sensor acquisition.
-- [ ] Update the M01 feature, architecture, plan, tasks, and `docs/status.md` only where actual
+  architecture. Native Linux verification is explicitly recorded as pending.
+- [x] Confirm all displayed ranges and thresholds are identified as synthetic/demo-only in the
+  feature, architecture, code, and USB diagnostic source tag. The screen intentionally has no demo
+  banner. Preserve the calibration-defined no-extrapolation requirement for future sensor acquisition.
+- [x] Update the M01 feature, architecture, plan, tasks, and `docs/status.md` only where actual
   implementation or verification changes project status. Keep unresolved items and unverified
   behavior explicit.
-- [ ] Run `python tools/check-repository.py` and `git diff --check`. Review tracked, modified, and
+- [x] Run `python tools/check-repository.py` and `git diff --check`. Review tracked, modified, and
   new files without changing Git staging or creating a commit.
 
 ## Wrap-up
 
-- [ ] Review the complete M01 diff, including new files and source licenses. Confirm the exploratory
+- [x] Review the complete M01 diff, including new files and source licenses. Confirm the exploratory
   spike remains reference material and there is only one production firmware application.
-- [ ] Confirm the default `n16r8` firmware builds, host tests pass on each claimed platform, and the
-  physical display/button checks have recorded outcomes. Mark M01 complete only for work actually
-  demonstrated; leave native Linux or hardware checks open if not performed.
+- [x] Confirm the default `n16r8` firmware builds, host tests pass on each claimed platform, and the
+  physical display/button checks have recorded outcomes. The Windows build, Windows host tests, and
+  physical N16R8 checks are recorded. Native Linux verification remains pending, so M01 remains open.

@@ -7,9 +7,12 @@
 
 using namespace gauge_core;
 
+/// Unity hook run before every test; the hardware-independent core needs no setup.
 void setUp() {}
+/// Unity hook run after every test; the core owns no external resources to release.
 void tearDown() {}
 
+/// Confirm default synthetic span endpoints are accepted and adjacent values rejected.
 void test_default_demo_configuration_and_span() {
   const DemoBandConfig config;
   TEST_ASSERT_TRUE(config.isValid());
@@ -19,6 +22,7 @@ void test_default_demo_configuration_and_span() {
   TEST_ASSERT_FALSE(config.contains(46));
 }
 
+/// Exercise each inclusive/exclusive classifier edge, including zero and both extremes.
 void test_classifier_threshold_edges() {
   const DemoBandConfig config;
   const PressureClassifier classifier;
@@ -36,6 +40,7 @@ void test_classifier_threshold_edges() {
   }
 }
 
+/// Invalid thresholds and values outside the configured span must not classify.
 void test_classifier_rejects_out_of_span_and_invalid_configuration() {
   const PressureClassifier classifier;
   PressureBand result = PressureBand::kNormal;
@@ -45,6 +50,7 @@ void test_classifier_rejects_out_of_span_and_invalid_configuration() {
   TEST_ASSERT_FALSE(classifier.classify(0, invalid, result));
 }
 
+/// Generated values stay in range and classify into the band requested by the source.
 void test_demo_values_are_bounded_and_classified_for_requested_band() {
   const DemoBandConfig config;
   const PressureClassifier classifier;
@@ -71,6 +77,7 @@ void test_demo_values_are_bounded_and_classified_for_requested_band() {
   TEST_ASSERT_TRUE(sawDanger);
 }
 
+/// Equal seeds produce equal streams, allowing deterministic synthetic tests.
 void test_demo_source_is_repeatable_for_equal_seeds() {
   DemoPressureSource first(0x12345678u);
   DemoPressureSource second(0x12345678u);
@@ -89,6 +96,7 @@ void test_demo_source_is_repeatable_for_equal_seeds() {
   }
 }
 
+/// The source rejects invalid band ordering instead of generating misleading data.
 void test_normal_generator_rejects_invalid_configuration() {
   DemoBandConfig invalid;
   invalid.upperDanger = -50;
@@ -98,6 +106,7 @@ void test_normal_generator_rejects_invalid_configuration() {
   TEST_ASSERT_FALSE(source.nextWarningOrDanger(invalid, value));
 }
 
+/// Sampling waits for its first elapsed second and then records on one-second slots.
 void test_sampling_starts_after_first_observation_and_uses_elapsed_seconds() {
   GaugeSession session;
   TEST_ASSERT_TRUE(session.updatePressure(-55));
@@ -112,6 +121,7 @@ void test_sampling_starts_after_first_observation_and_uses_elapsed_seconds() {
   TEST_ASSERT_EQUAL_INT(-55, snapshot.history[1]);
 }
 
+/// Unsigned elapsed-time arithmetic continues to work when millis() wraps to zero.
 void test_sampling_handles_millis_rollover() {
   GaugeSession session;
   TEST_ASSERT_TRUE(session.updatePressure(-50));
@@ -120,6 +130,7 @@ void test_sampling_handles_millis_rollover() {
   TEST_ASSERT_EQUAL_UINT(1, session.sampleAt(0x000002E8u));
 }
 
+/// History begins partial, fills, then retains the latest 30 chronological entries.
 void test_history_is_partial_then_rolls_over_oldest_samples() {
   GaugeSession session;
   TEST_ASSERT_TRUE(session.updatePressure(-70));
@@ -135,6 +146,7 @@ void test_history_is_partial_then_rolls_over_oldest_samples() {
   TEST_ASSERT_EQUAL_INT(-35, snapshot.history[29]);
 }
 
+/// Long stalls catch up without doing more work than the fixed history can retain.
 void test_sampling_catches_up_for_elapsed_slots_but_caps_work_to_ring_size() {
   GaugeSession session;
   TEST_ASSERT_TRUE(session.updatePressure(-60));
@@ -144,6 +156,7 @@ void test_sampling_catches_up_for_elapsed_slots_but_caps_work_to_ring_size() {
   TEST_ASSERT_EQUAL_UINT(30, session.snapshot().historyCount);
 }
 
+/// Accepted readings update extrema; an out-of-span reading changes no session state.
 void test_extrema_track_accepted_values_and_reject_out_of_span() {
   GaugeSession session;
   TEST_ASSERT_FALSE(session.snapshot().hasExtrema);
@@ -158,6 +171,7 @@ void test_extrema_track_accepted_values_and_reject_out_of_span() {
   TEST_ASSERT_EQUAL_INT(-130, snapshot.pressure);
 }
 
+/// Gestures alter demo state/pages, while timer sampling—not gestures—adds history.
 void test_gestures_change_demo_state_and_pages_without_sampling() {
   DemoPressureSource source(456);
   GaugeSession session;
@@ -194,6 +208,7 @@ void test_gestures_change_demo_state_and_pages_without_sampling() {
   TEST_ASSERT_EQUAL_INT(maximumBeforePage, snapshot.maximumRecorded);
 }
 
+/// Unity's native runner invokes the same named tests on the development host.
 int main() {
   UNITY_BEGIN();
   RUN_TEST(test_default_demo_configuration_and_span);

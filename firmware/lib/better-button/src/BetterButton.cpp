@@ -1,17 +1,21 @@
 #include "BetterButton.h"
 #include <Arduino.h>
 
+/// Keep the passed GPIO for later pinMode()/digitalRead() calls.
 BetterButton::BetterButton(uint8_t pin)
 {
     _pin = pin;
 }
 
+/// INPUT_PULLUP provides a defined idle HIGH level without an external resistor.
+/// The physical switch closes to ground, making a press read LOW.
 void BetterButton::begin()
 {
     pinMode(_pin, INPUT_PULLUP);
     reset();
 }
 
+/// Clear gesture timing and debounce history while preserving the configured pin.
 void BetterButton::reset()
 {
     _lastDebouncedState = digitalRead(_pin);
@@ -23,6 +27,8 @@ void BetterButton::reset()
     _clickCount = 0;
 }
 
+/// One nonblocking poll: update time, sample/debounce, then emit at most one event.
+/// A returned event is consumed by reset(), so callers should handle it exactly once.
 int BetterButton::input()
 {
     _cachedMillis = millis();
@@ -52,11 +58,14 @@ int BetterButton::input()
     return buttonInput;
 }
 
+/// A click is complete only after both a press and its debounced release were seen.
 bool BetterButton::clicked()
 {
     return _pressedAt > 0 && _releasedAt > 0;
 }
 
+/// Measure the press duration using release time when available, otherwise now.
+/// Unsigned subtraction keeps elapsed-time behavior safe across millis() rollover.
 bool BetterButton::longPressed()
 {
     bool isLong = false;
@@ -73,17 +82,20 @@ bool BetterButton::longPressed()
     return isLong;
 }
 
+/// The same press sequence has observed more than one debounced press edge.
 bool BetterButton::doubleClicked()
 {
     return _pressedAt > 0 && _clickCount > 1;
 }
 
-// We need to monitor for a little bit in order to capture double clicks
+/// Delay final click classification until the double-click window has elapsed.
+/// In this implementation the window begins at the initial press timestamp.
 bool BetterButton::monitoring()
 {
     return (_pressedAt > 0 && (_cachedMillis - _pressedAt) <= DOUBLE_CLICK_MONITOR_DELAY);
 }
 
+/// Update the active gesture sequence after a debounced press/release transition.
 void BetterButton::stateChanged(bool state)
 {
 
@@ -111,6 +123,8 @@ void BetterButton::stateChanged(bool state)
     }
 }
 
+/// Read the raw pin only outside an active debounce window. A first edge starts
+/// the window; a later stable edge is accepted as the new debounced state.
 void BetterButton::read()
 {
     // Don't do anything if we are in the middle of a debounce

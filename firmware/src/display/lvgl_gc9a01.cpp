@@ -1,7 +1,6 @@
 #include "display/lvgl_gc9a01.hpp"
 
 #include <Arduino.h>
-#include <cstdlib>
 #include <cstdio>
 
 #include "board/n16r8/board_config.hpp"
@@ -10,6 +9,9 @@ namespace ls_pcv {
 namespace display {
 namespace {
 
+// Visual design tokens shared by all pages. These colors describe M01's
+// synthetic bands only; later sensor thresholds must continue to come from
+// the calibrated application configuration, not from these RGB values.
 constexpr std::uint32_t kBackground = 0x090D12;
 constexpr std::uint32_t kNormal = 0x147D45;
 constexpr std::uint32_t kWarning = 0xD99A00;
@@ -22,12 +24,18 @@ constexpr std::uint32_t kNeedleAnimationMs = 180;
 constexpr std::uint32_t kGaugeNeedleLength = 90;
 constexpr std::uint32_t kScaleAngleRange = 270;
 
+/// LVGL needs a monotonic millisecond clock for animations and timer scheduling.
+/// Arduino's millis() supplies that clock and wraps using unsigned arithmetic.
 std::uint32_t lvglTick() { return millis(); }
 
+// LovyanGFX objects are created during begin(); LVGL's C-style flush callback
+// has no user context parameter, so this pointer routes flushes to the one panel.
+// The firmware currently creates one display adapter for one physical screen.
 lgfx::LGFX_Device* activePanel = nullptr;
 void flushToPanel(lv_display_t* display, const lv_area_t* area,
                   std::uint8_t* pixels);
 
+/// Convert the shared status enum to the short labels used by the display.
 const char* bandName(gauge_core::PressureBand band) {
   switch (band) {
     case gauge_core::PressureBand::kDanger: return "DANGER";
@@ -37,6 +45,7 @@ const char* bandName(gauge_core::PressureBand band) {
   return "UNKNOWN";
 }
 
+/// Select a presentation color; the enum classification remains in gauge-core.
 std::uint32_t bandColor(gauge_core::PressureBand band) {
   switch (band) {
     case gauge_core::PressureBand::kDanger: return kDanger;
@@ -46,6 +55,9 @@ std::uint32_t bandColor(gauge_core::PressureBand band) {
   return kMuted;
 }
 
+/// Add one inclusive colored range to the LVGL scale.
+/// LVGL sections style arc, tick items, and indicator consistently so their
+/// transition points align with the classifier's integer pressure boundaries.
 void addSection(lv_obj_t* scale, std::int32_t first, std::int32_t last,
                 lv_style_t* style) {
   lv_scale_section_t* section = lv_scale_add_section(scale);
@@ -55,6 +67,7 @@ void addSection(lv_obj_t* scale, std::int32_t first, std::int32_t last,
   lv_scale_section_set_style(section, LV_PART_INDICATOR, style);
 }
 
+/// Euclidean algorithm used to find exact tick spacing shared by all boundaries.
 std::int32_t greatestCommonDivisor(std::int32_t left, std::int32_t right) {
   while (right != 0) {
     const std::int32_t remainder = left % right;
@@ -64,6 +77,8 @@ std::int32_t greatestCommonDivisor(std::int32_t left, std::int32_t right) {
   return left;
 }
 
+/// Find the largest evenly spaced tick interval that lands on every transition.
+/// Inputs use tenths of inH2O, so the current span supports half-unit ticks.
 std::int32_t exactGaugeTickStep(const gauge_core::DemoBandConfig& bands) {
   // Choose the greatest evenly spaced step that divides the whole span and
   // every threshold offset. Each threshold then has a corresponding LVGL tick.
@@ -76,24 +91,14 @@ std::int32_t exactGaugeTickStep(const gauge_core::DemoBandConfig& bands) {
   return step;
 }
 
-bool isGaugeLabelValue(std::int32_t pressure,
-                       const gauge_core::DemoBandConfig& bands) {
-  // Label endpoints and status transitions exactly. Add two-unit labels to
-  // provide scale context without crowding this 240 px dial. Skip a contextual
-  // label near a required mark so labels such as +4 and +4.5 do not collide.
-  const std::int32_t requiredMarks[] = {
-      bands.minimum, bands.maximum, bands.lowerDanger,
-      bands.lowerWarning, bands.upperWarning, bands.upperDanger};
-  for (std::int32_t mark : requiredMarks) {
-    if (pressure == mark) return true;
-  }
-  if (pressure % 20 != 0) return false;
-  for (std::int32_t mark : requiredMarks) {
-    if (std::abs(pressure - mark) < 15) return false;
-  }
-  return true;
+/// Show whole-unit labels while leaving half-unit marks as unlabeled ticks.
+bool isGaugeLabelValue(std::int32_t pressure) {
+  // Label each whole inH2O value. The +4.5 scale endpoint remains available
+  // for the needle and colored band but is intentionally left unlabeled.
+  return pressure % 10 == 0;
 }
 
+/// Format a scale value from tenths, retaining one decimal only when needed.
 void formatGaugeLabel(char* destination, std::size_t capacity,
                       std::int32_t tenths) {
   if (tenths == 0) {
@@ -106,6 +111,7 @@ void formatGaugeLabel(char* destination, std::size_t capacity,
   }
 }
 
+/// Create a label using the display's shared centered layout and text styling.
 lv_obj_t* createCenteredLabel(lv_obj_t* parent, const char* text,
                               const lv_font_t* font, std::uint32_t color,
                               std::int32_t y) {
@@ -122,10 +128,15 @@ lv_obj_t* createCenteredLabel(lv_obj_t* parent, const char* text,
 /// LovyanGFX panel using the W01 GPIO assignment, not library default pins.
 class LvglGc9a01::Panel : public lgfx::LGFX_Device {
  public:
+  /// Configure the SPI bus and GC9A01 panel from the N16R8 W01 pin aliases.
+  /// LovyanGFX separates bus pins (clock/data/DC) from panel pins (CS/reset),
+  /// then owns the low-level commands and pixel transfers for LVGL.
   Panel() {
     auto busConfig = bus_.config();
     busConfig.spi_host = SPI2_HOST;
     busConfig.spi_mode = 0;
+    // These write/read rates and SPI mode come from the physical N16R8/GC9A01
+    // proof. The module is configured write-only below, so no MISO GPIO is used.
     busConfig.freq_write = 20000000;
     busConfig.freq_read = 10000000;
     busConfig.spi_3wire = false;
@@ -162,6 +173,9 @@ class LvglGc9a01::Panel : public lgfx::LGFX_Device {
 };
 
 namespace {
+/// LVGL callback that transfers one rendered rectangle to the active SPI panel.
+/// flush_ready() tells LVGL its borrowed draw-buffer region can be reused; this
+/// implementation is synchronous and therefore contributes to loop-task latency.
 void flushToPanel(lv_display_t* display, const lv_area_t* area,
                   std::uint8_t* pixels) {
   if (activePanel == nullptr) {
@@ -176,6 +190,9 @@ void flushToPanel(lv_display_t* display, const lv_area_t* area,
 }
 }  // namespace
 
+/// Allocate and initialize the hardware/display stack before creating widgets.
+/// This method returns failure rather than waiting for a USB console or retrying
+/// forever; the caller can keep the rest of firmware running without a display.
 bool LvglGc9a01::begin(const gauge_core::DemoBandConfig& bands) {
   if (ready_) return true;
   if (!bands.isValid()) return false;
@@ -206,6 +223,8 @@ bool LvglGc9a01::begin(const gauge_core::DemoBandConfig& bands) {
   if (lvDisplay_ == nullptr) return false;
   lv_display_set_color_format(lvDisplay_, LV_COLOR_FORMAT_RGB565);
   lv_display_set_flush_cb(lvDisplay_, flushToPanel);
+  // Partial mode reuses this bounded strip buffer instead of allocating a full
+  // 240 x 240 framebuffer; LVGL requests dirty rectangles through flushToPanel.
   lv_display_set_buffers(lvDisplay_, drawBuffer_, nullptr, sizeof(drawBuffer_),
                          LV_DISPLAY_RENDER_MODE_PARTIAL);
   createPages();
@@ -213,6 +232,9 @@ bool LvglGc9a01::begin(const gauge_core::DemoBandConfig& bands) {
   return true;
 }
 
+/// Build all three LVGL page trees once; later calls only update their widgets.
+/// Keeping pressure state outside LVGL lets host-tested core logic and rendering
+/// remain separate responsibilities.
 void LvglGc9a01::createPages() {
   gaugePage_ = lv_obj_create(nullptr);
   lv_obj_set_style_bg_color(gaugePage_, lv_color_hex(kBackground), LV_PART_MAIN);
@@ -227,13 +249,15 @@ void LvglGc9a01::createPages() {
   const std::size_t tickCount = static_cast<std::size_t>(
       (bands_.maximum - bands_.minimum) / tickStep) + 1;
   lv_scale_set_total_tick_count(scale_, tickCount);
+  // Every calculated half-unit tick is a major LVGL tick. The label source
+  // below deliberately leaves half-unit labels empty to keep the dial legible.
   lv_scale_set_major_tick_every(scale_, 1);
   lv_scale_set_label_show(scale_, true);
   for (std::size_t index = 0; index < tickCount; ++index) {
     const std::int32_t tickPressure = bands_.minimum +
         static_cast<std::int32_t>(index) * tickStep;
     gaugeTickLabels_[index] = "";
-    if (isGaugeLabelValue(tickPressure, bands_)) {
+    if (isGaugeLabelValue(tickPressure)) {
       formatGaugeLabel(gaugeTickText_[index], sizeof(gaugeTickText_[index]),
                        tickPressure);
       gaugeTickLabels_[index] = gaugeTickText_[index];
@@ -265,10 +289,11 @@ void LvglGc9a01::createPages() {
     lv_style_set_text_color(styles[i], lv_color_hex(sectionColors[i]));
   }
 
-  // Convert thresholds and scale limits from tenths to LVGL's integer scale.
-  // Multiplying by ten retains the one-decimal demo boundaries exactly.
-  // The scale uses the stored tenths directly so the needle and sections share
-  // the core's single configuration without floating-point threshold copies.
+  // LVGL scale coordinates are integers; passing tenths directly preserves
+  // half-unit demo marks (for example, -8.0 inH2O is -80). The needle, sections,
+  // and classifier therefore all use one shared integer configuration.
+  // Each status interval is split at one tenth because the classifier's
+  // boundary rules assign the exact transition value to one neighboring band.
   addSection(scale_, bands_.minimum, bands_.lowerDanger - 1, &dangerStyle_);
   addSection(scale_, bands_.lowerDanger, bands_.lowerWarning - 1, &warningStyle_);
   addSection(scale_, bands_.lowerWarning, bands_.upperWarning, &normalStyle_);
@@ -326,8 +351,9 @@ void LvglGc9a01::createPages() {
   lv_obj_set_style_radius(plot, 4, LV_PART_MAIN);
   lv_obj_set_style_pad_all(plot, 0, LV_PART_MAIN);
 
-  // Shade the five pressure bands behind the trace using the same thresholds
-  // as the gauge ribbon. These are synthetic M01 demo bands, not engine limits.
+  // Shade the five pressure bands behind the trace using the exact same source
+  // values as the gauge ribbon and classifier. This prevents the graph's visual
+  // background from presenting different state boundaries than the main gauge.
   constexpr std::int32_t kPlotTop = 8;
   constexpr std::int32_t kPlotBottom = 118;
   constexpr std::int32_t kPlotHeight = kPlotBottom - kPlotTop;
@@ -414,6 +440,7 @@ void LvglGc9a01::render(const gauge_core::DisplaySnapshot& snapshot) {
   if (lv_screen_active() != page) lv_screen_load_anim(page, LV_SCR_LOAD_ANIM_FADE_ON, 100, 0, false);
 }
 
+/// Update only the gauge widgets from the snapshot; do not classify a second time.
 void LvglGc9a01::updateGauge(const gauge_core::DisplaySnapshot& snapshot) {
   if (!snapshot.hasPressure) return;
   animateNeedleTo(snapshot.pressure);
@@ -434,6 +461,9 @@ void LvglGc9a01::updateGauge(const gauge_core::DisplaySnapshot& snapshot) {
   lv_obj_set_style_text_color(statusLabel_, lv_color_hex(textColor), LV_PART_MAIN);
 }
 
+/// Convert recorded pressure samples to chart coordinates and refresh trend text.
+/// The x-axis reserves its full 30-second width while partial history starts at
+/// the left edge; absent startup samples are never fabricated or interpolated.
 void LvglGc9a01::updateTrend(const gauge_core::DisplaySnapshot& snapshot) {
   char currentValue[24];
   std::snprintf(currentValue, sizeof(currentValue), "%+.1f inH2O",
@@ -476,6 +506,7 @@ void LvglGc9a01::updateTrend(const gauge_core::DisplaySnapshot& snapshot) {
   lv_line_set_points(trendLine_, trendPoints_, snapshot.historyCount);
 }
 
+/// Display extrema already captured by GaugeSession, without resetting on page entry.
 void LvglGc9a01::updateMinMax(const gauge_core::DisplaySnapshot& snapshot) {
   if (!snapshot.hasExtrema) return;
   char formatted[24];
@@ -487,6 +518,7 @@ void LvglGc9a01::updateMinMax(const gauge_core::DisplaySnapshot& snapshot) {
   lv_label_set_text(maximumLabel_, formatted);
 }
 
+/// Ask LVGL to interpolate the needle position; service() advances the animation.
 void LvglGc9a01::animateNeedleTo(gauge_core::PressureTenthsInH2O pressure) {
   if (hasNeedleTarget_ && pressure == lastNeedleTarget_) return;
   hasNeedleTarget_ = true;
@@ -502,11 +534,15 @@ void LvglGc9a01::animateNeedleTo(gauge_core::PressureTenthsInH2O pressure) {
   lv_anim_start(&animation);
 }
 
+/// Convert the current animated pressure back into a position on the LVGL scale.
 void LvglGc9a01::setNeedleValue(std::int32_t pressure) {
   animatedNeedleValue_ = pressure;
   lv_scale_set_line_needle_value(scale_, needle_, kGaugeNeedleLength, pressure);
 }
 
+/// Run LVGL timers, pending refreshes, and animation callbacks from loop().
+/// This must stay in the same task/context as render(); the button poller only
+/// sends gesture events and never calls into LVGL directly.
 void LvglGc9a01::service() {
   if (ready_) lv_timer_handler();
 }
