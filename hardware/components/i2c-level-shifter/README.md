@@ -46,7 +46,7 @@ The vendor graphic's top **5 V arrow appears aligned with the GND pad rather tha
 
 ## Pull-ups and bring-up
 
-Start with the module's assumed fitted pull-ups, accounting for resistors already on the ADC and controller sides; no extra external pull-up set is selected. Parallel resistors lower the effective resistance. For a **hypothetical example**, 10 kohm in parallel with 10 kohm gives 5 kohm. Lower resistance increases low-state sink current and can shorten rise time; bus capacitance and device limits still matter. Actual values remain Q08/Q29.
+Use the supplied listing images as the working reference for the module's fitted pull-ups: visible `103` markings are consistent with nominal 10 kohm resistors. Account for pull-ups already present on the ADC and controller sides; no extra external set is selected. Parallel resistors lower the effective resistance. For a **hypothetical example**, 10 kohm in parallel with 10 kohm gives 5 kohm. Lower resistance increases low-state sink current and can shorten rise time; bus capacitance and device limits still matter. Treat the image-based value as an assumption; inspect or measure it only if normal bus bring-up indicates a problem (Q08/Q29).
 
 Connect power off, using the selected USB mode to power both rail domains together. Do not treat the translator as permission to keep the 5 V side operating with the controller's 3.3 V rail absent. Inspect label/orientation and ground continuity during assembly, then verify LV/HV references and idle bus voltages before controller connection. Check communication at 100 kHz and startup/shutdown behavior with the actual assembly. These are Q29 bring-up checks, not completed tests or a separate identity investigation.
 

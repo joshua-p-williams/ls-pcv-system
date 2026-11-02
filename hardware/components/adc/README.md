@@ -278,7 +278,7 @@ If someone asked why the thing is in the PCV controller, I'd say:
 
 # ADS1115 Module Selection
 
-Selected external ADC: **ADS1115 modules**, [Amazon B0BXDLZLZS](https://www.amazon.com/dp/B0BXDLZLZS). Supplied notes confirm **three modules purchased for USD 5.98 total**. Planned allocation is one bench module, one finished-gauge module, and one spare/expansion module. The modules are reported on hand; chip identity and operation remain unverified.
+Selected external ADC: **ADS1115 modules**, [Amazon B0BXDLZLZS](https://www.amazon.com/dp/B0BXDLZLZS). Supplied notes confirm **three modules purchased for USD 5.98 total**. Planned allocation is one bench module, one finished-gauge module, and one spare/expansion module. The listing and BOM are the working basis for the ADS1115 selection; module operation remains unverified pending normal bring-up.
 
 The intended measurement path is FTP sensor, input filtering/protection, ADS1115 on 5 V, then translated I2C to ESP32-S3. The controller handles calibrated pressure, peak tracking, and display rendering. An external ADC keeps the acquisition design consistent between the N16R8 bench board and XIAO controller; changing the actual ADC or analog circuit still calls for calibration review.
 
@@ -302,7 +302,7 @@ Nominal output rates are **8, 16, 32, 64, 128, 250, 475, and 860 SPS**. The PGA 
 
 ![Vendor ADC back view](../../../media/reference/adc/adc-back.jpg)
 
-The front silkscreen says `GY-ADS1115/ADS1015`, which does not establish which device is populated. Verify the received IC and behavior before relying on ADS1115 specifications. The rear image labels `V`, `G`, `SCL`, `SDA`, `ADDR`, `ALERT`, and `A0` through `A3`. These vendor views do not establish the actual board schematic, pull-up supply, address configuration, or ESP32 GPIO assignments.
+The front silkscreen says `GY-ADS1115/ADS1015`, a shared board marking. The purchased listing and BOM select the ADS1115, which is the design assumption used here. The image alone cannot establish the populated IC; if normal bring-up behavior conflicts with ADS1115 expectations, investigate before interpreting pressure data. The rear image labels `V`, `G`, `SCL`, `SDA`, `ADDR`, `ALERT`, and `A0` through `A3`. These vendor views do not establish the board's complete schematic, pull-up supply, or address configuration; W01 and P03 define the selected wiring, with ordinary rail and communication checks during bring-up.
 
 See the [N16R8](../esp32-s3-dev-board/README.md), [XIAO](../xiao-esp32s3/README.md) and [GC9A01](../gc9a01-display/README.md) introductions for how computation and display complement ADC acquisition. The [integration guide](../gauge-electronics/README.md#reading-and-building-path) provides a reading and assembly path.
 

@@ -69,11 +69,9 @@ warranted unless the eventual loop design can defer handling an emitted event.
 
 The initial feature and brainstorm drafts proposed lower danger `-16`, lower warning `-8`, upper
 warning `-3`, and upper danger `0 inH2O`. The `-16` value is outside the cited family reference
-envelope and has been superseded for M01 by `-12`; the other values remain provisional display
-boundaries. The `-8` to `-3 inH2O` interval matches the broad provisional tuning target. None of
-these values is a validated limit for this engine, a sensor calibration value, or a production alarm
-setting. The component documentation and project guidance require an installed-chain calibration
-and measured operating baseline before real thresholds are selected.
+envelope and was superseded for M01 by `-12`; the other values were provisional display
+boundaries. The `-8` to `-3 inH2O` interval matches the broad provisional tuning target. M01 used
+these values only to exercise its synthetic display and classification behavior.
 
 The double-click generator should select a warning or danger band and then generate a value within
 that band's bounds. It should not infer status from pressure sign: all four boundaries are signed
@@ -91,14 +89,14 @@ this part family, so actual usable bounds and transfer behavior require calibrat
 record](../../../../hardware/components/fuel-tank-pressure-sensor/README.md#published-reference-points-for-the-advertised-gm-family)
 and [2002 Impala service description](https://charm.li/Chevrolet/2002/Impala%20V6-3.4L%20VIN%20E/Repair%20and%20Diagnosis/Powertrain%20Management/Computers%20and%20Control%20Systems/Fuel%20Tank%20Pressure%20Sensor/Description%20and%20Operation/).
 
-Accordingly, M01 uses a synthetic visual span of `-14` to `+4.5 inH2O` and adjusts its lower-danger
-demo point to `-12 inH2O`. This keeps the demonstration inside the sourced family reference envelope;
-`-12` remains a UI test value with no claimed engine-health meaning. The user-provided provisional
-hot-idle tuning target (`-3 to -5 inH2O`, potentially extending to `-8`) is separate from warning
-and critical limits. No lower engine-critical threshold is established. Positive pressure may be
-treated conservatively as a provisional warning/danger policy after baseline testing, but it is not
-an OEM failure threshold. Real firmware must use the installed sensor's calibrated valid domain and
-show out-of-range instead of extrapolating; actual saturation behavior is unknown.
+Accordingly, M01 uses a synthetic visual span of `-14` to `+4.5 inH2O` and a lower-danger demo
+point of `-12 inH2O`. At the time of M01, `-12` was only a UI test value. M02 carries the same
+four boundaries into live mode as the project's initial, research-informed operating guidance:
+lower danger `-12`, lower warning `-8`, upper warning `-3`, and upper danger `0 inH2O`. The
+reasoning and references are maintained in the [FTP sensor component record](../../../../hardware/components/fuel-tank-pressure-sensor/README.md#implications-for-gauge-limits).
+These are useful initial status bands, not validated engine-damage limits or a diagnosis. The
+installed sensor chain must still be calibrated, and readings outside its calibrated domain must
+show out-of-range instead of being extrapolated; actual saturation behavior remains unknown.
 
 ## Trend sampling decision
 

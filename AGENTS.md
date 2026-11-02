@@ -93,11 +93,11 @@
 ## Validation and handoff
 
 - Run `python tools/check-repository.py` using W01's documented Python dependencies for public link/anchor/case checks, W01 generation fingerprints/schedule and L01/L03 connectivity plus L04 layout/output freshness. Keep these checks available in tracked tooling rather than relying on private staging scripts.
-- W01 and L04 are the electrical and carrier-specific soldering references; L03 remains the temporary breadboard illustration. Distinguish unpowered continuity and rail measurements from firmware-dependent peripheral behavior. Do not imply button gestures, display output or ADC communication work before firmware is implemented.
+- W01 and L04 are the electrical and carrier-specific soldering references; L03 remains the temporary breadboard illustration. Distinguish unpowered continuity and rail measurements from firmware-dependent peripheral behavior. M01 button gestures and GC9A01 pages have been exercised on the N16R8; this proves synthetic UI behavior only. Do not imply sensor/ADC acquisition, calibration, or vehicle behavior is implemented.
 
-- No firmware build or automated firmware test suite exists yet. Do not claim those checks passed. W01 drawing dependencies and rendering checks are documented in `hardware/wiring/bench/README.md`; these do not validate firmware or physical wiring.
+- Firmware build and host-test workflows now exist under `firmware/`. The N16R8 build and M01 physical UI checks passed on Windows; 12/12 gauge-core Unity tests passed on Windows. Native Linux verification remains pending. W01 drawing dependencies and rendering checks are documented in `hardware/wiring/bench/README.md`; these do not validate firmware or physical wiring.
 - For documentation, check relative links (including filename case), dimensional consistency, evidence labels, `git diff --check`, and `git diff --cached --check`; separately review new untracked files. Preserve existing staging choices unless the task authorizes staging changes.
-- For future code, add reproducible build/test commands to `firmware/README.md` or the relevant tool README and run checks appropriate to the change.
+- For firmware code, keep reproducible build/test commands in `firmware/README.md` or the relevant tool README and run checks appropriate to the change.
 - For CAD, record the tool/version and geometry/export checks actually performed. For hardware work, distinguish bench/vehicle validation from document review.
 - Report what changed, checks performed, and any unverified behavior or missing artifacts. Update `docs/status.md` when decisions or milestones change.
 

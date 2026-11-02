@@ -49,6 +49,18 @@ acceptance criteria, and [M01 tasks](../features/M01-interactive-display-button/
 implementation and physical verification. Integrated N16R8 checks are complete; Phase 6 closeout
 is in progress, with native Linux host tests/build/upload still pending.
 
+### M02 — Sensor-to-display measurement path
+
+Incrementally validate the ADS1115 voltage path, characterize the FTP sensor against pressure
+references, and display acquired pressure readings. Begin with measured battery voltages, then use
+the planned water-column U-tube and the purchased digital manometer for controlled sensor tests.
+The scope and acceptance criteria are not yet defined; see the
+[M02 brainstorm](../features/M02-sensor-to-display/brainstorm.md).
+
+**Why next:** M01 established the display and button with synthetic data. Replacing the synthetic
+source with a measured signal is the next useful vertical slice, and staged electrical and pressure
+checks can isolate acquisition, conversion, and display issues before vehicle testing.
+
 ## How to use this sequence
 
 This list is an ordering aid, not implementation authorization. Each milestone follows the five
