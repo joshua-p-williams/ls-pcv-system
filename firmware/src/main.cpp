@@ -68,7 +68,7 @@ const char* gestureName(gauge_core::Gesture gesture) {
 /// Print the current synthetic session state without making serial mandatory.
 /// Pressure is logged in tenths of inH2O to avoid floating-point formatting.
 void reportDemoState(const char* eventName) {
-  const gauge_core::DisplaySnapshot snapshot = gaugeSession.snapshot();
+  const gauge_core::GaugeDisplaySnapshot snapshot = gaugeSession.snapshot();
   if (!snapshot.hasPressure) {
     Serial.printf("M01 source=synthetic event=%s pressure=unavailable page=%s\n",
                   eventName, pageName(snapshot.page));

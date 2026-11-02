@@ -426,7 +426,7 @@ void LvglGc9a01::createPages() {
   lv_screen_load(gaugePage_);
 }
 
-void LvglGc9a01::render(const gauge_core::DisplaySnapshot& snapshot) {
+void LvglGc9a01::render(const gauge_core::GaugeDisplaySnapshot& snapshot) {
   if (!ready_) return;
   updateGauge(snapshot);
   updateTrend(snapshot);
@@ -441,7 +441,7 @@ void LvglGc9a01::render(const gauge_core::DisplaySnapshot& snapshot) {
 }
 
 /// Update only the gauge widgets from the snapshot; do not classify a second time.
-void LvglGc9a01::updateGauge(const gauge_core::DisplaySnapshot& snapshot) {
+void LvglGc9a01::updateGauge(const gauge_core::GaugeDisplaySnapshot& snapshot) {
   if (!snapshot.hasPressure) return;
   animateNeedleTo(snapshot.pressure);
   char formatted[16];
@@ -464,7 +464,7 @@ void LvglGc9a01::updateGauge(const gauge_core::DisplaySnapshot& snapshot) {
 /// Convert recorded pressure samples to chart coordinates and refresh trend text.
 /// The x-axis reserves its full 30-second width while partial history starts at
 /// the left edge; absent startup samples are never fabricated or interpolated.
-void LvglGc9a01::updateTrend(const gauge_core::DisplaySnapshot& snapshot) {
+void LvglGc9a01::updateTrend(const gauge_core::GaugeDisplaySnapshot& snapshot) {
   char currentValue[24];
   std::snprintf(currentValue, sizeof(currentValue), "%+.1f inH2O",
                 static_cast<double>(snapshot.pressure) / 10.0);
@@ -482,6 +482,15 @@ void LvglGc9a01::updateTrend(const gauge_core::DisplaySnapshot& snapshot) {
     lv_obj_add_flag(trendLine_, LV_OBJ_FLAG_HIDDEN);
     return;
   }
+  // A single LVGL line cannot represent a gap. Hide the trace rather than
+  // drawing an invalid interval as pressure; M02's display phase can add
+  // segmented line objects once live invalid samples are presented here.
+  for (std::size_t i = 0; i < snapshot.historyCount; ++i) {
+    if (!snapshot.history[i].valid) {
+      lv_obj_add_flag(trendLine_, LV_OBJ_FLAG_HIDDEN);
+      return;
+    }
+  }
   lv_obj_clear_flag(trendLine_, LV_OBJ_FLAG_HIDDEN);
   // Plot only collected points. The fixed vertical span is the same demo range;
   // partial startup history is left-aligned instead of padded with fake data.
@@ -494,10 +503,11 @@ void LvglGc9a01::updateTrend(const gauge_core::DisplaySnapshot& snapshot) {
     const std::int32_t x = kPlotLeft +
         static_cast<std::int32_t>(i * kPlotWidth /
             (gauge_core::kHistoryCapacity - 1));
-    const std::int32_t bounded = snapshot.history[i] < snapshot.bands.minimum
+    const std::int32_t pressure = snapshot.history[i].pressure;
+    const std::int32_t bounded = pressure < snapshot.bands.minimum
         ? snapshot.bands.minimum
-        : (snapshot.history[i] > snapshot.bands.maximum
-              ? snapshot.bands.maximum : snapshot.history[i]);
+        : (pressure > snapshot.bands.maximum
+              ? snapshot.bands.maximum : pressure);
     const std::int32_t y = kPlotTop + kPlotHeight -
         static_cast<std::int32_t>((bounded - snapshot.bands.minimum) * kPlotHeight / span);
     trendPoints_[i] = {static_cast<lv_value_precise_t>(x),
@@ -507,7 +517,7 @@ void LvglGc9a01::updateTrend(const gauge_core::DisplaySnapshot& snapshot) {
 }
 
 /// Display extrema already captured by GaugeSession, without resetting on page entry.
-void LvglGc9a01::updateMinMax(const gauge_core::DisplaySnapshot& snapshot) {
+void LvglGc9a01::updateMinMax(const gauge_core::GaugeDisplaySnapshot& snapshot) {
   if (!snapshot.hasExtrema) return;
   char formatted[24];
   std::snprintf(formatted, sizeof(formatted), "%+.1f inH2O",

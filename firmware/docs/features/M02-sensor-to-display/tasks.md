@@ -6,23 +6,26 @@ software task does not imply that the corresponding physical behavior has been m
 
 ## Phase 1: Shared measurement core
 
-- [ ] Add shared measurement quality, source, pressure, history, zero-state, and immutable snapshot
+- [x] Add shared measurement quality, source, pressure, history, zero-state, and immutable snapshot
   types to `gauge-core`, with documented units and validity semantics.
-- [ ] Implement the configurable piecewise pressure conversion and reject invalid profiles or
+- [x] Implement the configurable piecewise pressure conversion and reject invalid profiles or
   voltages outside the active domain without extrapolation.
-- [ ] Integrate the existing M01 pressure classification boundaries and equality behavior with
+- [x] Integrate the existing M01 pressure classification boundaries and equality behavior with
   the shared valid-measurement model.
-- [ ] Implement timestamped measurement tracking, valid-sample extrema, one-second trend slots,
+- [x] Implement timestamped measurement tracking, valid-sample extrema, one-second trend slots,
   explicit invalid gaps, and rollover behavior.
-- [ ] Implement the zero-capture algorithm as a parameterized core function/state machine; do not
+- [x] Implement the zero-capture algorithm as a parameterized core function/state machine; do not
   choose physical stability or plausibility limits before bench noise and sensor observations exist.
-- [ ] Adapt the M01 synthetic source and display snapshot to the shared data contract without
+- [x] Adapt the M01 synthetic source and display snapshot to the shared data contract without
   changing its demo gesture behavior or implying synthetic readings are physical measurements.
-- [ ] Add Unity host tests for family reference points, polarity, rounding, profile/domain edges,
+- [x] Add Unity host tests for family reference points, polarity, rounding, profile/domain edges,
   exact band boundaries, invalid states, history/extrema, zero-capture outcomes, and demo behavior.
-- [ ] Run `pio test -e native`; record the command and result.
-- [ ] Update nearby code comments and documentation so the measurement units, assumptions, and
+- [x] Run `pio test -e native`; record the command and result.
+- [x] Update nearby code comments and documentation so the measurement units, assumptions, and
   invalid-data behavior are understandable without Arduino background.
+
+Phase 1 verification: `pio test -e native` passed all 20 tests. The additional N16R8 integration
+build, `pio run -e n16r8`, succeeded.
 
 ## Phase 2: Checked ADS1115 adapter and source
 

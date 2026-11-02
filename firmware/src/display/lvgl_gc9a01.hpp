@@ -24,7 +24,7 @@ class LvglGc9a01 {
 
   /// Render the latest gauge/session values when initialization succeeded.
   /// @param snapshot Current M01 state; history is chronological and may be partial.
-  void render(const gauge_core::DisplaySnapshot& snapshot);
+  void render(const gauge_core::GaugeDisplaySnapshot& snapshot);
 
   /// Service LVGL timers and animations; call frequently from the owning loop task.
   void service();
@@ -36,11 +36,11 @@ class LvglGc9a01 {
   /// Create the gauge, trend, and min/max LVGL object trees after display setup.
   void createPages();
   /// Refresh the gauge value, needle, status, and status-colored value hub.
-  void updateGauge(const gauge_core::DisplaySnapshot& snapshot);
+  void updateGauge(const gauge_core::GaugeDisplaySnapshot& snapshot);
   /// Refresh the trend header and plot from the collected chronological samples.
-  void updateTrend(const gauge_core::DisplaySnapshot& snapshot);
+  void updateTrend(const gauge_core::GaugeDisplaySnapshot& snapshot);
   /// Refresh current-run extrema; no values are inferred from the display itself.
-  void updateMinMax(const gauge_core::DisplaySnapshot& snapshot);
+  void updateMinMax(const gauge_core::GaugeDisplaySnapshot& snapshot);
   /// Animate from the current needle position to a new signed pressure value.
   void animateNeedleTo(gauge_core::PressureTenthsInH2O pressure);
   /// Apply one animation frame by setting LVGL's scale-needle value.

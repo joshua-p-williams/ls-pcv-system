@@ -136,9 +136,9 @@ wiring or electrical behavior.
 
 The `native` PlatformIO environment runs hardware-independent C++ tests on the development
 computer. It builds the `gauge-core` private library and Unity tests without compiling
-`src/main.cpp`, Arduino, LVGL, LovyanGFX, or connecting a controller. This checks pressure-band
-boundaries, synthetic value generation, history timing, extrema, and page behavior; it does not
-verify ESP32 integration or physical hardware.
+`src/main.cpp`, Arduino, LVGL, LovyanGFX, or connecting a controller. This checks shared pressure
+conversion, validity and status boundaries, trend gaps/extrema, zero-capture evaluation, synthetic
+value generation, and page behavior; it does not verify ESP32 integration or physical hardware.
 
 PlatformIO's native environment uses the host's GCC toolchain rather than installing one itself.
 On Windows, install the toolchain as follows:

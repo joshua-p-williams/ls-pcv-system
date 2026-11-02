@@ -4,15 +4,16 @@
 
 namespace gauge_core {
 
-/// Applies the M01 band rules without Arduino or display-library dependencies.
+/// Applies shared lower/upper pressure-band rules without hardware dependencies.
 class PressureClassifier {
  public:
-  /// Classify a signed demo pressure using the shared threshold boundaries.
+  /// Classify an already-valid pressure using the shared status boundaries.
   /// @param pressure Pressure in tenths of inH2O.
-  /// @param config Shared synthetic bands and visible span.
+  /// @param thresholds Shared lower/upper warning and danger thresholds.
   /// @param result Receives the status only when this method returns true.
-  /// @return False for an invalid configuration or a pressure outside its span.
-  bool classify(PressureTenthsInH2O pressure, const DemoBandConfig& config,
+  /// @return False for invalid thresholds; sensor/domain validity is checked upstream.
+  bool classify(PressureTenthsInH2O pressure,
+                const PressureBandThresholds& thresholds,
                 PressureBand& result) const;
 };
 
