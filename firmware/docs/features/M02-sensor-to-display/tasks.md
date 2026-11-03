@@ -52,22 +52,43 @@ the physical I2C bus, module identity, analog input, and sensor remain unverifie
 
 ## Phase 3: ADC voltage acquisition on the assembled bench
 
-- [ ] Review W01 and the current board configuration for ADC supply, common ground, translated I2C,
+- [x] Add the `n16r8_adc` bench target. It polls the selected ADS1115 in its own
+  FreeRTOS task and reports raw conversion codes and derived A0 microvolts at a bounded rate;
+  it does not report the battery test source as pressure. The existing `n16r8` M01 demo target
+  remains unchanged.
+- [x] Document the build/upload/monitor procedure and distinguish calculated ADC voltage from an
+  independent multimeter reading.
+- [x] Run the native host suite, build `n16r8_adc`, and rebuild `n16r8` to check the ADC target
+  remains separate from the M01 display demo.
+- [x] Review W01 and the current board configuration for ADC supply, common ground, translated I2C,
   selected address, and A0 before applying a test input.
-- [ ] Upload the live N16R8 build with the FTP signal disconnected; verify the ADS1115 initializes
-  and conversion results are fresh.
-- [ ] Measure ADC VDD and ground at the module and confirm the ADC is powered before connecting an
+- [x] Upload `n16r8_adc` with the FTP signal disconnected; verify the ADS1115 initializes and
+  conversion results are fresh.
+- [x] Measure ADC VDD and ground at the module and confirm the ADC is powered before connecting an
   A0 test source.
-- [ ] Select multiple battery-derived sources only after measuring them; exclude any source whose
+- [x] Select multiple battery-derived sources only after measuring them; exclude any source whose
   A0-node voltage could fall outside the actual powered ADC ground-to-VDD range.
-- [ ] Measure each voltage at the A0-side test node and shared ground, then compare multimeter
+- [x] Measure each voltage at the A0-side test node and shared ground, then compare multimeter
   voltage, raw ADS code, configured gain/rate, converted microvolts, and repeated-reading spread.
-- [ ] Record battery/source type, measured node voltage, ADC configuration/raw readings, derived
+- [x] Record battery/source type, measured node voltage, ADC configuration/raw readings, derived
   voltage, meter resolution/accuracy if known, and observations in a bench record.
-- [ ] Confirm readings move in the expected direction and track the measured voltage sufficiently
+- [x] Confirm readings move in the expected direction and track the measured voltage sufficiently
   for an acquisition check; do not claim pressure calibration or absolute ADC accuracy.
-- [ ] If behavior conflicts with the ADS1115 working assumption, stop pressure interpretation and
+- [x] If behavior conflicts with the ADS1115 working assumption, stop pressure interpretation and
   document the observed discrepancy and its resolution before continuing.
+
+Phase 3 software readiness: `pio test -e native` passed all 30 host tests; `pio run -e n16r8_adc`
+and `pio run -e n16r8` both succeeded. The repository checker and `git diff --check` also passed.
+Bench observations on 2026-11-02 are recorded in the [ADC voltage test record](../../../../hardware/components/adc/bench-voltage-observations-2026-11-02.md)
+and [grounded-input record](../../../../hardware/components/adc/bench-grounded-input-observation-2026-11-02.md).
+USB-powered ADC VDD measured 4.75 V at the module; the ADS1115 returned fresh conversions at the
+selected `0x48` address. AAA and CR123A inputs at the A0 node tracked multimeter readings at about
+1.60 V and 3.32 V, with repeated ADC values varying by at most one count. A grounded input produced
+repeated zero readings; occasional `raw_code=-1` conversions were classified by firmware as
+`adc_error`, not `i2c_error`, because negative codes are invalid for the single-ended input. The
+input drifted when left open. These results verify this voltage-acquisition bench check only; the
+FTP sensor, pressure conversion, RC response, vehicle operation, and complete W01 harness remain
+unverified.
 
 ## Phase 4: FTP sensor and provisional live pressure path
 

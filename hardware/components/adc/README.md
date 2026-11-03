@@ -278,7 +278,7 @@ If someone asked why the thing is in the PCV controller, I'd say:
 
 # ADS1115 Module Selection
 
-Selected external ADC: **ADS1115 modules**, [Amazon B0BXDLZLZS](https://www.amazon.com/dp/B0BXDLZLZS). Supplied notes confirm **three modules purchased for USD 5.98 total**. Planned allocation is one bench module, one finished-gauge module, and one spare/expansion module. The listing and BOM are the working basis for the ADS1115 selection; module operation remains unverified pending normal bring-up.
+Selected external ADC: **ADS1115 modules**, [Amazon B0BXDLZLZS](https://www.amazon.com/dp/B0BXDLZLZS). Supplied notes confirm **three modules purchased for USD 5.98 total**. Planned allocation is one bench module, one finished-gauge module, and one spare/expansion module. The listing and BOM are the working basis for the ADS1115 selection. One assembled N16R8 bench module has completed a voltage-only bring-up check; see the [bench voltage observations](bench-voltage-observations-2026-11-02.md). This does not verify the complete sensor chain or all module details.
 
 The intended measurement path is FTP sensor, input filtering/protection, ADS1115 on 5 V, then translated I2C to ESP32-S3. The controller handles calibrated pressure, peak tracking, and display rendering. An external ADC keeps the acquisition design consistent between the N16R8 bench board and XIAO controller; changing the actual ADC or analog circuit still calls for calibration review.
 
@@ -312,9 +312,11 @@ See the [N16R8](../esp32-s3-dev-board/README.md), [XIAO](../xiao-esp32s3/README.
 - Keep the ESP32 I2C side at 3.3 V and add a bidirectional I2C level translator to the ADC's 5 V side. The hiBCTR BSS138 module is selected under Q28; fitted pull-up and bus checks remain Q29; no direct 5 V bus connection to the ESP32 is intended.
 - Use A0 single-ended for pressure and **+/-6.144 V full-scale range** for the assumed 0-5 V signal. Analog voltage must still remain between ground and ADC VDD; the range setting does not permit a 6.144 V input on a 5 V-powered part.
 - Remove analog divider scaling from the baseline. Use the initial [470 ohm / 1 uF RC input filter](../rc-input-filter/README.md). Stock parts, response and power/protection behavior remain Q17. TI's 100 nF supply decoupling recommendation is separate from the A0 signal capacitor.
-- ADDR-to-GND / 0x48, single-shot 128 SPS and readiness polling remain W01 bring-up candidates. ALERT stays unused.
+- ADDR-to-GND / 0x48, single-shot 128 SPS and readiness polling were used by the N16R8 voltage-only bench target; the selected address responded and conversions were read. These remain initial acquisition settings pending bus/pull-up checks and effective-rate evaluation during integrated display operation. ALERT stays unused.
 
 The [conditioning review](conditioning-review.md) owns this decision, its rationale and remaining implementation work. It applies to the N16R8 bench and XIAO target; each still needs its own power distribution and GPIO configuration. [P03](../../pinouts/ads1115.md) describes the two voltage domains. The purchased modules are reported on hand; normal assembly checks confirm their connections against the listing.
+
+The [N16R8 ADS1115 voltage-only bench target](../../../firmware/src/measurement/README.md#phase-3-voltage-acquisition-bench-build) reports raw conversion codes and code-derived A0 microvolts without interpreting a battery voltage as pressure. The initial 2026-11-02 bench check compared AAA and CR123A test voltages with a multimeter and included a grounded-input observation. Results and limits are in the [voltage test record](bench-voltage-observations-2026-11-02.md) and [grounded-input record](bench-grounded-input-observation-2026-11-02.md). Module pull-ups and bus-level margins, filter response, sensor calibration, and integrated operation remain unverified.
 
 ## Sampling, peaks, and calibration
 

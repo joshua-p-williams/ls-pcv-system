@@ -63,10 +63,33 @@ the board adapter sets a 10 ms timeout so one bus operation has a finite bound. 
 conversion timeout, below-ground code, or voltage outside the provisional pressure profile
 suppresses the numeric pressure. No routine serial output or LVGL dependency exists in this layer.
 
-The application has not yet started this source from a FreeRTOS task or rendered its snapshot.
-That composition and display integration belong to later M02 phases. The code build and fake-bus
-tests verify software behavior only; they do not demonstrate I2C communication, actual module
-identity, analog voltage accuracy, sensor calibration, or physical fault detection.
+## Phase 3 voltage-acquisition bench build
+
+The PlatformIO environment `n16r8_adc` composes the N16R8 `Wire` adapter with
+`Ads1115PressureSource`. A FreeRTOS acquisition task owns every ADS1115 transaction and publishes
+immutable snapshots through a one-entry mailbox. The Arduino loop prints the latest raw code and
+derived A0 voltage in microvolts over USB no more than four times per second. If monitor output is
+slow or absent, older diagnostic snapshots may be skipped; the acquisition task continues to
+process conversions. This is useful when display refresh is not part of the electrical test.
+
+The log identifies ADC configuration, acquisition state, sequence number, acquisition time, raw
+code, and calculated voltage. `voltage_read` means a new code and its calculated voltage were read;
+it does not mean the electrical input is inside the FTP sensor's provisional pressure domain. The
+voltage is derived from the ADS1115 code and selected gain; it is not an independent voltmeter
+reading. Compare it with the multimeter connected to the same A0-side node. The firmware
+intentionally omits pressure from its reports because a battery is an electrical test source, not a
+calibrated pressure sensor. Keep the FTP signal disconnected for this phase.
+
+Build and upload from `firmware/` with `pio run -e n16r8_adc` and
+`pio run -e n16r8_adc -t upload`; open the 115200 baud monitor to read `M02_ADC` lines. The
+existing `n16r8` M01 synthetic display environment remains unchanged. A successful build or a
+plausible-looking log does not establish safe rails, physical ADS1115 identity, I2C voltage levels,
+module pinout, or analog accuracy; those are recorded separately during bench verification.
+
+The integrated gauge application has not yet rendered this snapshot. That display work belongs to
+a later M02 phase. Host tests and a target build verify software behavior only; they do not
+demonstrate I2C communication, actual module identity, analog voltage accuracy, sensor calibration,
+or physical fault detection.
 
 ## Reference
 

@@ -124,7 +124,7 @@ Ignored directories are local only. On a fresh clone, create the inbox with `New
 
 1. Verify physical variants, measured bores, and slicer behavior against the [adopted restrictor CAD design](cad/pcv-restrictor/README.md).
 2. Confirm current parts status and final plumbing; the earlier vented installation is documented separately.
-3. Complete native Linux host tests and the `n16r8` build/upload using the same checked-in project configuration. The Windows N16R8 M01 UI has been tested with the monitor open and closed. The development protoboard is reported assembled; reconcile its as-built wiring and record continuity/rail checks separately from firmware verification. The selected RC circuit and ADC configuration candidates are documented; sensor acquisition and calibration remain future firmware work.
+3. Complete native Linux host tests and build/upload checks using the same checked-in project configuration. The Windows N16R8 M01 UI has been tested with the monitor open and closed. The development protoboard is reported assembled; reconcile its as-built wiring and record continuity/rail checks separately from firmware verification. The `n16r8_adc` diagnostic build is ready for physical ADC/I2C and measured-voltage checks; live FTP sensor pressure display and calibration remain future M02 work.
 4. Characterize the sensor and relief valve on the bench before vehicle tuning.
 
 This design is specific to this engine until evidence supports broader use. The gauge is a diagnostic instrument, not a certified safety device. See the [test plan](docs/testing/test-plan.md) for validation gates.

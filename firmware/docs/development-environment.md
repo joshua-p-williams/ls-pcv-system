@@ -5,6 +5,9 @@ line instructions. The current firmware runs the M01 synthetic gauge demonstrati
 N16R8 development board: it reads the multifunction button, draws three GC9A01 pages, and reports
 gesture/state events over USB serial when a monitor is listening. The display and button operate
 without a computer; serial output is optional diagnostics, not a heartbeat or runtime dependency.
+The additional `n16r8_adc` environment is a focused M02 Phase 3 bench utility: it acquires ADS1115
+codes independently of the display and reports the raw code plus calculated A0 voltage. It does
+not present an electrical test voltage as crankcase pressure.
 Native Windows and native Linux are supported development environments; WSL does not count as the
 native Linux verification environment.
 
@@ -36,9 +39,10 @@ and upload remain pending; treat host-specific Linux steps below as instructions
 3. Use the PlatformIO toolbar or Project Tasks to run **Build**, **Upload**, and **Monitor**.
    The configured serial monitor speed is 115200 baud.
 
-The project currently has one environment, `n16r8`. The board profile describes the ESP32-S3
-WROOM-1 N16R8 memory configuration and enables the native USB CDC serial interface selected by
-W01. It does not identify the exact carrier-board revision.
+The project currently has two environments: `n16r8` for the M01 display demo and `n16r8_adc` for
+M02 ADC-voltage bring-up. Both use the N16R8 board profile, which describes the ESP32-S3 WROOM-1
+N16R8 memory configuration and enables the native USB CDC serial interface selected by W01. The
+profile does not identify the exact carrier-board revision.
 
 ## Use the command line
 
@@ -53,8 +57,9 @@ pio device list
 pio device monitor -p <serial-port> -b 115200
 ```
 
-`pio run` builds the default `n16r8` environment. The upload command uses automatic port
-discovery when possible; specify the board's actual port if needed:
+Use an explicit environment so the intended program is clear. `pio run -e n16r8` builds the M01
+display demo; `pio run -e n16r8_adc` builds the M02 ADC bench utility. Upload commands use automatic
+port discovery when possible; specify the board's actual port if needed:
 
 ```text
 pio run -t upload --upload-port <serial-port>
@@ -83,6 +88,39 @@ The firmware does not print a periodic heartbeat and does not wait for the monit
 gesture changes the synthetic reading or page; the trend history samples once per second. The USB
 CDC transmit timeout is set to zero so optional diagnostic output cannot wait indefinitely for a
 host. Closing or reopening the monitor should not reset the display or stop button/display behavior.
+
+## Phase 3: verify ADC voltage acquisition
+
+Build and upload the diagnostic-only environment:
+
+```text
+pio run -e n16r8_adc
+pio run -e n16r8_adc -t upload
+pio device monitor -p <serial-port> -b 115200
+```
+
+With the FTP sensor signal disconnected, the firmware reports an `M02_ADC` line containing
+acquisition state, a changing sample sequence, acquisition time, raw ADC code, and calculated A0
+microvolts. `state=voltage_read` means the ADC returned a code; it does not claim that the voltage
+matches a pressure sensor's expected domain. A missing ADS1115 or bus problem appears as an
+acquisition error. An unconnected A0 may float, so its displayed voltage is not a meaningful test
+value. This firmware has no pressure display and labels pressure as not tested.
+
+Before applying a battery, follow the ADS1115 and W01 pinout/wiring notes. With power disconnected,
+isolate the FTP output from the A0-side test node so the battery cannot drive the sensor. Power the
+ADC normally from the selected 5 V branch, then use the multimeter to confirm ADC VDD-to-GND and
+measure the candidate battery voltage. Use only a source whose measured positive voltage is above
+ADC ground and below the actual powered ADC VDD. Connect battery negative to the shared circuit
+ground and battery positive to the isolated A0-side node; this node is `COND.OUT`/ADS1115 A0. The
+battery is a signal source, not a board supply, and this direct-node check bypasses the series
+resistor while retaining the node's shunt capacitor. Keep the circuit powered while A0 is connected,
+and disconnect power before moving test leads. Compare the multimeter reading at A0 with `a0_uV`
+converted to volts and note the raw code/sample sequence. Repeat with another measured safe source.
+This checks acquisition direction and approximate voltage tracking; it does not calibrate the ADC,
+RC response, or FTP sensor.
+
+USB monitor output is optional and rate-limited. Closing the monitor should not stop ADC acquisition;
+the current phase does not yet depend on the display or show pressure.
 
 ## Host-specific USB notes
 

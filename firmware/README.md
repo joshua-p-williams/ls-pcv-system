@@ -3,11 +3,12 @@
 M01 implements a synthetic interactive gauge on the N16R8 development board and GC9A01 display.
 Its gauge, trend, min/max pages, button gestures, and demo band colors have been exercised on the
 physical bench setup. M02 Phases 1-2 add a host-tested measurement core and a checked ADS1115
-adapter/acquisition source. That source is not yet started by the application, so the running
-`n16r8` firmware still uses the M01 synthetic source and has not read the FTP sensor or physical
-ADS1115. The Windows Unity host suite passes 30/30 tests and the N16R8 configuration builds; native
-Linux verification remains pending. Demo pressures and status boundaries are not measured or
-validated engine limits.
+adapter/acquisition source. Phase 3 adds the `n16r8_adc` bench target, which runs the source and
+reports raw codes and calculated A0 voltage without interpreting that input as pressure. It is
+ready for physical bring-up, but the assembled ADC bus and input have not yet been verified. The
+existing `n16r8` M01 synthetic display target remains unchanged. The Windows Unity host suite passes
+30/30 tests; native Linux verification remains pending. Demo pressures and status boundaries are
+not measured or validated engine limits.
 
 M01 established the display, interaction, and software boundaries; M02 now extends those boundaries
 toward physical measurement. The [M01 feature documents](docs/features/M01-interactive-display-button/)
@@ -32,7 +33,8 @@ state and LVGL calls.
 
 | Code | Responsibility |
 |---|---|
-| `src/main.cpp` | Connects concrete board adapters to the gauge core and runs the Arduino application. |
+| `src/main.cpp` | Connects concrete board adapters to the gauge core and runs the M01 demo application. |
+| `src/adc_voltage_bench_main.cpp` | Phase 3 acquisition-only entry point; reports ADS1115 codes and calculated A0 voltage. |
 | `src/board/n16r8/` | W01-based pin aliases and Arduino `Wire` adapter for the N16R8 carrier. |
 | `src/measurement/` | Checked ADS1115 register driver, acquisition state machine, and [learning notes](src/measurement/README.md). |
 | `src/input/` | Converts BetterButton's GPIO event codes to the shared gesture type. |
@@ -50,10 +52,11 @@ without communicating with the physical ADC, display, or button.
 
 ## Getting started
 
-Open `firmware/` in VS Code and use the PlatformIO extension to build or upload the `n16r8`
+Open `firmware/` in VS Code and use the PlatformIO extension to build or upload an explicit
 environment. The [development environment guide](docs/development-environment.md) explains native
-Windows/Linux setup, VS Code and CLI workflows, serial-port selection, and host tests. From a
-terminal in this directory, run `pio run -e n16r8` to build.
+Windows/Linux setup, VS Code and CLI workflows, serial-port selection, and host tests. Run
+`pio run -e n16r8` for the M01 display demo or `pio run -e n16r8_adc` for Phase 3 ADC-voltage
+bring-up.
 
 The hardware-independent [gauge core](lib/gauge-core/README.md) and ADS1115 state machine have a
 PlatformIO `native` test environment. With a host GCC toolchain installed, run `pio test -e native`;
@@ -80,10 +83,11 @@ Share measurement, calibration, peak tracking and display behavior across boards
 
 ## Future live-measurement work
 
-The following describes the later live gauge direction. M02 has implemented shared pressure
-conversion/quality/history rules and the ADS1115 adapter, but the application composition, physical
-sensor readings, calibration, and display integration remain future work. Use the linked hardware
-records and M02 feature documents to establish and verify those interfaces.
+The following describes the live gauge direction. M02 has implemented shared pressure
+conversion/quality/history rules and the ADS1115 adapter; `n16r8_adc` composes those pieces for
+raw-voltage bench checks. The final live gauge composition, physical sensor readings, calibration,
+and display integration remain future work. Use the linked hardware records and M02 feature
+documents to establish and verify those interfaces.
 
 - Read the actual GM-style FTP sensor through the selected ADS1115 external ADC and required signal conditioning. The shared 5 V supply, +/-6.144 V PGA, 128 SPS single-shot setting, 100 kHz I2C candidate, and ADDR-ground `0x48` address candidate are represented in firmware; physical bus behavior and module identity remain unverified. The initial analog filter is 470 ohm / 1 uF; filter response and any additional protection remain under review. See the [ADC plan](../hardware/components/adc/README.md).
 - Apply measured calibration and display signed pressure in `inH2O`.

@@ -206,6 +206,12 @@ Use two explicit PlatformIO environments with one shared application and one com
 | `n16r8` | Live FTP sensor through ADS1115 | Starts acquisition, reads/validates pressure, and enables the Settings zero flow. |
 | `n16r8_demo` | Existing synthetic M01 source | Does not initialize or access the FTP sensor, ADC, I2C translator, or Preferences. Preserves M01 click/double-click pressure generation and three-page behavior. |
 
+The `n16r8_adc` PlatformIO environment is a focused bench diagnostic for Phase 3, not a third
+application mode. Its separate entry point exercises the same N16R8 I2C and ADS1115 source, then
+reports raw codes and calculated A0 voltage without displaying pressure. It supports safe voltage
+acquisition checks before the FTP sensor and live pressure UI are integrated; the final live and
+synthetic application compositions remain `n16r8` and `n16r8_demo`.
+
 Keep source selection in one build-time composition seam, such as one factory guarded by a single
 environment define. Do not scatter conditional compilation through the gauge core, LVGL pages, or
 pressure conversion. Make `n16r8` the default live build after implementation and document the

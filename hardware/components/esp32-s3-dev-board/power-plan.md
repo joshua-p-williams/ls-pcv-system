@@ -1,6 +1,6 @@
 # USB bench power and debugging
 
-W01 uses one USB source and one cable: a computer for power/programming/debugging, or a standalone USB supply for operation without a computer. Disconnect and restart when changing sources. The following connections are selected from the listing images and published board-family documentation; no received-board measurements are recorded.
+W01 uses one USB source and one cable: a computer for power/programming/debugging, or a standalone USB supply for operation without a computer. Disconnect and restart when changing sources. The connections below follow the listing images and published board-family documentation. An initial board-only USB rail check is recorded below; peripheral-load behavior remains unverified.
 
 ## Selected connections
 
@@ -27,6 +27,10 @@ USB-OTG is a different jumper. In this schematic it bypasses D2 between native U
 
 The listing's rear image reads 2022-V1.3; the official schematic is V1.4. Adopt this documented family power arrangement as the working assumption, supported by the pictured IN-OUT/USB-OTG pads and header map. This is not a claim of identical received revisions. A different pad layout or failure of the expected rail check is a concrete reason to revisit the assumption; additional board photos are not a design prerequisite.
 
+## Reported board-only bring-up observation — 2026-11-02
+
+With the development board removed from the protoboard and USB disconnected, continuity testing showed the IN-OUT pads were open. A solder bridge was installed across those pads, and continuity across the bridge was confirmed. With the board then powered from the left/native USB port and no protoboard peripherals connected, the reported readings were **3.3 V** from GND to 3V3 and **4.78 V** from GND to 5V. This confirms that the USB-fed rail reaches the 5V header in this board-only setup; it does not establish voltage under peripheral load or the complete system's current margin. Rechecking ADS1115 V-to-G and I2C communication after the bridge remains pending.
+
 ## USB debugging and standalone behavior
 
 The [board designer's guide](https://github.com/vcc-gnd/YD-ESP32-S3) identifies native USB for programming, communication and JTAG. The ESP32-S3 [USB Serial/JTAG documentation](https://docs.espressif.com/projects/esp-idf/en/stable/esp32s3/api-guides/usb-serial-jtag-console.html) describes its serial console and debugger interface. W01 reserves GPIO19/20 for USB. Firmware must select the matching native USB console/debug configuration; a physical cable alone does not configure software or prove debugger operation. No firmware settings are implemented yet.
@@ -44,6 +48,6 @@ As a first budget, USB input current includes the board plus the sensor, ADC, tr
 1. With everything unplugged, check the labeled jumper locations against the reference. Close IN-OUT if necessary; leave USB-OTG open. Check that the bridge is confined to those pads and that power/ground are not shorted.
 2. Keep peripherals disconnected, attach one source to native USB, and check 3V3 and 5Vin against GND. Confirm the expected polarity and rail voltage before fitting the distribution wires or peripherals. If the expected nominal 5 V output is absent or unsuitable, stop that phase and revise the power path rather than bridging more pads.
 3. Add the display, then ADC/translator, then sensor/filter using [W01's phases](../../wiring/bench/README.md#phased-assembly-and-verification). Record rail voltage, source/current limits, startup/operating current and heating with display activity. Check the sensor and ADC see the same branch and review power-down behavior.
-4. Test disconnect/restart with the standalone source. Record source/cable and jumper state with the build. Measurements validate the chosen assembly; they are not prerequisites for documenting this intended wiring.
+4. Test disconnect/restart with the standalone source. Record source/cable and jumper state with the build. The board-only observation above is an initial electrical check, not complete bench validation.
 
-Q30 resolves this bench power/debug topology. Q05 retains hardware behavior and Q12 retains load margin. No jumper has been physically modified or electrical test performed by this documentation change.
+Q30 resolves this bench power/debug topology. Q05 retains remaining board behavior and peripheral checks; Q12 retains load margin. The reported IN-OUT bridge and board-only rail readings are evidence for the USB-fed path, not a complete bench validation.

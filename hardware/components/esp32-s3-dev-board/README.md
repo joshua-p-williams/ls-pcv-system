@@ -22,7 +22,7 @@ The [bench-board evidence record](bench-board-reference.md) collects the YD-styl
 
 ## Power, signals and debugging
 
-W01 selects computer USB for power/debugging or standalone USB for operation without a computer, one source at a time. Disconnect and restart when switching. The [selected power/debug plan](power-plan.md) uses native USB, IN-OUT closed and USB-OTG open. Left row 21 / 5Vin supplies the nominal 5 V branch, while left row 1 / 3V3 supplies the display and translator LV. This is a documented board-family assumption; rail and load checks remain Q05/Q12.
+W01 selects computer USB for power/debugging or standalone USB for operation without a computer, one source at a time. Disconnect and restart when switching. The [selected power/debug plan](power-plan.md) uses native USB, IN-OUT closed and USB-OTG open. Left row 21 / 5Vin supplies the nominal 5 V branch, while left row 1 / 3V3 supplies the display and translator LV. A board-only check reports the IN-OUT bridge installed and 4.78 V at 5Vin under USB power; the [bring-up record](power-plan.md#reported-board-only-bring-up-observation--2026-11-02) explains what that verifies and what remains to test under load (Q05/Q12).
 
 The sensor and ADC share a regulated 5 V branch. ESP32 signals remain 3.3 V, so the ADC's I2C data and clock connect through a bidirectional translator. The display uses a separate SPI interface. Exact GPIOs and electrical endpoints belong in P01 and W01; the [gauge integration guide](../gauge-electronics/README.md) explains the complete chain.
 
