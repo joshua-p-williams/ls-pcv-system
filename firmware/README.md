@@ -2,13 +2,15 @@
 
 M01 implements a synthetic interactive gauge on the N16R8 development board and GC9A01 display.
 Its gauge, trend, min/max pages, button gestures, and demo band colors have been exercised on the
-physical bench setup. The Windows firmware build and upload succeeded; the Windows Unity host suite
-passed 12/12 tests. Native Linux host tests and upload remain pending. **The firmware does not yet
-read the FTP sensor or ADS1115, and its demo pressures and status boundaries are not measured or
-validated engine limits.**
+physical bench setup. M02 Phases 1-2 add a host-tested measurement core and a checked ADS1115
+adapter/acquisition source. That source is not yet started by the application, so the running
+`n16r8` firmware still uses the M01 synthetic source and has not read the FTP sensor or physical
+ADS1115. The Windows Unity host suite passes 30/30 tests and the N16R8 configuration builds; native
+Linux verification remains pending. Demo pressures and status boundaries are not measured or
+validated engine limits.
 
-M01's main purpose is to prove the display, interaction, and maintainable software boundaries
-before sensor acquisition is introduced. The [M01 feature documents](docs/features/M01-interactive-display-button/)
+M01 established the display, interaction, and software boundaries; M02 now extends those boundaries
+toward physical measurement. The [M01 feature documents](docs/features/M01-interactive-display-button/)
 record scope, research, architecture, plan, and phase evidence. The [LVGL/GC9A01 exploratory
 spike](experiments/lvgl-gc9a01/README.md) remains a separate learning reference; the maintained
 implementation is under `src/` and `lib/`. The graphics selection is recorded in [ADR 0001](docs/decisions/0001-m01-graphics-stack.md).
@@ -31,18 +33,20 @@ state and LVGL calls.
 | Code | Responsibility |
 |---|---|
 | `src/main.cpp` | Connects concrete board adapters to the gauge core and runs the Arduino application. |
-| `src/board/n16r8/` | W01-based pin aliases for the N16R8 carrier. |
+| `src/board/n16r8/` | W01-based pin aliases and Arduino `Wire` adapter for the N16R8 carrier. |
+| `src/measurement/` | Checked ADS1115 register driver, acquisition state machine, and [learning notes](src/measurement/README.md). |
 | `src/input/` | Converts BetterButton's GPIO event codes to the shared gesture type. |
 | `src/display/` | Uses LVGL for screens/widgets/animation and LovyanGFX for SPI panel setup/pixel transfer. |
 | `lib/gauge-core/` | Hardware-independent C++ rules for demo pressure bands, session state, timed history, extrema, and gestures. |
 | `lib/better-button/` | Project-authored button gesture library with its source revision and MIT license. |
-| `test/test_gauge_core/` | Unity tests for the hardware-independent gauge core. |
+| `test/test_gauge_core/` | Unity tests for hardware-independent gauge rules. |
+| `test/test_ads1115/` | Fake-I2C Unity tests for ADC configuration, conversion, and acquisition faults. |
 
 PlatformIO selects the ESP32 platform, Arduino framework, compiler, and libraries in
 [`platformio.ini`](platformio.ini). Arduino supplies embedded startup, GPIO, and time APIs. FreeRTOS
 is the task/queue scheduler included by ESP32 Arduino. LVGL is the graphics toolkit; LovyanGFX is
-the hardware display driver. Unity runs the C++ core tests on the development computer, without
-building or simulating the ESP32, display, or button.
+the hardware display driver. Unity runs the core and fake-I2C tests on the development computer,
+without communicating with the physical ADC, display, or button.
 
 ## Getting started
 
@@ -51,9 +55,10 @@ environment. The [development environment guide](docs/development-environment.md
 Windows/Linux setup, VS Code and CLI workflows, serial-port selection, and host tests. From a
 terminal in this directory, run `pio run -e n16r8` to build.
 
-The hardware-independent [gauge core](lib/gauge-core/README.md) has a PlatformIO `native` test
-environment. With a host GCC toolchain installed, run `pio test -e native`; these tests cover the
-core rules but do not exercise physical GPIO, the display, or ESP32/FreeRTOS integration.
+The hardware-independent [gauge core](lib/gauge-core/README.md) and ADS1115 state machine have a
+PlatformIO `native` test environment. With a host GCC toolchain installed, run `pio test -e native`;
+the fake register bus covers software outcomes but does not exercise physical I2C, analog voltage,
+GPIO, the display, or ESP32/FreeRTOS integration.
 
 See [A01: overall gauge architecture](../hardware/architecture/gauge-system.md) for acquisition, controller, display and control boundaries, and [A04: PCV system overview](../hardware/architecture/pcv-system.md) for the pressure being observed. Both are planned-system drafts, not verified hardware configurations.
 
@@ -75,11 +80,12 @@ Share measurement, calibration, peak tracking and display behavior across boards
 
 ## Future live-measurement work
 
-The following describes the later calibrated gauge direction; none of this acquisition behavior is
-implemented by M01. Use the linked hardware records and future feature documents to establish
-sensor/ADC interfaces, calibration, fault states, and validated operating thresholds before coding.
+The following describes the later live gauge direction. M02 has implemented shared pressure
+conversion/quality/history rules and the ADS1115 adapter, but the application composition, physical
+sensor readings, calibration, and display integration remain future work. Use the linked hardware
+records and M02 feature documents to establish and verify those interfaces.
 
-- Read the actual GM-style FTP sensor through the selected ADS1115 external ADC and required signal conditioning; the shared 5 V supply and +/-6.144 V range are selected; the initial analog filter is 470 ohm / 1 uF; rate/address candidates, filter response and any additional protection remain under review. See the [ADC plan](../hardware/components/adc/README.md).
+- Read the actual GM-style FTP sensor through the selected ADS1115 external ADC and required signal conditioning. The shared 5 V supply, +/-6.144 V PGA, 128 SPS single-shot setting, 100 kHz I2C candidate, and ADDR-ground `0x48` address candidate are represented in firmware; physical bus behavior and module identity remain unverified. The initial analog filter is 470 ohm / 1 uF; filter response and any additional protection remain under review. See the [ADC plan](../hardware/components/adc/README.md).
 - Apply measured calibration and display signed pressure in `inH2O`.
 - Provide deliberate atmospheric zero and min/max reset controls.
 - Capture positive and negative peaks independently of display smoothing.

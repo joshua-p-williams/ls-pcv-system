@@ -29,22 +29,26 @@ build, `pio run -e n16r8`, succeeded.
 
 ## Phase 2: Checked ADS1115 adapter and source
 
-- [ ] Implement the small project-owned ADS1115 register adapter over `Wire` for single-ended A0;
+- [x] Implement the small project-owned ADS1115 register adapter over `Wire` for single-ended A0;
   document register choices against the preserved TI datasheet.
-- [ ] Check every I2C transaction result and return explicit initialization, bus, conversion, and
+- [x] Check every I2C transaction result and return explicit initialization, bus, conversion, and
   timeout outcomes to the acquisition layer.
-- [ ] Configure the approved `+/-6.144 V` PGA range and initial single-shot `128 SPS` candidate;
+- [x] Configure the approved `+/-6.144 V` PGA range and initial single-shot `128 SPS` candidate;
   bound readiness polling and retain a clear fresh-conversion boundary.
-- [ ] Convert signed ADS1115 result codes to microvolts with tested sign extension and scaling.
-- [ ] Add a fake-I2C seam and tests for configuration, start/readiness/read sequence, sign/scaling,
+- [x] Convert signed ADS1115 result codes to microvolts with tested sign extension and scaling.
+- [x] Add a fake-I2C seam and tests for configuration, start/readiness/read sequence, sign/scaling,
   bus errors, initialization failure, and bounded timeout.
-- [ ] Implement the acquisition source so it owns ADC/I2C access, updates measurement state before
+- [x] Implement the acquisition source so it owns ADC/I2C access, updates measurement state before
   publishing a snapshot, and never calls LVGL or performs routine blocking serial writes.
-- [ ] Build `pio run -e n16r8`; record the command and result.
-- [ ] Confirm the demo composition does not initialize or access the ADC path; build
-  `pio run -e n16r8_demo` if its environment is introduced in this phase.
-- [ ] Use Adafruit ADS1X15 as a secondary implementation reference if needed; record any relevant
-  comparison without adding it as a runtime dependency unless architecture is explicitly revised.
+- [x] Build `pio run -e n16r8`; record the command and result.
+- [x] Confirm the existing M01 composition does not initialize or access the ADC path. A separate
+  `n16r8_demo` environment was not introduced in this phase.
+- [x] Consider Adafruit ADS1X15 as a secondary implementation reference. No implementation detail
+  beyond TI's register specification was needed; no runtime library dependency was added.
+
+Phase 2 verification: `pio test -e native` passed all 30 tests across the ADS1115 and gauge-core
+suites. `pio run -e n16r8` succeeded. These checks verify software behavior and target compilation;
+the physical I2C bus, module identity, analog input, and sensor remain unverified until Phase 3.
 
 ## Phase 3: ADC voltage acquisition on the assembled bench
 
