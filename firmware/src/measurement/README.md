@@ -86,14 +86,14 @@ calibrated pressure sensor. Keep the FTP signal disconnected for this phase.
 
 Build and upload from `firmware/` with `pio run -e n16r8_adc` and
 `pio run -e n16r8_adc -t upload`; open the 115200 baud monitor to read `M02_ADC` lines. The
-existing `n16r8` M01 synthetic display environment remains unchanged. A successful build or a
+`n16r8` live application also consumes this acquisition source; the M01 synthetic display remains
+available as `n16r8_demo`. A successful build or a
 plausible-looking log does not establish safe rails, physical ADS1115 identity, I2C voltage levels,
 module pinout, or analog accuracy; those are recorded separately during bench verification.
 
-The integrated gauge application has not yet rendered this snapshot. That display work belongs to
-a later M02 phase. Host tests and a target build verify software behavior only; they do not
-demonstrate I2C communication, actual module identity, analog voltage accuracy, sensor calibration,
-or physical fault detection.
+The live integration is documented in the [firmware guide](../../README.md) and M02 feature tasks.
+Host tests and a target build verify software behavior only; they do not demonstrate actual module
+identity, analog voltage accuracy, sensor calibration, or physical fault detection.
 
 ## Reference
 

@@ -84,6 +84,10 @@ keeping its generated-value bounds local to the synthetic source. The common sna
 - Source kind: `live` or `synthetic`.
 - Measurement quality: starting/unavailable, valid, stale, ADC/I2C error, or out of the configured
   sensor measurement domain. These states are distinct from the pressure warning/danger band.
+- The live display treats a valid acquisition older than 1,500 ms as stale. This is the one-second
+  trend interval plus a 500 ms scheduling margin; it suppresses the current numeric value while
+  leaving accepted history and extrema intact. This is a firmware freshness policy, not a sensor
+  specification or pressure limit.
 - The latest raw ADC code, converted signal voltage in microvolts, and acquisition timestamp when
   available.
 - Signed pressure in tenths of `inH2O` and its classified band only when the sample is valid.

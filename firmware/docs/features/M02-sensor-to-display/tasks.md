@@ -77,37 +77,69 @@ the physical I2C bus, module identity, analog input, and sensor remain unverifie
 - [x] If behavior conflicts with the ADS1115 working assumption, stop pressure interpretation and
   document the observed discrepancy and its resolution before continuing.
 
-Phase 3 software readiness: `pio test -e native` passed all 30 host tests; `pio run -e n16r8_adc`
+Phase 3 software readiness: `pio test -e native` passed all 31 host tests; `pio run -e n16r8_adc`
 and `pio run -e n16r8` both succeeded. The repository checker and `git diff --check` also passed.
 Bench observations on 2026-11-02 are recorded in the [ADC voltage test record](../../../../hardware/components/adc/bench-voltage-observations-2026-11-02.md)
 and [grounded-input record](../../../../hardware/components/adc/bench-grounded-input-observation-2026-11-02.md).
 USB-powered ADC VDD measured 4.75 V at the module; the ADS1115 returned fresh conversions at the
 selected `0x48` address. AAA and CR123A inputs at the A0 node tracked multimeter readings at about
 1.60 V and 3.32 V, with repeated ADC values varying by at most one count. A grounded input produced
-repeated zero readings; occasional `raw_code=-1` conversions were classified by firmware as
-`adc_error`, not `i2c_error`, because negative codes are invalid for the single-ended input. The
-input drifted when left open. These results verify this voltage-acquisition bench check only; the
-FTP sensor, pressure conversion, RC response, vehicle operation, and complete W01 harness remain
-unverified.
+repeated zero readings. The initial grounded-input capture produced occasional `raw_code=-1`
+results, leading to a narrowly bounded zero-offset handling change: exactly `-1` now converts to
+0 µV while the raw code is retained, and codes of `-2` or lower remain ADC faults. After uploading
+that change, the retest recorded 137 consecutive zero-voltage samples, including 13 `raw_code=-1`
+results, without `adc_error` or `i2c_error`; see the [grounded-input record](../../../../hardware/components/adc/bench-grounded-input-observation-2026-11-02.md).
+The input drifted when left open. These results verify this voltage-acquisition bench check only;
+the FTP sensor, pressure conversion, RC response, vehicle operation, and complete W01 harness
+remain unverified.
 
 ## Phase 4: FTP sensor and provisional live pressure path
 
-- [ ] Reconnect the FTP sensor through the documented RC filter and confirm sensor/ADC nominal 5 V
+- [x] Reconnect the FTP sensor through the documented RC filter and confirm sensor/ADC nominal 5 V
   and common-ground conditions before interpreting readings.
-- [ ] Measure and record sensor output and ADS A0 voltage at atmospheric equalization, along with
+- [x] Measure and record sensor output and ADS A0 voltage at atmospheric equalization, along with
   supply voltage, raw code/configuration, and observed stability.
-- [ ] Compare polarity and nominal conversion with the published family reference model; label the
+- [x] Compare polarity and nominal conversion with the published family reference model; label the
   result provisional and preserve the measured observations separately from assumptions.
-- [ ] Integrate live acquisition snapshots into the Gauge, Trend, and Min/Max pages; keep page and
+- [x] Integrate live acquisition snapshots into the Gauge, Trend, and Min/Max pages; keep page and
   LVGL state owned by the application loop.
-- [ ] Render unavailable, stale, I2C/ADC error, and out-of-domain conditions distinctly and suppress
-  current numeric pressure/classification for invalid data.
-- [ ] Confirm extrema use each accepted sample and trend slots use the one-second cadence, with
-  gaps for invalid intervals and no repeated stale values.
-- [ ] Exercise the display and button with the serial monitor closed; verify diagnostics are not
+- [x] Implement distinct unavailable, stale, I2C/ADC error, and out-of-domain display states; suppress
+  the current numeric pressure/classification for invalid data.
+- [ ] Confirm extrema use each accepted sample, trend slots use the one-second cadence, and stale
+  values are not repeated as fresh samples.
+- [x] On the device, confirm the three pages show the live value, colored status, trend, and extrema;
+  create an out-of-domain reading and confirm it is reported as invalid rather than as a current
+  pressure value.
+- [x] Confirm the trend shows a gap during an out-of-domain interval.
+- [ ] Safely simulate an ADC or I2C acquisition fault and confirm no stale number remains displayed
+  as current.
+- [x] Exercise the display and button with the serial monitor closed; verify diagnostics are not
   required for timely acquisition, gestures, or screen refresh.
-- [ ] Record observed behavior, signal voltages, and limitations; do not characterize this check as
+- [x] Record observed behavior, signal voltages, and limitations; do not characterize this check as
   a calibrated pressure result.
+
+The first atmospheric sensor/ADC check is recorded in the [bench observation](../../../../hardware/components/adc/bench-ftp-atmospheric-observation-2026-11-02.md). Sensor supply measured 4.76 V, sensor output measured 1.474 V, and A0 measured 1.473 V. Sixteen consecutive ADC reports remained at raw code 7853 except one 7854 reading; pressure remains untested by this diagnostic firmware. The observed atmospheric output is within the published family reference range, but pressure direction and slope still require controlled characterization.
+
+Phase 4 software implementation now routes the live ADS1115 source to the existing three-page
+display. `n16r8` is the live configuration; `n16r8_demo` preserves the M01 synthetic interaction,
+and `n16r8_adc` remains the voltage-only diagnostic. The live source retains the documented family
+zero reference of 1.500 V. The atmospheric measurement was not substituted as calibration; the
+display may therefore show a small provisional offset until the confirmed Settings zero workflow
+is implemented in Phase 6. A valid reading becomes visually stale after 1,500 ms, and fault states
+remove the current numeric pressure while accepted extrema remain historical. Host tests passed
+31/31; all three ESP32 configurations compiled. Initial board checks confirmed live page behavior,
+out-of-domain indication, trend gaps, and operation with the serial monitor closed; the limits of
+those qualitative observations are recorded below.
+
+Phase 4 bench verification (2026-11-03): serial output at atmospheric pressure reported raw codes
+7847–7848 and 1.471313–1.471500 V at A0; the display showed the family-default estimate of
++0.1 inH2O in the danger band. The Gauge, Trend, and Min/Max pages showed the live reading, trend,
+and current-run extrema. Applied vacuum and pressure moved the displayed reading in the expected
+directions; an out-of-domain interval produced an out-of-range message and a gap in the trend.
+Display and button operation continued with the serial monitor closed. This was a qualitative
+functional check: applied pressure values and an independent pressure reference were not recorded,
+so it does not validate conversion accuracy or warning/danger thresholds. The ADC/I2C acquisition
+fault presentation and detailed sample/extrema cadence checks remain open.
 
 ## Phase 5: Controlled pressure and vacuum characterization
 

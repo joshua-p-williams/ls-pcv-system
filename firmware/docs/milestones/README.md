@@ -54,8 +54,12 @@ is in progress, with native Linux host tests/build/upload still pending.
 Incrementally validate the ADS1115 voltage path, characterize the FTP sensor against pressure
 references, and display acquired pressure readings. Begin with measured battery voltages, then use
 the planned water-column U-tube and the purchased digital manometer for controlled sensor tests.
-The scope and acceptance criteria are not yet defined; see the
-[M02 brainstorm](../features/M02-sensor-to-display/brainstorm.md).
+The approved scope, acceptance criteria, and phased tasks are in the
+[M02 feature documents](../features/M02-sensor-to-display/feature.md) and
+[task list](../features/M02-sensor-to-display/tasks.md). Phase 3 voltage-only bench verification is
+complete. Phase 4 now has a compiled live N16R8 composition and fault-aware three-page rendering;
+the atmospheric sensor/ADC check is recorded, while controlled pressure response and on-device
+display/fault checks remain.
 
 **Why next:** M01 established the display and button with synthetic data. Replacing the synthetic
 source with a measured signal is the next useful vertical slice, and staged electrical and pressure

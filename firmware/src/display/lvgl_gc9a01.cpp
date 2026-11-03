@@ -55,6 +55,21 @@ std::uint32_t bandColor(gauge_core::PressureBand band) {
   return kMuted;
 }
 
+/// Explain acquisition validity in words, separately from pressure severity.
+/// An invalid sensor value is not a numeric zero and must not retain the last
+/// accepted value in a position that looks current to a driver.
+const char* qualityLabel(gauge_core::MeasurementQuality quality) {
+  switch (quality) {
+    case gauge_core::MeasurementQuality::kUnavailable: return "WAITING";
+    case gauge_core::MeasurementQuality::kValid: return "VALID";
+    case gauge_core::MeasurementQuality::kStale: return "STALE";
+    case gauge_core::MeasurementQuality::kAdcError: return "ADC ERROR";
+    case gauge_core::MeasurementQuality::kI2cError: return "I2C ERROR";
+    case gauge_core::MeasurementQuality::kOutOfDomain: return "OUT OF RANGE";
+  }
+  return "INVALID";
+}
+
 /// Add one inclusive colored range to the LVGL scale.
 /// LVGL sections style arc, tick items, and indicator consistently so their
 /// transition points align with the classifier's integer pressure boundaries.
@@ -402,10 +417,17 @@ void LvglGc9a01::createPages() {
   addAxisLabel("-8", bands_.lowerWarning);
   addAxisLabel("-14", bands_.minimum);
 
-  trendLine_ = lv_line_create(plot);
-  lv_obj_set_style_line_color(trendLine_, lv_color_hex(kTrendLine), LV_PART_MAIN);
-  lv_obj_set_style_line_width(trendLine_, 3, LV_PART_MAIN);
-  lv_obj_set_style_line_rounded(trendLine_, true, LV_PART_MAIN);
+  // A single LVGL line object cannot omit points between acquisitions. Use one
+  // small segment per neighboring pair so invalid one-second slots become real
+  // visual gaps rather than a line drawn through missing data.
+  for (std::size_t i = 0; i < gauge_core::kHistoryCapacity - 1; ++i) {
+    trendSegments_[i] = lv_line_create(plot);
+    lv_obj_set_style_line_color(trendSegments_[i], lv_color_hex(kTrendLine),
+                                LV_PART_MAIN);
+    lv_obj_set_style_line_width(trendSegments_[i], 3, LV_PART_MAIN);
+    lv_obj_set_style_line_rounded(trendSegments_[i], true, LV_PART_MAIN);
+    lv_obj_add_flag(trendSegments_[i], LV_OBJ_FLAG_HIDDEN);
+  }
   pageLabels_[1] = createCenteredLabel(trendPage_, "TREND  2/3",
                                       &lv_font_montserrat_14, kMuted, 105);
 
@@ -421,6 +443,8 @@ void LvglGc9a01::createPages() {
                       kMuted, 28);
   maximumLabel_ = createCenteredLabel(minMaxPage_, "--.- inH2O",
                                      &lv_font_montserrat_20, kWarning, 56);
+  minMaxStateLabel_ = createCenteredLabel(minMaxPage_, "WAITING FOR SENSOR",
+                                         &lv_font_montserrat_10, kMuted, 82);
   pageLabels_[2] = createCenteredLabel(minMaxPage_, "MIN / MAX  3/3",
                                       &lv_font_montserrat_14, kMuted, 105);
   lv_screen_load(gaugePage_);
@@ -442,7 +466,22 @@ void LvglGc9a01::render(const gauge_core::GaugeDisplaySnapshot& snapshot) {
 
 /// Update only the gauge widgets from the snapshot; do not classify a second time.
 void LvglGc9a01::updateGauge(const gauge_core::GaugeDisplaySnapshot& snapshot) {
-  if (!snapshot.hasPressure) return;
+  const bool valid = snapshot.quality == gauge_core::MeasurementQuality::kValid &&
+                     snapshot.hasPressure;
+  if (!valid) {
+    // Remove the old numeric value/classification immediately. Keep the
+    // previous needle position hidden, because it represents historical data.
+    lv_obj_add_flag(needle_, LV_OBJ_FLAG_HIDDEN);
+    lv_label_set_text(valueLabel_, "--.-");
+    lv_label_set_text(statusLabel_, qualityLabel(snapshot.quality));
+    lv_obj_set_style_bg_color(valuePanel_, lv_color_hex(0x26313B), LV_PART_MAIN);
+    lv_obj_set_style_text_color(valueLabel_, lv_color_hex(kWhite), LV_PART_MAIN);
+    lv_obj_set_style_text_color(unitLabel_, lv_color_hex(kMuted), LV_PART_MAIN);
+    lv_obj_set_style_bg_color(statusPanel_, lv_color_hex(0x46515B), LV_PART_MAIN);
+    lv_obj_set_style_text_color(statusLabel_, lv_color_hex(kWhite), LV_PART_MAIN);
+    return;
+  }
+  lv_obj_clear_flag(needle_, LV_OBJ_FLAG_HIDDEN);
   animateNeedleTo(snapshot.pressure);
   char formatted[16];
   std::snprintf(formatted, sizeof(formatted), "%+.1f",
@@ -465,60 +504,73 @@ void LvglGc9a01::updateGauge(const gauge_core::GaugeDisplaySnapshot& snapshot) {
 /// The x-axis reserves its full 30-second width while partial history starts at
 /// the left edge; absent startup samples are never fabricated or interpolated.
 void LvglGc9a01::updateTrend(const gauge_core::GaugeDisplaySnapshot& snapshot) {
-  char currentValue[24];
-  std::snprintf(currentValue, sizeof(currentValue), "%+.1f inH2O",
-                static_cast<double>(snapshot.pressure) / 10.0);
+  const bool valid = snapshot.quality == gauge_core::MeasurementQuality::kValid &&
+                     snapshot.hasPressure;
+  char currentValue[32];
+  if (valid) {
+    std::snprintf(currentValue, sizeof(currentValue), "%+.1f inH2O",
+                  static_cast<double>(snapshot.pressure) / 10.0);
+  } else {
+    std::snprintf(currentValue, sizeof(currentValue), "%s",
+                  qualityLabel(snapshot.quality));
+  }
   lv_label_set_text(trendValueLabel_, currentValue);
-  const bool warning = snapshot.band == gauge_core::PressureBand::kWarning;
-  const std::uint32_t statusColor = bandColor(snapshot.band);
+  const bool warning = valid && snapshot.band == gauge_core::PressureBand::kWarning;
+  const std::uint32_t statusColor = valid ? bandColor(snapshot.band) : 0x46515B;
   lv_obj_set_style_bg_color(trendValuePanel_, lv_color_hex(statusColor), LV_PART_MAIN);
   lv_obj_set_style_text_color(trendValueLabel_,
       lv_color_hex(warning ? kDarkHub : kWhite), LV_PART_MAIN);
   char metadata[32];
   std::snprintf(metadata, sizeof(metadata), "%s | 1s | %u/30",
-                bandName(snapshot.band), static_cast<unsigned>(snapshot.historyCount));
+                valid ? bandName(snapshot.band) : qualityLabel(snapshot.quality),
+                static_cast<unsigned>(snapshot.historyCount));
   lv_label_set_text(trendMetaLabel_, metadata);
-  if (snapshot.historyCount < 2) {
-    lv_obj_add_flag(trendLine_, LV_OBJ_FLAG_HIDDEN);
-    return;
-  }
-  // A single LVGL line cannot represent a gap. Hide the trace rather than
-  // drawing an invalid interval as pressure; M02's display phase can add
-  // segmented line objects once live invalid samples are presented here.
-  for (std::size_t i = 0; i < snapshot.historyCount; ++i) {
-    if (!snapshot.history[i].valid) {
-      lv_obj_add_flag(trendLine_, LV_OBJ_FLAG_HIDDEN);
-      return;
-    }
-  }
-  lv_obj_clear_flag(trendLine_, LV_OBJ_FLAG_HIDDEN);
-  // Plot only collected points. The fixed vertical span is the same demo range;
-  // partial startup history is left-aligned instead of padded with fake data.
-  constexpr std::int32_t kPlotWidth = 168;
-  constexpr std::int32_t kPlotHeight = 110;
-  constexpr std::int32_t kPlotLeft = 34;
-  constexpr std::int32_t kPlotTop = 8;
-  const std::int32_t span = snapshot.bands.maximum - snapshot.bands.minimum;
-  for (std::size_t i = 0; i < snapshot.historyCount; ++i) {
-    const std::int32_t x = kPlotLeft +
-        static_cast<std::int32_t>(i * kPlotWidth /
-            (gauge_core::kHistoryCapacity - 1));
-    const std::int32_t pressure = snapshot.history[i].pressure;
+  // The fixed vertical span is shared with the gauge; partial startup history
+  // starts at the left edge and no absent point is fabricated or interpolated.
+  const auto pointFor = [&snapshot](std::size_t index) {
+    constexpr std::int32_t width = 168;
+    constexpr std::int32_t height = 110;
+    constexpr std::int32_t left = 34;
+    constexpr std::int32_t top = 8;
+    const std::int32_t span = snapshot.bands.maximum - snapshot.bands.minimum;
+    const std::int32_t x = left + static_cast<std::int32_t>(
+        index * width / (gauge_core::kHistoryCapacity - 1));
+    const std::int32_t pressure = snapshot.history[index].pressure;
     const std::int32_t bounded = pressure < snapshot.bands.minimum
         ? snapshot.bands.minimum
-        : (pressure > snapshot.bands.maximum
-              ? snapshot.bands.maximum : pressure);
-    const std::int32_t y = kPlotTop + kPlotHeight -
-        static_cast<std::int32_t>((bounded - snapshot.bands.minimum) * kPlotHeight / span);
-    trendPoints_[i] = {static_cast<lv_value_precise_t>(x),
-                       static_cast<lv_value_precise_t>(y)};
+        : (pressure > snapshot.bands.maximum ? snapshot.bands.maximum : pressure);
+    const std::int32_t y = top + height - static_cast<std::int32_t>(
+        (bounded - snapshot.bands.minimum) * height / span);
+    return lv_point_precise_t{static_cast<lv_value_precise_t>(x),
+                              static_cast<lv_value_precise_t>(y)};
+  };
+  for (std::size_t i = 0; i < gauge_core::kHistoryCapacity - 1; ++i) {
+    lv_obj_t* segment = trendSegments_[i];
+    if (segment == nullptr || i + 1 >= snapshot.historyCount ||
+        !snapshot.history[i].valid || !snapshot.history[i + 1].valid) {
+      if (segment != nullptr) lv_obj_add_flag(segment, LV_OBJ_FLAG_HIDDEN);
+      continue;
+    }
+    trendSegmentPoints_[i][0] = pointFor(i);
+    trendSegmentPoints_[i][1] = pointFor(i + 1);
+    lv_line_set_points(segment, trendSegmentPoints_[i], 2);
+    lv_obj_clear_flag(segment, LV_OBJ_FLAG_HIDDEN);
   }
-  lv_line_set_points(trendLine_, trendPoints_, snapshot.historyCount);
 }
 
 /// Display extrema already captured by GaugeSession, without resetting on page entry.
 void LvglGc9a01::updateMinMax(const gauge_core::GaugeDisplaySnapshot& snapshot) {
-  if (!snapshot.hasExtrema) return;
+  const bool valid = snapshot.quality == gauge_core::MeasurementQuality::kValid &&
+                     snapshot.hasPressure;
+  // The extrema remain useful run history after a fault, but this line makes
+  // clear whether a live reading is still arriving while those values remain.
+  lv_label_set_text(minMaxStateLabel_,
+                    valid ? "LIVE DATA" : qualityLabel(snapshot.quality));
+  if (!snapshot.hasExtrema) {
+    lv_label_set_text(minimumLabel_, "--.- inH2O");
+    lv_label_set_text(maximumLabel_, "--.- inH2O");
+    return;
+  }
   char formatted[24];
   std::snprintf(formatted, sizeof(formatted), "%+.1f inH2O",
                 static_cast<double>(snapshot.minimumRecorded) / 10.0);
