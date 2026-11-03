@@ -210,20 +210,41 @@ void test_pressure_source_bounds_conversion_wait_and_exposes_fault() {
                     static_cast<int>(source.lastDeviceResult()));
 }
 
-void test_pressure_source_rejects_negative_single_ended_code() {
+void test_pressure_source_treats_one_negative_code_as_zero_boundary() {
   FakeRegisterBus bus;
   Ads1115PressureSource source(bus, 0x48);
   TEST_ASSERT_FALSE(source.poll(0));
   TEST_ASSERT_FALSE(source.poll(1));
   bus.configWord |= 0x8000u;
-  bus.conversionWord = 0xFFFFu;  // -1 code: below ground is not valid A0 input.
+  bus.conversionWord = 0xFFFFu;  // -1: ADS1115 offset may cross the zero edge.
+  TEST_ASSERT_FALSE(source.poll(8));
+  TEST_ASSERT_TRUE(source.poll(9));
+  const gauge_core::MeasurementSnapshot snapshot = source.snapshot();
+  // Zero volts is outside the provisional FTP sensor output domain, so it is
+  // not a valid pressure even though this one-code ADC result is tolerated.
+  TEST_ASSERT_EQUAL(static_cast<int>(gauge_core::MeasurementQuality::kOutOfDomain),
+                    static_cast<int>(snapshot.quality));
+  TEST_ASSERT_TRUE(snapshot.hasRawAdcCode);
+  TEST_ASSERT_EQUAL_INT(-1, snapshot.rawAdcCode);
+  TEST_ASSERT_TRUE(snapshot.hasSignalVoltage);
+  TEST_ASSERT_EQUAL_UINT32(0, snapshot.signalVoltageMicrovolts);
+  TEST_ASSERT_FALSE(snapshot.hasPressure);
+}
+
+void test_pressure_source_rejects_more_negative_single_ended_code() {
+  FakeRegisterBus bus;
+  Ads1115PressureSource source(bus, 0x48);
+  TEST_ASSERT_FALSE(source.poll(0));
+  TEST_ASSERT_FALSE(source.poll(1));
+  bus.configWord |= 0x8000u;
+  bus.conversionWord = 0xFFFEu;  // -2 codes are beyond the zero tolerance.
   TEST_ASSERT_FALSE(source.poll(8));
   TEST_ASSERT_TRUE(source.poll(9));
   const gauge_core::MeasurementSnapshot snapshot = source.snapshot();
   TEST_ASSERT_EQUAL(static_cast<int>(gauge_core::MeasurementQuality::kAdcError),
                     static_cast<int>(snapshot.quality));
   TEST_ASSERT_TRUE(snapshot.hasRawAdcCode);
-  TEST_ASSERT_EQUAL_INT(-1, snapshot.rawAdcCode);
+  TEST_ASSERT_EQUAL_INT(-2, snapshot.rawAdcCode);
   TEST_ASSERT_FALSE(snapshot.hasSignalVoltage);
   TEST_ASSERT_FALSE(snapshot.hasPressure);
 }
@@ -277,7 +298,8 @@ int main() {
   RUN_TEST(test_pressure_source_records_voltage_and_pressure_before_snapshot);
   RUN_TEST(test_pressure_source_reports_initialization_failure_and_retries_bounded);
   RUN_TEST(test_pressure_source_bounds_conversion_wait_and_exposes_fault);
-  RUN_TEST(test_pressure_source_rejects_negative_single_ended_code);
+  RUN_TEST(test_pressure_source_treats_one_negative_code_as_zero_boundary);
+  RUN_TEST(test_pressure_source_rejects_more_negative_single_ended_code);
   RUN_TEST(test_pressure_source_marks_voltage_outside_sensor_profile);
   RUN_TEST(test_pressure_source_clears_current_pressure_after_i2c_failure);
   return UNITY_END();

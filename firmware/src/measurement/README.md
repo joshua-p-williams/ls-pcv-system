@@ -41,11 +41,15 @@ The 25 ms timeout and 10 ms I2C transaction timeout are bounded software safegua
 subject to bench timing verification.
 
 The conversion code is signed two's complement. `Ads1115Device` expands that representation
-explicitly, then applies the exact `187.5 microvolt/code` scale using integer rounding. A negative
-single-ended result is kept as an ADC fault instead of being reinterpreted as pressure: A0 is
-intended to be a nonnegative voltage relative to ground. The pressure sign comes later from the
-sensor's atmospheric reference; voltage below that reference means positive crankcase pressure,
-and voltage above it means vacuum.
+explicitly, then applies the exact `187.5 microvolt/code` scale using integer rounding. TI notes
+that ADC offset can produce a negative single-ended code when the input is near 0 V. The source
+treats exactly one negative code (`-1`, or `-187.5 µV` at this PGA setting) as the zero boundary,
+while retaining the signed raw code for diagnostics. This matches the grounded-input bench
+observation without turning a near-zero voltage into a pressure: zero volts remains outside the
+provisional FTP sensor output domain. Codes of `-2` or lower remain ADC faults because they are
+beyond this narrowly bounded zero-offset tolerance. The pressure sign comes later from the sensor's
+atmospheric reference; voltage below that reference means positive crankcase pressure, and voltage
+above it means vacuum.
 
 ## Bus and source ownership
 

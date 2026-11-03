@@ -4,6 +4,14 @@ namespace ls_pcv {
 namespace measurement {
 namespace {
 
+// TI documents that offset can produce a negative single-ended code near 0 V.
+// The bench observed exactly -1 code while A0 was grounded. At the selected
+// +/-6.144 V PGA range, one code is 187.5 uV, so treat this single boundary
+// code as 0 V while preserving the original signed code in the snapshot.
+// Larger negative codes remain faults: they are outside the intended A0-to-GND
+// input range and must not be silently converted into plausible voltages.
+constexpr std::int16_t kSingleEndedZeroOffsetToleranceCodes = 1;
+
 Ads1115Result mapBusFailure(I2cTransactionResult result) {
   return result == I2cTransactionResult::kTimeout
       ? Ads1115Result::kI2cTimeout : Ads1115Result::kI2cError;
@@ -154,16 +162,18 @@ void Ads1115PressureSource::recordAdcFault(std::uint32_t nowMs,
 /// Convert the raw code and update the tracker before exposing a new snapshot.
 bool Ads1115PressureSource::recordConversion(std::uint32_t nowMs,
                                             std::int16_t rawCode) {
-  const std::int32_t signalMicrovolts =
-      Ads1115Device::codeToMicrovolts(rawCode);
-  if (signalMicrovolts < 0) {
+  if (rawCode < -kSingleEndedZeroOffsetToleranceCodes) {
     lastDeviceResult_ = Ads1115Result::kInvalidSingleEndedCode;
     recordAdcFault(nowMs, lastDeviceResult_, true, rawCode);
     return true;
   }
 
-  const std::uint32_t nonnegativeMicrovolts =
-      static_cast<std::uint32_t>(signalMicrovolts);
+  const std::int32_t signedSignalMicrovolts =
+      Ads1115Device::codeToMicrovolts(rawCode);
+  // Clamp only the documented/measured one-code zero-boundary result. Keep
+  // rawCode unchanged below so diagnostics can still show the actual ADC code.
+  const std::uint32_t nonnegativeMicrovolts = signedSignalMicrovolts < 0
+      ? 0u : static_cast<std::uint32_t>(signedSignalMicrovolts);
   const gauge_core::PressureConversionResult converted =
       gauge_core::PressureConverter().convert(nonnegativeMicrovolts, profile_);
   gauge_core::MeasurementObservation observation;
