@@ -4,6 +4,7 @@
 #include <cstdio>
 
 #include "board/n16r8/board_config.hpp"
+#include "gauge_core/zero_reference_capture.hpp"
 
 namespace ls_pcv {
 namespace display {
@@ -208,9 +209,11 @@ void flushToPanel(lv_display_t* display, const lv_area_t* area,
 /// Allocate and initialize the hardware/display stack before creating widgets.
 /// This method returns failure rather than waiting for a USB console or retrying
 /// forever; the caller can keep the rest of firmware running without a display.
-bool LvglGc9a01::begin(const gauge_core::DemoBandConfig& bands) {
+bool LvglGc9a01::begin(const gauge_core::DemoBandConfig& bands,
+                       bool includeSettings) {
   if (ready_) return true;
   if (!bands.isValid()) return false;
+  settingsEnabled_ = includeSettings;
   const std::int32_t tickStep = exactGaugeTickStep(bands);
   const std::int32_t span = bands.maximum - bands.minimum;
   const std::size_t tickCount = static_cast<std::size_t>(span / tickStep) + 1;
@@ -247,7 +250,7 @@ bool LvglGc9a01::begin(const gauge_core::DemoBandConfig& bands) {
   return true;
 }
 
-/// Build all three LVGL page trees once; later calls only update their widgets.
+/// Build the live or demo LVGL page trees once; later calls update their widgets.
 /// Keeping pressure state outside LVGL lets host-tested core logic and rendering
 /// remain separate responsibilities.
 void LvglGc9a01::createPages() {
@@ -340,7 +343,8 @@ void LvglGc9a01::createPages() {
   lv_obj_set_style_text_color(statusLabel_, lv_color_hex(kWhite), LV_PART_MAIN);
   lv_obj_set_style_text_font(statusLabel_, &lv_font_montserrat_14, LV_PART_MAIN);
   lv_obj_center(statusLabel_);
-  pageLabels_[0] = createCenteredLabel(gaugePage_, "GAUGE  1/3",
+  pageLabels_[0] = createCenteredLabel(gaugePage_,
+                                      settingsEnabled_ ? "GAUGE  1/4" : "GAUGE  1/3",
                                       &lv_font_montserrat_14, kMuted, 104);
 
   trendPage_ = lv_obj_create(nullptr);
@@ -428,7 +432,8 @@ void LvglGc9a01::createPages() {
     lv_obj_set_style_line_rounded(trendSegments_[i], true, LV_PART_MAIN);
     lv_obj_add_flag(trendSegments_[i], LV_OBJ_FLAG_HIDDEN);
   }
-  pageLabels_[1] = createCenteredLabel(trendPage_, "TREND  2/3",
+  pageLabels_[1] = createCenteredLabel(trendPage_,
+                                      settingsEnabled_ ? "TREND  2/4" : "TREND  2/3",
                                       &lv_font_montserrat_14, kMuted, 105);
 
   minMaxPage_ = lv_obj_create(nullptr);
@@ -445,8 +450,51 @@ void LvglGc9a01::createPages() {
                                      &lv_font_montserrat_20, kWarning, 56);
   minMaxStateLabel_ = createCenteredLabel(minMaxPage_, "WAITING FOR SENSOR",
                                          &lv_font_montserrat_10, kMuted, 82);
-  pageLabels_[2] = createCenteredLabel(minMaxPage_, "MIN / MAX  3/3",
+  pageLabels_[2] = createCenteredLabel(minMaxPage_,
+                                      settingsEnabled_ ? "MIN / MAX  3/4" : "MIN / MAX  3/3",
                                       &lv_font_montserrat_14, kMuted, 105);
+
+  if (settingsEnabled_) {
+    settingsPage_ = lv_obj_create(nullptr);
+    lv_obj_set_style_bg_color(settingsPage_, lv_color_hex(kBackground), LV_PART_MAIN);
+    createCenteredLabel(settingsPage_, "SETTINGS  4/4",
+                        &lv_font_montserrat_14, kMuted, -92);
+
+    // The sole menu action is a selected option, not a plain page heading.
+    // This dark card and cyan outline make that affordance visible at a glance.
+    settingsOptionPanel_ = lv_obj_create(settingsPage_);
+    lv_obj_set_size(settingsOptionPanel_, 190, 44);
+    lv_obj_align(settingsOptionPanel_, LV_ALIGN_CENTER, 0, -53);
+    lv_obj_set_style_bg_color(settingsOptionPanel_, lv_color_hex(kDarkHub),
+                               LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(settingsOptionPanel_, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_border_color(settingsOptionPanel_, lv_color_hex(kTrendLine),
+                                  LV_PART_MAIN);
+    lv_obj_set_style_border_width(settingsOptionPanel_, 2, LV_PART_MAIN);
+    lv_obj_set_style_radius(settingsOptionPanel_, 10, LV_PART_MAIN);
+    lv_obj_set_style_pad_all(settingsOptionPanel_, 0, LV_PART_MAIN);
+    lv_obj_clear_flag(settingsOptionPanel_, LV_OBJ_FLAG_SCROLLABLE);
+    settingsPrimaryLabel_ = lv_label_create(settingsOptionPanel_);
+    lv_label_set_text(settingsPrimaryLabel_, "SET ZERO");
+    lv_obj_set_style_text_color(settingsPrimaryLabel_, lv_color_hex(kWhite),
+                                 LV_PART_MAIN);
+    lv_obj_set_style_text_font(settingsPrimaryLabel_, &lv_font_montserrat_20,
+                               LV_PART_MAIN);
+    lv_obj_center(settingsPrimaryLabel_);
+
+    settingsDetailLabel_ = createCenteredLabel(settingsPage_, "Atmospheric offset only",
+        &lv_font_montserrat_14, kMuted, -1);
+    lv_obj_set_width(settingsDetailLabel_, 208);
+    lv_label_set_long_mode(settingsDetailLabel_, LV_LABEL_LONG_WRAP);
+    lv_obj_set_style_text_align(settingsDetailLabel_, LV_TEXT_ALIGN_CENTER,
+                                LV_PART_MAIN);
+    lv_obj_align(settingsDetailLabel_, LV_ALIGN_CENTER, 0, -1);
+    settingsStatusLabel_ = createCenteredLabel(settingsPage_, "FAMILY DEFAULT",
+        &lv_font_montserrat_14, kNormal, 37);
+    settingsFooterLabel_ = createCenteredLabel(settingsPage_, "DOUBLE CLICK: SELECT",
+        &lv_font_montserrat_10, kMuted, 86);
+    pageLabels_[3] = settingsFooterLabel_;
+  }
   lv_screen_load(gaugePage_);
 }
 
@@ -455,11 +503,15 @@ void LvglGc9a01::render(const gauge_core::GaugeDisplaySnapshot& snapshot) {
   updateGauge(snapshot);
   updateTrend(snapshot);
   updateMinMax(snapshot);
+  if (settingsEnabled_) updateSettings(snapshot);
   lv_obj_t* page = gaugePage_;
   switch (snapshot.page) {
     case gauge_core::Page::kGauge: page = gaugePage_; break;
     case gauge_core::Page::kTrend: page = trendPage_; break;
     case gauge_core::Page::kMinMax: page = minMaxPage_; break;
+    case gauge_core::Page::kSettings:
+      if (settingsEnabled_) page = settingsPage_;
+      break;
   }
   if (lv_screen_active() != page) lv_screen_load_anim(page, LV_SCR_LOAD_ANIM_FADE_ON, 100, 0, false);
 }
@@ -578,6 +630,142 @@ void LvglGc9a01::updateMinMax(const gauge_core::GaugeDisplaySnapshot& snapshot) 
   std::snprintf(formatted, sizeof(formatted), "%+.1f inH2O",
                 static_cast<double>(snapshot.maximumRecorded) / 10.0);
   lv_label_set_text(maximumLabel_, formatted);
+}
+
+/// Explain the user-zero procedure, progress, and truthful save/capture result.
+void LvglGc9a01::updateSettings(
+    const gauge_core::GaugeDisplaySnapshot& snapshot) {
+  if (settingsPage_ == nullptr) return;
+
+  std::uint32_t statusColor = kNormal;
+  const char* statusPrefix = "DEFAULT";
+  const char* status = "FAMILY DEFAULT";
+  switch (snapshot.zeroReference) {
+    case gauge_core::ZeroReferenceState::kFamilyDefault:
+      statusPrefix = "DEFAULT";
+      break;
+    case gauge_core::ZeroReferenceState::kSavedTrim:
+      statusPrefix = "SAVED";
+      break;
+    case gauge_core::ZeroReferenceState::kCaptureInProgress:
+      status = "CAPTURE IN PROGRESS";
+      statusColor = kWarning;
+      break;
+    case gauge_core::ZeroReferenceState::kSavedSuccessfully:
+      statusPrefix = "SAVED";
+      break;
+    case gauge_core::ZeroReferenceState::kRejected:
+      status = "CAPTURE REJECTED";
+      statusColor = kWarning;
+      break;
+    case gauge_core::ZeroReferenceState::kStorageFailure:
+      statusPrefix = "DEFAULT";
+      statusColor = kDanger;
+      break;
+    case gauge_core::ZeroReferenceState::kInvalidStoredData:
+      statusPrefix = "DEFAULT";
+      statusColor = kWarning;
+      break;
+  }
+
+  // Show the active zero reference, not the changing live A0 voltage. The
+  // family default is 1.500 V; a successful capture replaces it with the
+  // measured atmospheric mean. An early snapshot keeps the short default label.
+  char activeReference[32];
+  if (snapshot.zeroReferenceMicrovolts > 0 &&
+      (snapshot.zeroReference == gauge_core::ZeroReferenceState::kFamilyDefault ||
+       snapshot.zeroReference == gauge_core::ZeroReferenceState::kSavedTrim ||
+       snapshot.zeroReference == gauge_core::ZeroReferenceState::kSavedSuccessfully ||
+       snapshot.zeroReference == gauge_core::ZeroReferenceState::kStorageFailure ||
+       snapshot.zeroReference == gauge_core::ZeroReferenceState::kInvalidStoredData)) {
+    std::snprintf(activeReference, sizeof(activeReference), "%s %.3f V",
+        statusPrefix,
+        static_cast<double>(snapshot.zeroReferenceMicrovolts) / 1000000.0);
+    status = activeReference;
+  }
+
+  const char* primary = "SET ZERO";
+  const char* detail = "Capture atmospheric offset only.";
+  const char* footer = "DOUBLE CLICK: OPEN";
+  // lv_label_set_text copies the text during the call; keep any generated
+  // progress text alive until after that call rather than pointing into a
+  // branch-local buffer.
+  char progress[32] = {};
+  if (snapshot.settingsCommandFailed) {
+    primary = "REQUEST UNAVAILABLE";
+    detail = "Sensor task unavailable; zero unchanged.";
+    footer = "CLICK: MENU  LONG: EXIT";
+    status = "ZERO UNCHANGED";
+    statusColor = kDanger;
+  } else if (snapshot.settingsView == gauge_core::SettingsView::kConfirm) {
+    // Make the current choice the highlighted headline. Cancel is selected
+    // first, so an accidental double-click cannot start a calibration change.
+    primary = snapshot.settingsConfirmSelected ? "CONFIRM ZERO" : "CANCEL";
+    detail = "Engine cold/off; oil cap open.\nWait for pressure to equalize.";
+    footer = "CLICK: CHANGE  2X: SELECT";
+  } else if (snapshot.settingsView == gauge_core::SettingsView::kCapturing) {
+    primary = "CAPTURING ZERO";
+    std::snprintf(progress, sizeof(progress), "Stable window: %u / %u",
+        static_cast<unsigned>(snapshot.zeroCaptureSamples),
+        static_cast<unsigned>(gauge_core::kMaximumZeroCaptureSamples));
+    detail = progress;
+    footer = "Hold steady";
+    status = "ENGINE OFF / OIL CAP OPEN";
+    statusColor = kWarning;
+  } else if (snapshot.settingsView == gauge_core::SettingsView::kResult) {
+    if (snapshot.zeroReference ==
+        gauge_core::ZeroReferenceState::kSavedSuccessfully) {
+      primary = "ZERO SAVED";
+      detail = "Offset saved; slopes unchanged.";
+      footer = "Returning to gauge...";
+      statusColor = kNormal;
+    } else if (snapshot.zeroReference ==
+               gauge_core::ZeroReferenceState::kStorageFailure) {
+      primary = "SAVE FAILED";
+      detail = "Previous active reference remains in use.";
+      footer = "CLICK: MENU  LONG: EXIT";
+      statusColor = kDanger;
+    } else if (snapshot.zeroReference ==
+               gauge_core::ZeroReferenceState::kRejected) {
+      primary = "ZERO NOT SAVED";
+      switch (snapshot.zeroCaptureStatus) {
+        case gauge_core::ZeroCaptureStatus::kUnstable:
+          detail = "Reading changed during capture. Retry when steady.";
+          break;
+        case gauge_core::ZeroCaptureStatus::kVoltageOutOfRange:
+          detail = "Signal was outside the family atmospheric range.";
+          break;
+        case gauge_core::ZeroCaptureStatus::kInsufficientSamples:
+          detail = "Acquisition stopped before the sample window completed.";
+          break;
+        default:
+          detail = "Capture criteria were not satisfied.";
+          break;
+      }
+      footer = "CLICK: MENU  LONG: EXIT";
+      statusColor = kWarning;
+    } else {
+      primary = "ZERO NOT SAVED";
+      detail = "The family default or previous saved zero remains active.";
+      footer = "CLICK: MENU  LONG: EXIT";
+      statusColor = kWarning;
+    }
+  } else if (snapshot.zeroReference ==
+             gauge_core::ZeroReferenceState::kInvalidStoredData) {
+    detail = "Saved zero invalid; default active.";
+    statusColor = kWarning;
+  } else if (snapshot.zeroReference ==
+             gauge_core::ZeroReferenceState::kStorageFailure) {
+    detail = "Storage unavailable; default active.";
+    statusColor = kDanger;
+  }
+
+  lv_label_set_text(settingsPrimaryLabel_, primary);
+  lv_label_set_text(settingsDetailLabel_, detail);
+  lv_label_set_text(settingsStatusLabel_, status);
+  lv_obj_set_style_text_color(settingsStatusLabel_, lv_color_hex(statusColor),
+                              LV_PART_MAIN);
+  lv_label_set_text(settingsFooterLabel_, footer);
 }
 
 /// Ask LVGL to interpolate the needle position; service() advances the animation.

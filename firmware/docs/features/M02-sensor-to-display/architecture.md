@@ -180,9 +180,11 @@ selection (with one item this has no visible change), and double click selects i
 Selecting `Set zero` opens the existing approved confirmation flow. Explain that the engine must be
 off and cold and the oil cap removed so the crankcase and sensor port can equalize to atmosphere.
 The prompt defaults to Cancel. Single click toggles Cancel/Zero; double click confirms the
-highlighted choice. Cancel or inactivity returns without changing stored calibration. The device
-cannot detect engine state or prove the pressure path is open, so this remains a user-controlled
-procedure. Never capture zero automatically or while the engine is running.
+highlighted choice. The Settings menu itself remains open while idle. If the confirmation prompt is
+left untouched for 30 seconds, it returns to the Settings menu with Cancel selected; it does not
+start capture, change stored calibration, or return to the gauge. The device cannot detect engine
+state or prove the pressure path is open, so this remains a user-controlled procedure. Never capture
+zero automatically or while the engine is running.
 
 After confirmation, the application sends a nonblocking zero-capture command to the acquisition
 task. The task continues sampling and passes a bounded sample window to `ZeroReferenceCapture`.
@@ -342,7 +344,12 @@ sensor calibration, filter response, bus electrical margins, or pressure accurac
   peak response to set final timing.
 - The family-based pressure slopes and `0.5-4.5 V` provisional conversion domain are defaults only;
   use calibration records to refine them and never extrapolate.
-- Zero stability window and acceptance statistics must be based on observed bench noise.
+- The initial zero capture accepts 64 consecutive readings within the family atmospheric interval
+  (1.3–1.7 V) only when peak-to-peak variation is at most 2.0 mV. This provisional setting is
+  grounded in the two recorded atmospheric sessions: one-code variation within each session and a
+  six-code (about 1.125 mV) span between sessions at the selected ±6.144 V ADS1115 range. It
+  provides modest allowance above observed variation, not a validated accuracy specification; the
+  capture mean becomes an offset only and does not alter pressure slopes.
 - Final ADC/I2C GPIOs, task priorities/stack sizes, finite bus timeout, NVS namespace/key spelling,
   and display text layout are implementation details to finalize against W01 and measured behavior.
 - Exact sensor failure signatures remain unknown. Report only faults detectable from ADC/I2C,

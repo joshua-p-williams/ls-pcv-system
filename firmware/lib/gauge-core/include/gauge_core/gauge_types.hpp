@@ -48,7 +48,18 @@ enum class ZeroReferenceState : std::uint8_t {
   kCaptureInProgress,   ///< A user-confirmed atmospheric capture is active.
   kSavedSuccessfully,   ///< A new reference was accepted and stored.
   kRejected,            ///< Capture was rejected by its configured criteria.
-  kStorageFailure       ///< A valid capture could not be persisted.
+  kStorageFailure,      ///< A valid capture could not be persisted or loaded.
+  kInvalidStoredData    ///< Stored data failed version/value validation; default is used.
+};
+
+/// Outcome of the most recent bounded atmospheric-reference capture.
+enum class ZeroCaptureStatus : std::uint8_t {
+  kAccepted,
+  kInvalidCriteria,
+  kInsufficientSamples,
+  kTooManySamples,
+  kVoltageOutOfRange,
+  kUnstable
 };
 
 /// Severity of a valid pressure relative to configured pressure thresholds.
@@ -65,11 +76,20 @@ enum class Gesture : std::uint8_t {
   kDoubleClick,  ///< Two activations recognized as a double-click.
   kLongPress     ///< Button held for the library's configured duration.
 };
-/// The three views backed by one shared gauge session.
+/// The measurement and Settings views backed by one shared live session.
 enum class Page : std::uint8_t {
   kGauge,  ///< Current value, needle, and synthetic status ribbon.
   kTrend,  ///< Recent one-second session samples.
-  kMinMax  ///< Extrema accumulated since the current firmware run began.
+  kMinMax, ///< Extrema accumulated since the current firmware run began.
+  kSettings  ///< User-confirmed live zero-reference actions.
+};
+
+/// The application-owned view within the live Settings page.
+enum class SettingsView : std::uint8_t {
+  kMenu,       ///< The available zero-reference action.
+  kConfirm,    ///< Confirmation with Cancel selected by default.
+  kCapturing,  ///< The acquisition task is collecting the bounded window.
+  kResult      ///< Capture rejection, save result, or storage warning.
 };
 
 /// Pressure severity boundaries, independent of sensor electrical limits.
@@ -149,6 +169,12 @@ struct MeasurementSnapshot {
   std::size_t historyCount = 0;
   /// Identifies family fallback, saved offset, or the current capture outcome.
   ZeroReferenceState zeroReference = ZeroReferenceState::kFamilyDefault;
+  /// Number of conversions collected for a live zero capture.
+  std::uint8_t zeroCaptureSamples = 0;
+  /// Active atmospheric reference applied by the live pressure converter, µV.
+  std::uint32_t zeroReferenceMicrovolts = 0;
+  /// Last capture rejection reason; meaningful when zeroReference is rejected.
+  ZeroCaptureStatus zeroCaptureStatus = ZeroCaptureStatus::kInvalidCriteria;
 };
 
 /// Measurement snapshot plus page and visual range needed by the current UI.
@@ -159,6 +185,12 @@ struct GaugeDisplaySnapshot : MeasurementSnapshot {
   DemoBandConfig bands{};
   /// Active M01/M02 screen, owned by the application/session layer.
   Page page = Page::kGauge;
+  /// Settings submenu state, owned by the application loop.
+  SettingsView settingsView = SettingsView::kMenu;
+  /// Confirmation selection; false means Cancel, which is the safe default.
+  bool settingsConfirmSelected = false;
+  /// True when the application could not deliver a requested capture command.
+  bool settingsCommandFailed = false;
 };
 
 }  // namespace gauge_core

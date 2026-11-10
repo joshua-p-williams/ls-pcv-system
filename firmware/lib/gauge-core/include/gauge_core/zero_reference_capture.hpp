@@ -3,6 +3,8 @@
 #include <cstddef>
 #include <cstdint>
 
+#include "gauge_types.hpp"
+
 namespace gauge_core {
 
 /// Hard memory bound for one atmospheric-reference capture request.
@@ -31,22 +33,78 @@ struct ZeroCaptureCriteria {
   bool isValid() const;
 };
 
-/// Explains why the requested reference capture was or was not accepted.
-enum class ZeroCaptureStatus : std::uint8_t {
-  kAccepted,
-  kInvalidCriteria,
-  kInsufficientSamples,
-  kTooManySamples,
-  kVoltageOutOfRange,
-  kUnstable
-};
-
 /// Summary returned by a pure, deterministic zero-reference evaluation.
 struct ZeroCaptureResult {
   ZeroCaptureStatus status = ZeroCaptureStatus::kInvalidCriteria;
   std::uint32_t zeroVoltageMicrovolts = 0;
   std::uint32_t minimumObservedMicrovolts = 0;
   std::uint32_t maximumObservedMicrovolts = 0;
+};
+
+/// Versioned value stored by the platform adapter in nonvolatile settings.
+struct ZeroReferenceRecord {
+  static constexpr std::uint16_t kCurrentVersion = 1;
+  std::uint16_t version = kCurrentVersion;
+  std::uint32_t zeroVoltageMicrovolts = 0;
+};
+
+/// Distinguish a missing first-use setting from damaged data or a storage error.
+enum class ZeroStoreLoadStatus : std::uint8_t {
+  kLoaded,
+  kNotFound,
+  kInvalid,
+  kError
+};
+
+/// Hardware-independent seam for persistent user settings.
+class ZeroReferenceStore {
+ public:
+  virtual ~ZeroReferenceStore() = default;
+
+  /// Load one decoded record; platform adapters validate their serialized form.
+  virtual ZeroStoreLoadStatus load(ZeroReferenceRecord& record) = 0;
+  /// Persist one complete record and report whether the write succeeded.
+  virtual bool save(const ZeroReferenceRecord& record) = 0;
+};
+
+/// Applies family-default fallback and saves only accepted, confirmed captures.
+/// The caller controls when capture begins; this manager never auto-zeros.
+class ZeroReferenceManager {
+ public:
+  /// Configure a fallback value and the measured/profile-based capture limits.
+  ZeroReferenceManager(std::uint32_t familyDefaultMicrovolts,
+                       ZeroCaptureCriteria criteria);
+
+  /// Load a valid saved record or retain the family default on first use/errors.
+  ZeroReferenceState initialize(ZeroReferenceStore& store);
+  /// Mark the beginning of an explicitly confirmed capture request.
+  void beginCapture();
+  /// Cancel without changing the active or persisted reference.
+  void cancelCapture();
+  /// Evaluate a finite window and persist only if it is accepted.
+  ZeroCaptureResult finishCapture(const std::uint32_t* samples,
+                                 std::size_t sampleCount,
+                                 ZeroReferenceStore& store);
+
+  /// Current atmospheric reference used by the pressure converter.
+  std::uint32_t activeZeroMicrovolts() const { return activeZeroMicrovolts_; }
+  /// Current user-visible state for diagnostics and Settings rendering.
+  ZeroReferenceState state() const { return state_; }
+  /// Last stability/plausibility result, meaningful after a capture finishes.
+  ZeroCaptureStatus lastCaptureStatus() const { return lastCaptureStatus_; }
+  /// Count of conversions expected in one capture.
+  std::size_t requiredSampleCount() const { return criteria_.minimumSampleCount; }
+
+ private:
+  /// A stored voltage must remain inside the family atmospheric-output range.
+  bool isPlausibleStoredZero(std::uint32_t voltageMicrovolts) const;
+
+  const std::uint32_t familyDefaultMicrovolts_;
+  const ZeroCaptureCriteria criteria_;
+  std::uint32_t activeZeroMicrovolts_;
+  ZeroReferenceState state_ = ZeroReferenceState::kFamilyDefault;
+  ZeroCaptureStatus lastCaptureStatus_ = ZeroCaptureStatus::kInvalidCriteria;
+  bool hasSavedReference_ = false;
 };
 
 /// Evaluate a bounded set of voltage samples for an explicitly requested zero.

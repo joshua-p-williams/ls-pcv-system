@@ -65,6 +65,10 @@ class MeasurementTracker {
   /// @return Number of slots appended, capped at the history capacity.
   std::size_t sampleAt(std::uint32_t nowMs);
 
+  /// Start a new history/extrema run after a stored zero reference changes.
+  /// Old pressures used a different offset and must not be mixed with new ones.
+  void reset();
+
   /// Copy current state and linearize retained trend slots oldest-to-newest.
   /// @return Value snapshot suitable for read-only consumers.
   MeasurementSnapshot snapshot() const;

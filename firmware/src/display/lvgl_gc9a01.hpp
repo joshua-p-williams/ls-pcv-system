@@ -17,10 +17,11 @@ namespace display {
 /// snapshots into those widgets and never changes measurement/session state.
 class LvglGc9a01 {
  public:
-  /// Initialize the SPI panel, LVGL display, and three measurement pages.
+  /// Initialize the SPI panel, LVGL display, and live/demo page set.
   /// @param bands The shared synthetic span/threshold configuration used by the UI.
+  /// @param includeSettings True for live builds; the synthetic M01 demo stays three-page.
   /// @return True when the panel and LVGL display were initialized.
-  bool begin(const gauge_core::DemoBandConfig& bands);
+  bool begin(const gauge_core::DemoBandConfig& bands, bool includeSettings);
 
   /// Render the latest gauge/session values when initialization succeeded.
   /// @param snapshot Current live or synthetic state; history is chronological and may be partial.
@@ -41,6 +42,8 @@ class LvglGc9a01 {
   void updateTrend(const gauge_core::GaugeDisplaySnapshot& snapshot);
   /// Refresh current-run extrema; no values are inferred from the display itself.
   void updateMinMax(const gauge_core::GaugeDisplaySnapshot& snapshot);
+  /// Render the user-confirmed atmospheric-zero workflow and its safe state.
+  void updateSettings(const gauge_core::GaugeDisplaySnapshot& snapshot);
   /// Animate from the current needle position to a new signed pressure value.
   void animateNeedleTo(gauge_core::PressureTenthsInH2O pressure);
   /// Apply one animation frame by setting LVGL's scale-needle value.
@@ -55,6 +58,7 @@ class LvglGc9a01 {
   lv_obj_t* gaugePage_ = nullptr;
   lv_obj_t* trendPage_ = nullptr;
   lv_obj_t* minMaxPage_ = nullptr;
+  lv_obj_t* settingsPage_ = nullptr;
   lv_obj_t* trendValuePanel_ = nullptr;
   lv_obj_t* trendValueLabel_ = nullptr;
   lv_obj_t* trendMetaLabel_ = nullptr;
@@ -71,7 +75,12 @@ class LvglGc9a01 {
   lv_obj_t* minimumLabel_ = nullptr;
   lv_obj_t* maximumLabel_ = nullptr;
   lv_obj_t* minMaxStateLabel_ = nullptr;
-  lv_obj_t* pageLabels_[3]{};
+  lv_obj_t* settingsOptionPanel_ = nullptr;
+  lv_obj_t* settingsPrimaryLabel_ = nullptr;
+  lv_obj_t* settingsDetailLabel_ = nullptr;
+  lv_obj_t* settingsStatusLabel_ = nullptr;
+  lv_obj_t* settingsFooterLabel_ = nullptr;
+  lv_obj_t* pageLabels_[4]{};
   lv_style_t dangerStyle_{};
   lv_style_t warningStyle_{};
   lv_style_t normalStyle_{};
@@ -80,6 +89,7 @@ class LvglGc9a01 {
   /// Partial-render buffer: LVGL flushes rectangular regions through LovyanGFX.
   std::uint16_t drawBuffer_[gauge_core::kHistoryCapacity * 240]{};
   bool ready_ = false;
+  bool settingsEnabled_ = false;
   gauge_core::DemoBandConfig bands_{};
   std::int32_t animatedNeedleValue_ = 0;
   std::int32_t lastNeedleTarget_ = 0;

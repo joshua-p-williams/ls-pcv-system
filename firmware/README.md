@@ -1,11 +1,12 @@
 # Crankcase pressure gauge firmware
 
 M01 established a synthetic interactive gauge on the N16R8 development board and GC9A01 display.
-M02 adds live sensor acquisition and connects it to the same Gauge, Trend, and Min/Max pages. The
-first FTP sensor atmospheric check reached the ADS1115 through the assembled RC filter, but
-controlled pressure/vacuum characterization and calibration remain incomplete. The live firmware
-uses the documented 1.500 V family reference until a confirmed zero is saved; status boundaries are
-provisional and are not validated engine limits. The Windows Unity host suite passes 31/31 tests;
+M02 adds live sensor acquisition and connects it to the Gauge, Trend, Min/Max, and Settings pages.
+The Settings page implements an explicitly confirmed, saved atmospheric zero offset. The first FTP
+sensor atmospheric check reached the ADS1115 through the assembled RC filter, but controlled
+pressure/vacuum characterization and calibration remain incomplete. The live firmware uses the
+documented 1.500 V family reference until a confirmed zero is saved; status boundaries are
+provisional and are not validated engine limits. The Windows Unity host suite passes 36/36 tests;
 native Linux verification remains pending.
 
 M01 established the display, interaction, and software boundaries; M02 now extends those boundaries
@@ -84,12 +85,14 @@ Share measurement, calibration, peak tracking and display behavior across boards
 
 M02 is implementing the live gauge path in phases. Shared pressure conversion/quality/history rules,
 the checked ADS1115 adapter, the live composition, and fault-aware display rendering are in place.
-Physical atmospheric sensor output has been observed, but controlled pressure/vacuum response,
-calibration, display verification, and zero persistence remain open. Use the linked hardware records
-and M02 feature documents to distinguish implemented software from verified sensor behavior.
+Physical atmospheric sensor output has been observed, and the live display and Settings zero
+workflow have been implemented. Qualitative pressure/vacuum response has been observed; controlled
+characterization and calibration accuracy remain open. The saved zero has survived an N16R8 power
+cycle. Use the linked hardware records and M02 feature
+documents to distinguish implemented software from verified sensor behavior.
 
-- The live `n16r8` target reads the FTP sensor through the ADS1115 and RC input filter, applies the published-family conversion model, and displays signed pressure in `inH2O`. The 1.500 V family reference remains the default until a deliberate saved zero is available. The atmospheric observation is recorded in the [ADC component notes](../hardware/components/adc/bench-ftp-atmospheric-observation-2026-11-02.md); controlled pressure/vacuum behavior and calibration remain open.
-- Track valid-sample extrema and the one-second trend independently of display refresh. The UI now suppresses current numeric pressure for unavailable, stale, I2C/ADC-error, and out-of-domain states; on-device checks remain outstanding.
+- The live `n16r8` target reads the FTP sensor through the ADS1115 and RC input filter, applies the published-family conversion model, and displays signed pressure in `inH2O`. The 1.500 V family reference is used until a deliberate saved zero is available. The atmospheric observation is recorded in the [ADC component notes](../hardware/components/adc/bench-ftp-atmospheric-observation-2026-11-02.md); controlled pressure/vacuum behavior and calibration remain open.
+- Track valid-sample extrema and the one-second trend independently of display refresh. The UI now suppresses current numeric pressure for unavailable, stale, I2C/ADC-error, and out-of-domain states. On-device checks confirmed live sensor display, an out-of-domain indication, a trend gap, and operation with the monitor closed; a physical I2C/ADC-fault injection remains untested.
 - The source currently uses the selected nominal shared 5 V rail, +/-6.144 V PGA, 128 SPS single-shot setting, 100 kHz I2C candidate, and ADDR-ground `0x48` address. Physical bus margins, exact module identity, filter response and any additional protection remain under review. See the [ADC plan](../hardware/components/adc/README.md).
 
 Never automatically zero while the engine runs. Zero requires the pressure port to be equalized to atmosphere. W01 proposes N16R8 GPIO6 for the single multifunction button; XIAO allocation remains separate. M02's live-mode gesture rules are recorded in its [approved feature definition](docs/features/M02-sensor-to-display/feature.md).
@@ -112,15 +115,16 @@ double-click window, and 2000 ms long-press values are library settings, not fin
 requirements. Physical N16R8 testing confirmed responsive M01 gesture handling under display load.
 
 The live and demo builds share the button adapter, but their actions differ. In the live build, a
-long press cycles Gauge, Trend, and Min/Max; a click or double-click on those measurement pages
-does not change or synthesize pressure. Phase 6 adds the Settings page, where a click advances
-through options and a double-click selects or confirms. Keep gesture handling in the application
-loop so button polling and measurement acquisition remain independent.
-
-Settings currently contains only the confirmed atmospheric `Set zero` action. It instructs the user
-to put the engine off and cold with the oil cap removed, defaults confirmation to Cancel, and never
-claims that firmware can detect engine state or atmospheric equalization. The capture algorithm,
-storage behavior and on-device interaction checks are documented in the M02 feature tasks.
+long press cycles Gauge, Trend, Min/Max, and Settings; a click or double-click on measurement pages
+does not change or synthesize pressure. Settings currently contains only `Set zero`; a double-click
+opens its confirmation prompt, Cancel is selected by default, and the prompt cancels after
+inactivity. The selected action is shown in a bordered card, and the active zero is shown as a
+compact `DEFAULT` or `SAVED` voltage. A confirmed action asks the acquisition task to capture a
+finite stable atmospheric window and save an offset; firmware cannot detect engine state or
+atmospheric equalization. Keep gesture handling in the application loop so button polling and
+measurement acquisition remain independent. On-device checks confirmed Cancel, the confirmation
+timeout, unstable-capture rejection, and use of the saved zero after a power cycle. An actual NVS
+write failure has not been induced on hardware.
 
 ## Brightness and persistent settings
 
@@ -129,9 +133,13 @@ Use a fixed brightness default for the initial build. Keep the requested brightn
 M02 uses ESP32 Preferences/NVS for the versioned atmospheric zero record. Other user preferences,
 including brightness, are outside the current feature. Keep future saved user preferences separate
 from calibration records and board pin configuration; do not add a brightness control unless the
-display's hardware supports it.
+display's hardware supports it. The saved zero survived an N16R8 power cycle.
 
-Persist accepted changes rather than continuously writing unchanged settings. Define validation, format versioning, recovery from invalid/incomplete saved data and restoration of defaults. Verify retention across restart and behavior after interrupted saves on each controller configuration. Firmware and storage implementation remain future work.
+The zero record is versioned and validated before use; invalid or unavailable data falls back to
+the family default. Device-side retention across restart is verified; interrupted-save recovery is
+covered by host tests but has not been induced on the board. Apply the same validation and recovery
+discipline to any future persisted user settings rather than mixing them into board configuration
+or writing unchanged values repeatedly.
 
 ## Hardware prerequisites
 

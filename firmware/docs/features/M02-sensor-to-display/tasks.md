@@ -164,42 +164,98 @@ fault presentation and detailed sample/extrema cadence checks remain open.
 
 ## Phase 6: Confirmed zero workflow and persistent storage
 
-- [ ] Use observed atmospheric-chain noise and sensor results to select and document the finite
-  capture window, stability statistic/limit, and plausibility bounds; do not invent these constants
-  before measurement.
-- [ ] Implement the four-page live navigation and Settings `Set zero` item using the approved
+- [x] Use observed atmospheric-chain noise and sensor results to select and document the finite
+  capture window, stability statistic/limit, and plausibility bounds.
+- [x] Implement the four-page live navigation and Settings `Set zero` item using the approved
   long-press, click, double-click, Cancel-default, and inactivity-cancel behavior.
-- [ ] Implement the prompt and capture status text stating engine off/cold and oil cap open; do not
+- [x] Implement the prompt and capture status text stating engine off/cold and oil cap open; do not
   imply firmware can detect those conditions or atmospheric equalization.
-- [ ] Send an explicit confirmed capture command to the acquisition task; prevent duplicate requests
+- [x] Send an explicit confirmed capture command to the acquisition task; prevent duplicate requests
   while capture or save is active and keep sampling nonblocking.
-- [ ] Persist only an accepted zero reference in a versioned Preferences/NVS record; validate the
+- [x] Persist only an accepted zero reference in a versioned Preferences/NVS record; validate the
   loaded record and otherwise use the documented family default.
-- [ ] Report save success only when storage confirms success; expose capture rejection, invalid
+- [x] Report save success only when storage confirms success; expose capture rejection, invalid
   stored data, or write failure without changing the prior valid calibration silently.
-- [ ] Add host tests for measured capture criteria, stable/unstable windows, plausibility, record
+- [x] Add host tests for capture criteria, stable/unstable windows, plausibility, record
   version and value checks, fallback, and persistence success/failure through a fake store.
-- [ ] Verify offset-only behavior: changing zero does not change either pressure slope or status
+- [x] Verify offset-only behavior: changing zero does not change either pressure slope or status
   boundaries.
-- [ ] On device, verify Cancel and inactivity preserve stored data; verify a stable confirmed zero
-  survives a power cycle; verify rejected capture or failed persistence never reports success.
+- [x] On device, verify Cancel exits the zero workflow without saving a new reference.
+- [x] On device, verify leaving the confirmation prompt untouched for 30 seconds returns to the
+  Settings menu with Cancel selected and leaves the stored reference unchanged. The `SET ZERO`
+  menu itself has no inactivity timeout.
+- [x] On device, verify an unstable capture reports rejection and does not report a successful
+  save.
+- [ ] Verify a storage write failure never reports success; host tests cover the fake-store failure
+  path, but physical NVS failure has not been induced.
+- [x] On device, confirm a saved zero is applied to live pressure conversion after a power cycle.
 - [ ] Record the capture conditions and observed result without describing one-point zero as
   multi-point calibration or accuracy validation.
 
+The initial capture policy uses 64 consecutive ADS1115 samples, accepts a candidate only when all
+samples are within the documented family atmospheric interval of 1.3–1.7 V, and limits the window's
+peak-to-peak spread to 2.0 mV. At the selected ±6.144 V ADC range, one code is 187.5 µV. The
+atmospheric bench observations varied by one code within each session; the two recorded sessions
+spanned six codes (about 1.125 mV). The 2.0 mV limit allows modest headroom over that observed
+session-to-session spread while rejecting a changing signal. Sixty-four conversions give a short,
+bounded capture window and their arithmetic mean reduces quantization variation. These are
+provisional acceptance settings based on the current sensor/ADC observations, not validated
+measurement-accuracy limits. The 1.3–1.7 V bounds are inherited from the advertised GM family
+reference and do not authenticate the aftermarket sensor. The manometer/U-tube work remains
+necessary for pressure conversion and threshold validation; one-point zero changes only the
+atmospheric offset.
+
+Host unit tests pass 36/36. Both `pio run -e n16r8` and `pio run -e n16r8_demo` build successfully;
+the demo retains its original three-page M01 behavior. Device checks have since confirmed Cancel,
+the 30-second confirmation timeout, unstable-capture rejection, and saved-zero use after reboot.
+An actual NVS write failure has not been induced on hardware.
+
+The first Settings-page device review showed a storage error with no zero record saved. The initial
+adapter attempted to open a not-yet-created Preferences namespace read-only, so the first-use path
+was misreported as an NVS error instead of using the family default. The adapter now opens or
+creates the empty namespace read-write without writing a zero value, then treats a missing `zero`
+key as the expected default case. The display also shows the active zero voltage and highlights the
+selected `Set zero` action. Recheck the first-use screen on the board; a genuine NVS open/write error
+still remains visible as an error and must not be reported as a saved setting.
+
+A subsequent power-cycle check showed that the saved voltage remained visible in Settings, while
+the live gauge returned to `+0.1 inH2O`. The record was being loaded, but the boot path did not copy
+the loaded reference into the pressure-conversion profile; newly captured references did update
+that profile. The acquisition source now synchronizes the active reference during initialization,
+and a host regression test confirms that a reading at the saved zero converts to zero after boot.
+After uploading the fix, the saved zero remained active after reboot and the gauge returned to zero;
+the hardware power-cycle check is complete.
+
+On-device Settings checks confirmed that Cancel exits without saving, and that a moving signal is
+rejected with `ZERO NOT SAVED` / `Reading changed during capture. Retry when steady.` / `CAPTURE
+REJECTED`. This demonstrates the capture-stability guard and its user-facing rejection state. The
+inactivity timeout and an actual storage-write failure remain unverified on hardware.
+
 ## Phase 7: Integrated live and demo verification
 
-- [ ] Run the full native suite with `pio test -e native` and record the result.
-- [ ] Build both configurations with `pio run -e n16r8` and `pio run -e n16r8_demo`; record the
+On 2026-11-03, `pio test -e native` passed all 36 tests, and both `pio run -e n16r8` and
+`pio run -e n16r8_demo` succeeded. The native command was run from the MSYS2 UCRT64 shell so GCC
+was available; target builds used the installed PlatformIO executable from PowerShell. The demo
+was exercised on the board: synthetic click/double-click readings and long-press page changes
+worked without relying on the live sensor/ADC path. The `n16r8` live build was then uploaded again
+and reverified as working.
+
+- [x] Run the full native suite with `pio test -e native` and record the result.
+- [x] Build both configurations with `pio run -e n16r8` and `pio run -e n16r8_demo`; record the
   commands and results.
-- [ ] Upload the live environment and verify the complete sensor → RC filter → ADS1115 → pressure
+- [x] Upload the live environment and verify the complete sensor → RC filter → ADS1115 → pressure
   conversion → snapshot/history → display path.
-- [ ] Verify all four live pages, initial status-band presentation, fresh-value behavior, and
-  invalid/out-of-range/error presentation.
-- [ ] Confirm one-second trend gaps and current-run extrema remain truthful during display work and
-  that peak behavior does not depend on display smoothing or serial monitoring.
-- [ ] Confirm buttons and display remain responsive with the USB serial monitor both open and
-  closed; ensure diagnostics are optional and bounded.
-- [ ] Upload or otherwise exercise the demo build and confirm synthetic source identity, M01 gesture
+- [x] Verify the four live pages, changing sensor readings, status presentation, and invalid/out-of-
+  range indication on the display.
+- [ ] Exercise a stale reading or ADC/I2C fault and verify the display does not leave an old numeric
+  pressure presented as current.
+- [x] Confirm an out-of-domain interval creates a gap in the trend and the live Min/Max page shows
+  the current-run extrema.
+- [x] Verify on the device that trend history advances at the one-second cadence.
+- [ ] Verify extrema capture remains independent of display smoothing and serial-monitor state.
+- [x] Confirm buttons and display remain responsive with the USB serial monitor both open and
+  closed; diagnostics are optional for normal operation.
+- [x] Upload or otherwise exercise the demo build and confirm synthetic source identity, M01 gesture
   behavior, and independence from the physical sensor/ADC path.
 - [ ] Reconcile observed deviations into the relevant feature, research, architecture, or plan
   document before marking this phase complete.

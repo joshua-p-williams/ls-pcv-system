@@ -7,8 +7,31 @@
 #include "gauge_core/pressure_classifier.hpp"
 #include "gauge_core/pressure_converter.hpp"
 #include "gauge_core/zero_reference_capture.hpp"
+#include "gauge_core/zero_reference_record.hpp"
 
 using namespace gauge_core;
+
+/// In-memory persistence fake lets the host suite force missing, corrupt, and failed NVS cases.
+class FakeZeroReferenceStore final : public ZeroReferenceStore {
+ public:
+  ZeroStoreLoadStatus loadStatus = ZeroStoreLoadStatus::kNotFound;
+  ZeroReferenceRecord storedRecord{};
+  bool saveSucceeds = true;
+  std::size_t saveCalls = 0;
+
+  ZeroStoreLoadStatus load(ZeroReferenceRecord& record) override {
+    if (loadStatus == ZeroStoreLoadStatus::kLoaded) record = storedRecord;
+    return loadStatus;
+  }
+
+  bool save(const ZeroReferenceRecord& record) override {
+    ++saveCalls;
+    if (!saveSucceeds) return false;
+    storedRecord = record;
+    loadStatus = ZeroStoreLoadStatus::kLoaded;
+    return true;
+  }
+};
 
 /// Unity hook run before every test; the hardware-independent core needs no setup.
 void setUp() {}
@@ -450,6 +473,118 @@ void test_zero_capture_rejects_invalid_windows() {
                     static_cast<int>(result.status));
 }
 
+/// Versioned record encoding is stable and rejects corruption or unknown schemas.
+void test_zero_record_round_trip_and_corruption() {
+  ZeroReferenceRecord original;
+  original.zeroVoltageMicrovolts = 1471500;
+  std::uint8_t bytes[kZeroReferenceRecordBytes]{};
+  TEST_ASSERT_TRUE(encodeZeroReferenceRecord(original, bytes, sizeof(bytes)));
+
+  ZeroReferenceRecord decoded;
+  TEST_ASSERT_TRUE(decodeZeroReferenceRecord(bytes, sizeof(bytes), decoded));
+  TEST_ASSERT_EQUAL_UINT(ZeroReferenceRecord::kCurrentVersion, decoded.version);
+  TEST_ASSERT_EQUAL_UINT32(original.zeroVoltageMicrovolts,
+                           decoded.zeroVoltageMicrovolts);
+
+  bytes[8] ^= 0x01u;
+  TEST_ASSERT_FALSE(decodeZeroReferenceRecord(bytes, sizeof(bytes), decoded));
+  TEST_ASSERT_FALSE(decodeZeroReferenceRecord(bytes, sizeof(bytes) - 1, decoded));
+  original.version = ZeroReferenceRecord::kCurrentVersion + 1;
+  TEST_ASSERT_FALSE(encodeZeroReferenceRecord(original, bytes, sizeof(bytes)));
+}
+
+/// Missing storage selects 1.500 V; valid records load and invalid records fail closed.
+void test_zero_manager_loads_saved_value_or_family_fallback() {
+  ZeroCaptureCriteria criteria{1300000, 1700000, 2000, 64};
+  ZeroReferenceManager manager(1500000, criteria);
+  FakeZeroReferenceStore store;
+
+  TEST_ASSERT_EQUAL(static_cast<int>(ZeroReferenceState::kFamilyDefault),
+                    static_cast<int>(manager.initialize(store)));
+  TEST_ASSERT_EQUAL_UINT32(1500000, manager.activeZeroMicrovolts());
+
+  store.loadStatus = ZeroStoreLoadStatus::kLoaded;
+  store.storedRecord = {ZeroReferenceRecord::kCurrentVersion, 1471500};
+  TEST_ASSERT_EQUAL(static_cast<int>(ZeroReferenceState::kSavedTrim),
+                    static_cast<int>(manager.initialize(store)));
+  TEST_ASSERT_EQUAL_UINT32(1471500, manager.activeZeroMicrovolts());
+
+  store.storedRecord.version = ZeroReferenceRecord::kCurrentVersion + 1;
+  TEST_ASSERT_EQUAL(static_cast<int>(ZeroReferenceState::kInvalidStoredData),
+                    static_cast<int>(manager.initialize(store)));
+  TEST_ASSERT_EQUAL_UINT32(1500000, manager.activeZeroMicrovolts());
+
+  store.storedRecord = {ZeroReferenceRecord::kCurrentVersion, 1700001};
+  TEST_ASSERT_EQUAL(static_cast<int>(ZeroReferenceState::kInvalidStoredData),
+                    static_cast<int>(manager.initialize(store)));
+  TEST_ASSERT_EQUAL_UINT32(1500000, manager.activeZeroMicrovolts());
+}
+
+/// Accepted samples persist; rejection or a failed write never replaces the active zero.
+void test_zero_manager_commits_only_accepted_persisted_capture() {
+  ZeroCaptureCriteria criteria{1300000, 1700000, 2000, 64};
+  ZeroReferenceManager manager(1500000, criteria);
+  FakeZeroReferenceStore store;
+  std::uint32_t stable[64];
+  for (std::size_t index = 0; index < 64; ++index) {
+    stable[index] = (index % 2 == 0) ? 1471313 : 1471500;
+  }
+
+  manager.beginCapture();
+  ZeroCaptureResult result = manager.finishCapture(stable, 64, store);
+  TEST_ASSERT_EQUAL(static_cast<int>(ZeroCaptureStatus::kAccepted),
+                    static_cast<int>(result.status));
+  TEST_ASSERT_EQUAL(static_cast<int>(ZeroReferenceState::kSavedSuccessfully),
+                    static_cast<int>(manager.state()));
+  TEST_ASSERT_EQUAL_UINT32(result.zeroVoltageMicrovolts,
+                           manager.activeZeroMicrovolts());
+  TEST_ASSERT_EQUAL_UINT(1, store.saveCalls);
+
+  const std::uint32_t savedValue = manager.activeZeroMicrovolts();
+  store.saveSucceeds = false;
+  manager.beginCapture();
+  for (std::size_t index = 0; index < 64; ++index) stable[index] = 1470000;
+  result = manager.finishCapture(stable, 64, store);
+  TEST_ASSERT_EQUAL(static_cast<int>(ZeroReferenceState::kStorageFailure),
+                    static_cast<int>(manager.state()));
+  TEST_ASSERT_EQUAL_UINT32(savedValue, manager.activeZeroMicrovolts());
+
+  store.saveSucceeds = true;
+  manager.beginCapture();
+  for (std::size_t index = 0; index < 64; ++index) {
+    stable[index] = (index % 2 == 0) ? 1468900 : 1471100;
+  }
+  result = manager.finishCapture(stable, 64, store);
+  TEST_ASSERT_EQUAL(static_cast<int>(ZeroCaptureStatus::kUnstable),
+                    static_cast<int>(result.status));
+  TEST_ASSERT_EQUAL(static_cast<int>(ZeroReferenceState::kRejected),
+                    static_cast<int>(manager.state()));
+  TEST_ASSERT_EQUAL_UINT32(savedValue, manager.activeZeroMicrovolts());
+  TEST_ASSERT_EQUAL_UINT(2, store.saveCalls);
+}
+
+/// A new zero reference starts fresh extrema/history instead of mixing pressure baselines.
+void test_tracker_reset_clears_values_after_zero_change() {
+  MeasurementTracker tracker;
+  MeasurementObservation observation;
+  observation.source = MeasurementSource::kLive;
+  observation.quality = MeasurementQuality::kValid;
+  observation.hasPressure = true;
+  observation.pressure = -50;
+  observation.acquiredAtMs = 1;
+  TEST_ASSERT_TRUE(tracker.record(observation));
+  tracker.sampleAt(0);
+  TEST_ASSERT_EQUAL_UINT(1, tracker.sampleAt(1000));
+  TEST_ASSERT_TRUE(tracker.snapshot().hasExtrema);
+  TEST_ASSERT_EQUAL_UINT(1, tracker.snapshot().historyCount);
+
+  tracker.reset();
+  TEST_ASSERT_FALSE(tracker.snapshot().hasExtrema);
+  TEST_ASSERT_EQUAL_UINT(0, tracker.snapshot().historyCount);
+  TEST_ASSERT_EQUAL(static_cast<int>(MeasurementQuality::kUnavailable),
+                    static_cast<int>(tracker.snapshot().quality));
+}
+
 /// Unity's native runner invokes the same named tests on the development host.
 int main() {
   UNITY_BEGIN();
@@ -473,5 +608,9 @@ int main() {
   RUN_TEST(test_measurement_tracker_handles_sampling_lateness_and_millis_rollover);
   RUN_TEST(test_zero_capture_accepts_stable_samples);
   RUN_TEST(test_zero_capture_rejects_invalid_windows);
+  RUN_TEST(test_zero_record_round_trip_and_corruption);
+  RUN_TEST(test_zero_manager_loads_saved_value_or_family_fallback);
+  RUN_TEST(test_zero_manager_commits_only_accepted_persisted_capture);
+  RUN_TEST(test_tracker_reset_clears_values_after_zero_change);
   return UNITY_END();
 }

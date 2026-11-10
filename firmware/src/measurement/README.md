@@ -95,6 +95,28 @@ The live integration is documented in the [firmware guide](../../README.md) and 
 Host tests and a target build verify software behavior only; they do not demonstrate actual module
 identity, analog voltage accuracy, sensor calibration, or physical fault detection.
 
+## Atmospheric zero and saved settings
+
+Atmospheric zero is the signal voltage measured when the sensor port is truly at atmospheric
+pressure. `ZeroReferenceCapture` evaluates a finite set of fresh A0 readings: every reading must be
+inside the advertised family's atmospheric interval, and the full window must remain within a
+small peak-to-peak variation limit. The accepted arithmetic mean becomes the new zero voltage.
+Subtracting that reference corrects an offset only; it does not change either pressure slope, prove
+the pressure calibration, or set the warning/danger thresholds. The firmware prompts for the
+engine off and cold with the oil cap open, but cannot sense or enforce those physical conditions.
+
+`ZeroReferenceManager` owns the family-default fallback and commits a new active value only after
+the storage adapter confirms a successful write. `PreferencesZeroStore` uses ESP32 Preferences,
+which stores key/value settings in NVS (nonvolatile storage) that survives restart. The record has
+an explicit version, fixed byte layout, and CRC-32 integrity check; a missing record selects the
+1.500 V family default, while unreadable, corrupt, unsupported, or implausible data is reported and
+does not become an active calibration. The persistence interface stays in `gauge-core` so host tests
+can substitute a fake store and verify acceptance, fallback, corruption and write failure without
+hardware. On first use the adapter opens or creates the empty NVS namespace in read/write mode, then
+checks for the zero key; this avoids treating a not-yet-created namespace as a storage failure and
+does not save a zero value. A zero is written only after explicit confirmation and successful
+capture. Actual power-cycle retention and user cancellation still need on-device verification.
+
 ## Reference
 
 Register meanings and scaling follow the preserved [TI ADS1115 datasheet](../../../hardware/datasheets/ads1115-datasheet.pdf),

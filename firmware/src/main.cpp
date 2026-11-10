@@ -16,6 +16,7 @@
 #include "board/n16r8/arduino_wire_bus.hpp"
 #include "gauge_core/gauge_types.hpp"
 #include "measurement/ads1115_pressure_source.hpp"
+#include "measurement/preferences_zero_store.hpp"
 #endif
 
 namespace {
@@ -56,6 +57,7 @@ const char* pageName(gauge_core::Page page) {
     case gauge_core::Page::kGauge: return "gauge";
     case gauge_core::Page::kTrend: return "trend";
     case gauge_core::Page::kMinMax: return "min-max";
+    case gauge_core::Page::kSettings: return "settings";
   }
   return "unknown";
 }
@@ -100,8 +102,8 @@ void processGesture(gauge_core::Gesture gesture) {
 #else
 
 // In live builds, only this acquisition task owns Wire and the mutable pressure
-// tracker. The profile constructor supplies the documented 1.500 V family
-// default; atmospheric zero capture and persistence are Phase 6 work.
+// tracker. A validated Preferences record may replace the documented 1.500 V
+// family reference only after an explicit atmospheric-zero confirmation.
 constexpr std::uint32_t kAcquisitionTaskDelayMs = 2;
 constexpr std::uint32_t kAcquisitionTaskStackBytes = 4096;
 constexpr UBaseType_t kAcquisitionTaskPriority = 2;
@@ -110,18 +112,34 @@ constexpr std::uint32_t kDiagnosticIntervalMs = 250;
 // A one-second trend period plus half a second of scheduling margin. This is a
 // freshness policy, not a sensor specification or engine pressure threshold.
 constexpr std::uint32_t kStaleAfterMs = 1500;
+constexpr std::uint32_t kSettingsConfirmationTimeoutMs = 30000;
+constexpr std::uint32_t kSettingsSuccessDisplayMs = 2500;
+
+/// Commands cross into the sensor task; the application never touches I2C/NVS.
+enum class MeasurementCommand : std::uint8_t {
+  kBeginZeroCapture,
+  kCancelZeroCapture
+};
 
 ls_pcv::board::n16r8::ArduinoWireBus i2cBus(
     Wire, ls_pcv::board::n16r8::kI2cSdaPin,
     ls_pcv::board::n16r8::kI2cSclPin,
     ls_pcv::board::n16r8::kI2cFrequencyHz,
     ls_pcv::board::n16r8::kI2cTransactionTimeoutMs);
+ls_pcv::measurement::PreferencesZeroStore zeroStore;
 ls_pcv::measurement::Ads1115PressureSource pressureSource(
-    i2cBus, ls_pcv::board::n16r8::kAds1115Address);
+    i2cBus, ls_pcv::board::n16r8::kAds1115Address, {}, {}, &zeroStore);
 QueueHandle_t measurementMailbox = nullptr;
+QueueHandle_t measurementCommandQueue = nullptr;
 gauge_core::MeasurementSnapshot latestMeasurement{};
 gauge_core::DemoBandConfig displayBands{};
 gauge_core::Page activePage = gauge_core::Page::kGauge;
+gauge_core::SettingsView settingsView = gauge_core::SettingsView::kMenu;
+bool settingsConfirmSelected = false;
+bool settingsCommandFailed = false;
+std::uint32_t lastSettingsInteractionMs = 0;
+std::uint32_t settingsResultStartedAtMs = 0;
+std::uint32_t settingsCaptureRequestedAtMs = 0;
 bool acquisitionTaskReady = false;
 bool hasMeasurement = false;
 
@@ -151,6 +169,21 @@ const char* pageName(gauge_core::Page page) {
     case gauge_core::Page::kGauge: return "gauge";
     case gauge_core::Page::kTrend: return "trend";
     case gauge_core::Page::kMinMax: return "min-max";
+    case gauge_core::Page::kSettings: return "settings";
+  }
+  return "unknown";
+}
+
+/// Describe the active/reference lifecycle in optional live diagnostics.
+const char* zeroReferenceName(gauge_core::ZeroReferenceState state) {
+  switch (state) {
+    case gauge_core::ZeroReferenceState::kFamilyDefault: return "family-default";
+    case gauge_core::ZeroReferenceState::kSavedTrim: return "saved";
+    case gauge_core::ZeroReferenceState::kCaptureInProgress: return "capturing";
+    case gauge_core::ZeroReferenceState::kSavedSuccessfully: return "saved-now";
+    case gauge_core::ZeroReferenceState::kRejected: return "rejected";
+    case gauge_core::ZeroReferenceState::kStorageFailure: return "storage-error";
+    case gauge_core::ZeroReferenceState::kInvalidStoredData: return "invalid-record";
   }
   return "unknown";
 }
@@ -162,6 +195,9 @@ gauge_core::GaugeDisplaySnapshot displaySnapshot(std::uint32_t nowMs) {
   static_cast<gauge_core::MeasurementSnapshot&>(view) = latestMeasurement;
   view.bands = displayBands;
   view.page = activePage;
+  view.settingsView = settingsView;
+  view.settingsConfirmSelected = settingsConfirmSelected;
+  view.settingsCommandFailed = settingsCommandFailed;
   if (view.quality == gauge_core::MeasurementQuality::kValid &&
       static_cast<std::uint32_t>(nowMs - view.acquiredAtMs) > kStaleAfterMs) {
     view.quality = gauge_core::MeasurementQuality::kStale;
@@ -175,7 +211,19 @@ gauge_core::GaugeDisplaySnapshot displaySnapshot(std::uint32_t nowMs) {
 /// display frame. This task never calls LVGL or writes optional USB diagnostics.
 void acquisitionTask(void*) {
   for (;;) {
-    if (pressureSource.poll(millis())) {
+    MeasurementCommand command;
+    bool changed = false;
+    while (measurementCommandQueue != nullptr &&
+           xQueueReceive(measurementCommandQueue, &command, 0) == pdTRUE) {
+      if (command == MeasurementCommand::kBeginZeroCapture) {
+        (void)pressureSource.beginZeroCapture();
+      } else {
+        pressureSource.cancelZeroCapture();
+      }
+      changed = true;
+    }
+    if (pressureSource.poll(millis())) changed = true;
+    if (changed) {
       const gauge_core::MeasurementSnapshot snapshot = pressureSource.snapshot();
       if (measurementMailbox != nullptr) {
         (void)xQueueOverwrite(measurementMailbox, &snapshot);
@@ -203,24 +251,139 @@ void reportSnapshot(const gauge_core::GaugeDisplaySnapshot& snapshot) {
   } else {
     Serial.print(" pressure=unavailable");
   }
-  Serial.printf(" page=%s history=%u/%u zero=family-default\n",
+  Serial.printf(" page=%s history=%u/%u zero=%s\n",
                 pageName(snapshot.page),
                 static_cast<unsigned>(snapshot.historyCount),
-                static_cast<unsigned>(gauge_core::kHistoryCapacity));
+                static_cast<unsigned>(gauge_core::kHistoryCapacity),
+                zeroReferenceName(snapshot.zeroReference));
 }
 
-/// Live measurement pages only navigate on a long press. Click and double-click
-/// do not generate or modify sensor data; Settings adds their menu use in Phase 6.
-void processGesture(gauge_core::Gesture gesture) {
-  if (gesture != gauge_core::Gesture::kLongPress) return;
-  switch (activePage) {
-    case gauge_core::Page::kGauge: activePage = gauge_core::Page::kTrend; break;
-    case gauge_core::Page::kTrend: activePage = gauge_core::Page::kMinMax; break;
-    case gauge_core::Page::kMinMax: activePage = gauge_core::Page::kGauge; break;
+/// Deliver a zero command to its single owner without waiting for that task.
+bool sendMeasurementCommand(MeasurementCommand command) {
+  return measurementCommandQueue != nullptr &&
+      xQueueSend(measurementCommandQueue, &command, 0) == pdTRUE;
+}
+
+/// Route long press among live pages; clicks are meaningful only in Settings.
+void processGesture(gauge_core::Gesture gesture, std::uint32_t nowMs) {
+  if (gesture == gauge_core::Gesture::kLongPress) {
+    settingsCommandFailed = false;
+    if (activePage == gauge_core::Page::kSettings) {
+      if (settingsView == gauge_core::SettingsView::kConfirm) {
+        // Long press is a safe escape from the confirmation prompt.
+        settingsView = gauge_core::SettingsView::kMenu;
+        settingsConfirmSelected = false;
+      } else if (settingsView == gauge_core::SettingsView::kCapturing) {
+        // The capture has not written anything until the final accepted sample.
+        settingsCommandFailed = !sendMeasurementCommand(
+            MeasurementCommand::kCancelZeroCapture);
+        settingsView = gauge_core::SettingsView::kResult;
+        settingsResultStartedAtMs = nowMs;
+      } else if (settingsView == gauge_core::SettingsView::kResult) {
+        activePage = gauge_core::Page::kGauge;
+        settingsView = gauge_core::SettingsView::kMenu;
+      } else {
+        activePage = gauge_core::Page::kGauge;
+      }
+      return;
+    }
+    switch (activePage) {
+      case gauge_core::Page::kGauge: activePage = gauge_core::Page::kTrend; break;
+      case gauge_core::Page::kTrend: activePage = gauge_core::Page::kMinMax; break;
+      case gauge_core::Page::kMinMax: activePage = gauge_core::Page::kSettings; break;
+      case gauge_core::Page::kSettings: break;
+    }
+    settingsView = gauge_core::SettingsView::kMenu;
+    settingsConfirmSelected = false;
+    lastSettingsInteractionMs = nowMs;
+    return;
+  }
+
+  if (activePage != gauge_core::Page::kSettings) return;
+  lastSettingsInteractionMs = nowMs;
+  switch (settingsView) {
+    case gauge_core::SettingsView::kMenu:
+      // There is one action today. A single click cycles the one-item menu;
+      // the established gesture remains ready for additional settings later.
+      if (gesture == gauge_core::Gesture::kDoubleClick) {
+        settingsView = gauge_core::SettingsView::kConfirm;
+        settingsConfirmSelected = false;  // Cancel is always the first choice.
+        settingsCommandFailed = false;
+      }
+      break;
+    case gauge_core::SettingsView::kConfirm:
+      if (gesture == gauge_core::Gesture::kClick) {
+        settingsConfirmSelected = !settingsConfirmSelected;
+      } else if (gesture == gauge_core::Gesture::kDoubleClick) {
+        if (!settingsConfirmSelected) {
+          settingsView = gauge_core::SettingsView::kMenu;
+        } else if (sendMeasurementCommand(
+                       MeasurementCommand::kBeginZeroCapture)) {
+          settingsView = gauge_core::SettingsView::kCapturing;
+          settingsCaptureRequestedAtMs = nowMs;
+        } else {
+          settingsCommandFailed = true;
+          settingsView = gauge_core::SettingsView::kResult;
+          settingsResultStartedAtMs = nowMs;
+        }
+      }
+      break;
+    case gauge_core::SettingsView::kCapturing:
+      // The capture is a short, finite acquisition window; gestures cannot
+      // alter its sample set or interrupt a write already in progress.
+      break;
+    case gauge_core::SettingsView::kResult:
+      if (gesture == gauge_core::Gesture::kClick ||
+          gesture == gauge_core::Gesture::kDoubleClick) {
+        settingsView = gauge_core::SettingsView::kMenu;
+        settingsCommandFailed = false;
+      }
+      break;
+  }
+}
+
+/// Cancel unattended confirmation and return after a visible successful result.
+void updateSettingsTimers(std::uint32_t nowMs) {
+  if (activePage != gauge_core::Page::kSettings) return;
+  if (settingsView == gauge_core::SettingsView::kConfirm &&
+      static_cast<std::uint32_t>(nowMs - lastSettingsInteractionMs) >=
+          kSettingsConfirmationTimeoutMs) {
+    settingsView = gauge_core::SettingsView::kMenu;
+    settingsConfirmSelected = false;
+  }
+
+  if (settingsView == gauge_core::SettingsView::kCapturing && hasMeasurement) {
+    const bool snapshotIsNewerThanRequest =
+        static_cast<std::uint32_t>(latestMeasurement.acquiredAtMs -
+                                   settingsCaptureRequestedAtMs) < 0x80000000u;
+    if (snapshotIsNewerThanRequest &&
+        latestMeasurement.zeroReference !=
+            gauge_core::ZeroReferenceState::kCaptureInProgress) {
+      settingsView = gauge_core::SettingsView::kResult;
+      settingsResultStartedAtMs = nowMs;
+    }
+  }
+
+  if (settingsView == gauge_core::SettingsView::kResult && hasMeasurement &&
+      latestMeasurement.zeroReference ==
+          gauge_core::ZeroReferenceState::kSavedSuccessfully &&
+      static_cast<std::uint32_t>(nowMs - settingsResultStartedAtMs) >=
+          kSettingsSuccessDisplayMs) {
+    activePage = gauge_core::Page::kGauge;
+    settingsView = gauge_core::SettingsView::kMenu;
   }
 }
 
 #endif
+
+/// Adapt the common gesture queue to the demo or live application signature.
+void handleGesture(gauge_core::Gesture gesture) {
+#if defined(LS_PCV_DEMO_BUILD)
+  processGesture(gesture);
+#else
+  processGesture(gesture, millis());
+#endif
+}
 
 /// The polling task sends only gesture enums. LVGL and application state remain
 /// owned by loop(), and a full queue never stalls input sampling.
@@ -245,9 +408,9 @@ void setup() {
   gestureQueue = xQueueCreate(kPendingGestureCapacity, sizeof(gauge_core::Gesture));
   displayReady = gaugeDisplay.begin(
 #if defined(LS_PCV_DEMO_BUILD)
-      gaugeSession.snapshot().bands
+      gaugeSession.snapshot().bands, false
 #else
-      displayBands
+      displayBands, true
 #endif
   );
 
@@ -256,9 +419,10 @@ void setup() {
   Serial.println("source=synthetic; input=BetterButton; sensor/ADC=not initialized");
 #else
   Serial.println("LS PCV M02 live sensor-to-display build");
-  Serial.println("source=FTP/ADS1115; pressure reference=1.500 V family default");
+  Serial.println("source=FTP/ADS1115; default zero=1.500 V family reference");
   measurementMailbox = xQueueCreate(1, sizeof(gauge_core::MeasurementSnapshot));
-  if (measurementMailbox != nullptr) {
+  measurementCommandQueue = xQueueCreate(2, sizeof(MeasurementCommand));
+  if (measurementMailbox != nullptr && measurementCommandQueue != nullptr) {
     acquisitionTaskReady = xTaskCreateUniversal(
         acquisitionTask, "ads1115Acquire", kAcquisitionTaskStackBytes,
         nullptr, kAcquisitionTaskPriority, nullptr,
@@ -304,10 +468,10 @@ void loop() {
   if (buttonPollingTaskReady) {
     while (gestureQueue != nullptr &&
            xQueueReceive(gestureQueue, &gesture, 0) == pdTRUE) {
-      processGesture(gesture);
+      handleGesture(gesture);
     }
   } else if (buttonInput.poll(gesture)) {
-    processGesture(gesture);
+    handleGesture(gesture);
   }
 
 #if defined(LS_PCV_DEMO_BUILD)
@@ -332,6 +496,7 @@ void loop() {
     }
   }
   const std::uint32_t nowMs = millis();
+  updateSettingsTimers(nowMs);
   if (hasMeasurement && displayReady) {
     const gauge_core::GaugeDisplaySnapshot view = displaySnapshot(nowMs);
     const bool pageChanged = view.page != lastRenderedPage;

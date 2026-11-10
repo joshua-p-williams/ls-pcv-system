@@ -87,12 +87,13 @@ pio run -t upload
 
 Open the serial monitor at 115200 baud to see `M02_LIVE` acquisition diagnostics. The live gauge
 uses the documented 1.500 V family zero default, so the recorded atmospheric sensor output may
-appear as a small positive provisional value until the deliberate Settings zero workflow is
-implemented. A long press cycles Gauge, Trend, and Min/Max; click and double-click do not change the
-live measurement. Pressure is still provisional until Phase 5 bench characterization. The firmware
-does not print a periodic heartbeat and does not wait for a monitor. The USB CDC transmit timeout
-is zero so optional diagnostics cannot wait indefinitely for a host. Closing or reopening the
-monitor must not reset the display or stop acquisition/button behavior.
+appear as a small positive provisional value until a confirmed Settings zero is saved. A long press
+cycles Gauge, Trend, Min/Max, and Settings; measurement-page clicks do not alter the live value.
+Settings offers a confirmed atmospheric offset capture with Cancel selected by default. Pressure is
+still provisional until Phase 5 bench characterization. The firmware does not print a periodic
+heartbeat and does not wait for a monitor. The USB CDC transmit timeout is zero so optional
+diagnostics cannot wait indefinitely for a host. Closing or reopening the monitor must not reset the
+display or stop acquisition/button behavior.
 
 To upload the preserved synthetic demo instead, select `n16r8_demo` in PlatformIO or run:
 

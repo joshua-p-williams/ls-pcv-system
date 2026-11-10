@@ -57,9 +57,10 @@ the planned water-column U-tube and the purchased digital manometer for controll
 The approved scope, acceptance criteria, and phased tasks are in the
 [M02 feature documents](../features/M02-sensor-to-display/feature.md) and
 [task list](../features/M02-sensor-to-display/tasks.md). Phase 3 voltage-only bench verification is
-complete. Phase 4 now has a compiled live N16R8 composition and fault-aware three-page rendering;
-the atmospheric sensor/ADC check is recorded, while controlled pressure response and on-device
-display/fault checks remain.
+complete. M02 Phase 6 now has a compiled four-page live composition and confirmed, versioned zero
+storage; 35 host tests pass. Controlled pressure characterization and on-device zero persistence
+checks remain open. See the [M02 task record](../features/M02-sensor-to-display/tasks.md) for
+phase-level evidence and unchecked work.
 
 **Why next:** M01 established the display and button with synthetic data. Replacing the synthetic
 source with a measured signal is the next useful vertical slice, and staged electrical and pressure

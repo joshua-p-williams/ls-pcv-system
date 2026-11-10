@@ -43,6 +43,7 @@ void GaugeSession::advancePage() {
     case Page::kGauge: page_ = Page::kTrend; break;
     case Page::kTrend: page_ = Page::kMinMax; break;
     case Page::kMinMax: page_ = Page::kGauge; break;
+    case Page::kSettings: page_ = Page::kGauge; break;
   }
 }
 

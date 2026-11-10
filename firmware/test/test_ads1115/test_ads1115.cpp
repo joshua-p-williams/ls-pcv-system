@@ -9,6 +9,9 @@ using ls_pcv::measurement::Ads1115PressureSource;
 using ls_pcv::measurement::Ads1115Result;
 using ls_pcv::measurement::I2cRegisterBus;
 using ls_pcv::measurement::I2cTransactionResult;
+using gauge_core::ZeroReferenceRecord;
+using gauge_core::ZeroReferenceStore;
+using gauge_core::ZeroStoreLoadStatus;
 
 namespace {
 
@@ -68,6 +71,22 @@ class FakeRegisterBus final : public I2cRegisterBus {
       return I2cTransactionResult::kWriteFailure;
     }
     return I2cTransactionResult::kSuccess;
+  }
+};
+
+/// Models a valid persistent zero already present when the board boots.
+class FakeZeroStore final : public ZeroReferenceStore {
+ public:
+  ZeroReferenceRecord record{ZeroReferenceRecord::kCurrentVersion, 1472000};
+
+  ZeroStoreLoadStatus load(ZeroReferenceRecord& output) override {
+    output = record;
+    return ZeroStoreLoadStatus::kLoaded;
+  }
+
+  bool save(const ZeroReferenceRecord& input) override {
+    record = input;
+    return true;
   }
 };
 
@@ -171,10 +190,32 @@ void test_pressure_source_records_voltage_and_pressure_before_snapshot() {
   TEST_ASSERT_EQUAL_INT(8000, snapshot.rawAdcCode);
   TEST_ASSERT_TRUE(snapshot.hasSignalVoltage);
   TEST_ASSERT_EQUAL_UINT32(1500000, snapshot.signalVoltageMicrovolts);
+  TEST_ASSERT_EQUAL_UINT32(1500000, snapshot.zeroReferenceMicrovolts);
   TEST_ASSERT_TRUE(snapshot.hasPressure);
   TEST_ASSERT_EQUAL_INT(0, snapshot.pressure);
   TEST_ASSERT_EQUAL_INT(0, snapshot.minimumRecorded);
   TEST_ASSERT_EQUAL_INT(0, snapshot.maximumRecorded);
+}
+
+void test_pressure_source_applies_persisted_zero_after_boot() {
+  FakeRegisterBus bus;
+  FakeZeroStore zeroStore;
+  Ads1115PressureSource source(bus, 0x48, {}, {}, &zeroStore);
+  TEST_ASSERT_FALSE(source.poll(100));  // Load zero and initialize ADC.
+  TEST_ASSERT_EQUAL_UINT32(1472000,
+                           source.snapshot().zeroReferenceMicrovolts);
+  TEST_ASSERT_EQUAL(static_cast<int>(gauge_core::ZeroReferenceState::kSavedTrim),
+                    static_cast<int>(source.snapshot().zeroReference));
+  TEST_ASSERT_FALSE(source.poll(101));
+
+  bus.configWord |= 0x8000u;
+  bus.conversionWord = 7851u;  // 1.47206 V: near saved zero, +0.1 on family default.
+  TEST_ASSERT_FALSE(source.poll(108));
+  TEST_ASSERT_TRUE(source.poll(109));
+  const gauge_core::MeasurementSnapshot snapshot = source.snapshot();
+  TEST_ASSERT_EQUAL_UINT32(1472063, snapshot.signalVoltageMicrovolts);
+  TEST_ASSERT_TRUE(snapshot.hasPressure);
+  TEST_ASSERT_EQUAL_INT(0, snapshot.pressure);
 }
 
 void test_pressure_source_reports_initialization_failure_and_retries_bounded() {
@@ -296,6 +337,7 @@ int main() {
   RUN_TEST(test_ads1115_ready_poll_and_conversion_read_are_distinct);
   RUN_TEST(test_ads1115_signed_code_scaling_uses_187_point_5_microvolts);
   RUN_TEST(test_pressure_source_records_voltage_and_pressure_before_snapshot);
+  RUN_TEST(test_pressure_source_applies_persisted_zero_after_boot);
   RUN_TEST(test_pressure_source_reports_initialization_failure_and_retries_bounded);
   RUN_TEST(test_pressure_source_bounds_conversion_wait_and_exposes_fault);
   RUN_TEST(test_pressure_source_treats_one_negative_code_as_zero_boundary);

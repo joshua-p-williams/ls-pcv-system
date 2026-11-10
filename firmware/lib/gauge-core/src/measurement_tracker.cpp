@@ -114,6 +114,16 @@ std::size_t MeasurementTracker::sampleAt(std::uint32_t nowMs) {
   return slotsToAppend;
 }
 
+/// Clear data whose pressure interpretation used the previous zero offset.
+void MeasurementTracker::reset() {
+  state_ = MeasurementSnapshot{};
+  trendRing_.fill(TrendPoint{});
+  ringStart_ = 0;
+  ringCount_ = 0;
+  sampleClockStarted_ = false;
+  lastSampleMs_ = 0;
+}
+
 /// Store one trend point, replacing the oldest point when history is full.
 /// A circular buffer avoids shifting 30 entries every second on a small MCU.
 void MeasurementTracker::appendTrendPoint(const TrendPoint& point) {
