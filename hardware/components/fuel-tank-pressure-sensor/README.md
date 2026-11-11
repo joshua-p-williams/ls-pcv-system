@@ -99,3 +99,7 @@ See the [firmware requirements](../../../firmware/README.md), [calibration/test 
 Imported `ftp-sensor.jpg` as `sensor-dimensions.jpg` and `pigtail.jpg` as `pigtail-details.jpg` under `media/reference/fuel-tank-pressure-sensor/`. These are third-party product illustrations, not project-created artwork or photographs of received hardware. Inbox originals remain unchanged.
 
 Reviewed visible content for personal identifiers; none were observed. Removed JPEG application/comment metadata without recompression. Verified unchanged orientation, dimensions, and decoded pixels, and absence of personal metadata in public copies. No visual redactions, generative changes, physical fit checks, electrical tests, or calibration were performed. Purchase details were subsequently incorporated from the saved text file; the original remains in private staging.
+
+## Bench comparison evidence
+
+An initial comparison of this sensor's displayed pressure against a digital manometer is documented in the [2026-11-10 bench comparison](../adc/bench-pressure-comparison-2026-11-10.md). Treat it as a scale and polarity cross-check only, not a sensor calibration: the test had a residual leak and the reference instrument's accuracy basis is not established.
