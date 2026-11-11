@@ -2,88 +2,57 @@
 
 namespace gauge_core {
 
-/// Start with no reading or history and retain the one shared demo configuration.
-GaugeSession::GaugeSession(DemoBandConfig config) : config_(config) {
-  state_.bands = config_;
-}
+/// Build the M01 session around the shared tracker and retain demo display limits.
+GaugeSession::GaugeSession(DemoBandConfig config)
+    : config_(config), tracker_(config) {}
 
 /// Accept only classifiable pressure; update current value, status, and extrema
 /// together so a rejected value cannot partially alter the session snapshot.
 bool GaugeSession::updatePressure(PressureTenthsInH2O pressure) {
-  PressureBand band;
-  if (!classifier_.classify(pressure, config_, band)) return false;
+  if (!config_.isValid() || !config_.contains(pressure)) return false;
 
-  state_.pressure = pressure;
-  state_.band = band;
-  state_.hasPressure = true;
-  if (!state_.hasExtrema) {
-    state_.minimumRecorded = pressure;
-    state_.maximumRecorded = pressure;
-    state_.hasExtrema = true;
-  } else {
-    if (pressure < state_.minimumRecorded) state_.minimumRecorded = pressure;
-    if (pressure > state_.maximumRecorded) state_.maximumRecorded = pressure;
-  }
-  return true;
+  MeasurementObservation observation;
+  observation.source = MeasurementSource::kSynthetic;
+  observation.quality = MeasurementQuality::kValid;
+  observation.hasPressure = true;
+  observation.pressure = pressure;
+  return tracker_.record(observation);
 }
 
-/// Fill unused ring slots, then overwrite the oldest sample in constant time.
-/// Advancing ringStart_ preserves chronological order without shifting entries.
-void GaugeSession::appendSample(PressureTenthsInH2O pressure) {
-  if (ringCount_ < kHistoryCapacity) {
-    const std::size_t index = (ringStart_ + ringCount_) % kHistoryCapacity;
-    ring_[index] = pressure;
-    ++ringCount_;
-  } else {
-    ring_[ringStart_] = pressure;
-    ringStart_ = (ringStart_ + 1) % kHistoryCapacity;
-  }
-}
-
-/// Add one repeated current-value entry for each elapsed one-second boundary.
-/// This uses elapsed time rather than delay(), leaving the caller free to service
-/// input and display work between samples. Unsigned subtraction handles wrap.
+/// Refresh the synthetic reading time and let the tracker append elapsed slots.
+/// M01 may repeat its held demo value; live readings are freshness-checked.
 std::size_t GaugeSession::sampleAt(std::uint32_t nowMs) {
-  if (!state_.hasPressure) return 0;
-  if (!sampleClockStarted_) {
-    sampleClockStarted_ = true;
-    lastSampleMs_ = nowMs;
-    return 0;
+  const MeasurementSnapshot current = tracker_.snapshot();
+  if (current.hasPressure && current.quality == MeasurementQuality::kValid) {
+    // M01 deliberately treats its synthetic state as available each second;
+    // the live source will publish each completed ADC conversion separately.
+    MeasurementObservation observation;
+    observation.source = MeasurementSource::kSynthetic;
+    observation.quality = MeasurementQuality::kValid;
+    observation.acquiredAtMs = nowMs;
+    observation.hasPressure = true;
+    observation.pressure = current.pressure;
+    (void)tracker_.record(observation);
   }
-
-  // Unsigned subtraction intentionally handles the millis() counter wrapping.
-  const std::uint32_t elapsed = nowMs - lastSampleMs_;
-  const std::uint32_t intervals = elapsed / kSampleIntervalMs;
-  if (intervals == 0) return 0;
-
-  // Preserve the one-second schedule. Only the newest 30 catch-up entries can
-  // affect the visible ring, so avoid an unbounded loop after an extended stall.
-  lastSampleMs_ += intervals * kSampleIntervalMs;
-  const std::size_t samplesToAppend =
-      intervals > kHistoryCapacity ? kHistoryCapacity : intervals;
-  for (std::size_t index = 0; index < samplesToAppend; ++index) {
-    appendSample(state_.pressure);
-  }
-  return samplesToAppend;
+  return tracker_.sampleAt(nowMs);
 }
 
 /// Cycle the visible page without changing pressure, history, or extrema.
 void GaugeSession::advancePage() {
-  switch (state_.page) {
-    case Page::kGauge: state_.page = Page::kTrend; break;
-    case Page::kTrend: state_.page = Page::kMinMax; break;
-    case Page::kMinMax: state_.page = Page::kGauge; break;
+  switch (page_) {
+    case Page::kGauge: page_ = Page::kTrend; break;
+    case Page::kTrend: page_ = Page::kMinMax; break;
+    case Page::kMinMax: page_ = Page::kGauge; break;
+    case Page::kSettings: page_ = Page::kGauge; break;
   }
 }
 
-/// Copy state for read-only rendering and linearize the wrapped ring into
-/// oldest-to-newest order in the returned snapshot.
-DisplaySnapshot GaugeSession::snapshot() const {
-  DisplaySnapshot result = state_;
-  result.historyCount = ringCount_;
-  for (std::size_t index = 0; index < ringCount_; ++index) {
-    result.history[index] = ring_[(ringStart_ + index) % kHistoryCapacity];
-  }
+/// Copy shared measurement state and append the M01 page/range view data.
+GaugeDisplaySnapshot GaugeSession::snapshot() const {
+  GaugeDisplaySnapshot result;
+  static_cast<MeasurementSnapshot&>(result) = tracker_.snapshot();
+  result.bands = config_;
+  result.page = page_;
   return result;
 }
 

@@ -1,10 +1,13 @@
 # Firmware development environment
 
 This guide sets up the firmware project in VS Code with PlatformIO and provides matching command
-line instructions. The current firmware runs the M01 synthetic gauge demonstration on the ESP32-S3
-N16R8 development board: it reads the multifunction button, draws three GC9A01 pages, and reports
-gesture/state events over USB serial when a monitor is listening. The display and button operate
-without a computer; serial output is optional diagnostics, not a heartbeat or runtime dependency.
+line instructions. The default `n16r8` build is now the M02 live sensor-to-display application on
+the ESP32-S3 N16R8 development board. It reads the FTP sensor through the ADS1115, displays the
+provisional family-model pressure on the GC9A01, and uses long press to cycle Gauge, Trend, and
+Min/Max. The `n16r8_demo` target preserves the sensor-free M01 synthetic demonstration. The
+`n16r8_adc` environment is a focused voltage-only bench utility that reports ADS1115 codes and
+calculated A0 voltage without presenting an electrical test voltage as crankcase pressure. USB
+serial output is optional diagnostics, not a heartbeat or runtime dependency.
 Native Windows and native Linux are supported development environments; WSL does not count as the
 native Linux verification environment.
 
@@ -36,9 +39,11 @@ and upload remain pending; treat host-specific Linux steps below as instructions
 3. Use the PlatformIO toolbar or Project Tasks to run **Build**, **Upload**, and **Monitor**.
    The configured serial monitor speed is 115200 baud.
 
-The project currently has one environment, `n16r8`. The board profile describes the ESP32-S3
-WROOM-1 N16R8 memory configuration and enables the native USB CDC serial interface selected by
-W01. It does not identify the exact carrier-board revision.
+The project has three environments: `n16r8` for the live application, `n16r8_demo` for the M01
+synthetic demo, and `n16r8_adc` for M02 ADC-voltage bring-up. The two display environments use the
+N16R8 board profile, which describes the ESP32-S3 WROOM-1
+N16R8 memory configuration and enables the native USB CDC serial interface selected by W01. The
+profile does not identify the exact carrier-board revision.
 
 ## Use the command line
 
@@ -53,8 +58,10 @@ pio device list
 pio device monitor -p <serial-port> -b 115200
 ```
 
-`pio run` builds the default `n16r8` environment. The upload command uses automatic port
-discovery when possible; specify the board's actual port if needed:
+Use an explicit environment so the intended program is clear. `pio run -e n16r8` builds the live
+M02 application; `pio run -e n16r8_demo` builds the M01 synthetic demo; `pio run -e n16r8_adc`
+builds the M02 ADC bench utility. Upload commands use automatic port discovery when possible;
+specify the board's actual port if needed:
 
 ```text
 pio run -t upload --upload-port <serial-port>
@@ -64,7 +71,7 @@ Select the port shown by `pio device list` rather than committing a machine-spec
 native USB interface is expected to appear as a `COM` port on Windows and commonly as `/dev/ttyACM*`
 on Linux. These names are examples only; confirm the actual device on the host.
 
-## Build, upload, and observe M01
+## Build, upload, and observe the live M02 application
 
 Build before connecting hardware:
 
@@ -78,11 +85,54 @@ With the N16R8 board connected to the W01-selected native USB port, upload the f
 pio run -t upload
 ```
 
-Open the serial monitor at 115200 baud to see startup information and gesture/state diagnostics.
-The firmware does not print a periodic heartbeat and does not wait for the monitor to open. A
-gesture changes the synthetic reading or page; the trend history samples once per second. The USB
-CDC transmit timeout is set to zero so optional diagnostic output cannot wait indefinitely for a
-host. Closing or reopening the monitor should not reset the display or stop button/display behavior.
+Open the serial monitor at 115200 baud to see `M02_LIVE` acquisition diagnostics. The live gauge
+uses the documented 1.500 V family zero default, so the recorded atmospheric sensor output may
+appear as a small positive provisional value until a confirmed Settings zero is saved. A long press
+cycles Gauge, Trend, Min/Max, and Settings; measurement-page clicks do not alter the live value.
+Settings offers a confirmed atmospheric offset capture with Cancel selected by default. Pressure is
+still provisional until Phase 5 bench characterization. The firmware does not print a periodic
+heartbeat and does not wait for a monitor. The USB CDC transmit timeout is zero so optional
+diagnostics cannot wait indefinitely for a host. Closing or reopening the monitor must not reset the
+display or stop acquisition/button behavior.
+
+To upload the preserved synthetic demo instead, select `n16r8_demo` in PlatformIO or run:
+
+```text
+pio run -e n16r8_demo -t upload
+```
+
+## Phase 3: verify ADC voltage acquisition
+
+Build and upload the diagnostic-only environment:
+
+```text
+pio run -e n16r8_adc
+pio run -e n16r8_adc -t upload
+pio device monitor -p <serial-port> -b 115200
+```
+
+With the FTP sensor signal disconnected, the firmware reports an `M02_ADC` line containing
+acquisition state, a changing sample sequence, acquisition time, raw ADC code, and calculated A0
+microvolts. `state=voltage_read` means the ADC returned a code; it does not claim that the voltage
+matches a pressure sensor's expected domain. A missing ADS1115 or bus problem appears as an
+acquisition error. An unconnected A0 may float, so its displayed voltage is not a meaningful test
+value. This firmware has no pressure display and labels pressure as not tested.
+
+Before applying a battery, follow the ADS1115 and W01 pinout/wiring notes. With power disconnected,
+isolate the FTP output from the A0-side test node so the battery cannot drive the sensor. Power the
+ADC normally from the selected 5 V branch, then use the multimeter to confirm ADC VDD-to-GND and
+measure the candidate battery voltage. Use only a source whose measured positive voltage is above
+ADC ground and below the actual powered ADC VDD. Connect battery negative to the shared circuit
+ground and battery positive to the isolated A0-side node; this node is `COND.OUT`/ADS1115 A0. The
+battery is a signal source, not a board supply, and this direct-node check bypasses the series
+resistor while retaining the node's shunt capacitor. Keep the circuit powered while A0 is connected,
+and disconnect power before moving test leads. Compare the multimeter reading at A0 with `a0_uV`
+converted to volts and note the raw code/sample sequence. Repeat with another measured safe source.
+This checks acquisition direction and approximate voltage tracking; it does not calibrate the ADC,
+RC response, or FTP sensor.
+
+USB monitor output is optional and rate-limited. Closing the monitor should not stop ADC acquisition;
+the current phase does not yet depend on the display or show pressure.
 
 ## Host-specific USB notes
 
@@ -136,9 +186,9 @@ wiring or electrical behavior.
 
 The `native` PlatformIO environment runs hardware-independent C++ tests on the development
 computer. It builds the `gauge-core` private library and Unity tests without compiling
-`src/main.cpp`, Arduino, LVGL, LovyanGFX, or connecting a controller. This checks pressure-band
-boundaries, synthetic value generation, history timing, extrema, and page behavior; it does not
-verify ESP32 integration or physical hardware.
+`src/main.cpp`, Arduino, LVGL, LovyanGFX, or connecting a controller. This checks shared pressure
+conversion, validity and status boundaries, trend gaps/extrema, zero-capture evaluation, synthetic
+value generation, and page behavior; it does not verify ESP32 integration or physical hardware.
 
 PlatformIO's native environment uses the host's GCC toolchain rather than installing one itself.
 On Windows, install the toolchain as follows:

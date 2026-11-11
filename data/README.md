@@ -1,6 +1,6 @@
 # Calibration and test records
 
-No measurements have been imported yet. Create `calibration/` and `logs/` with their first real records; do not populate them with invented example readings.
+No pressure calibration or vehicle-run data has been imported yet. Initial hardware bring-up observations are recorded with the relevant component documents; create `calibration/` and `logs/` with their first real datasets, not invented examples.
 
 See [A03: pressure measurement signal chain](../hardware/architecture/measurement-system.md) for the distinction between raw counts, calibrated pressure, display values and calibration/zero changes.
 

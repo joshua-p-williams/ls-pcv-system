@@ -223,19 +223,37 @@ calibration standard.
 ### Purchased digital manometer: limits of online identification
 
 The purchase record identifies the Amazon listing as [ASIN B0F59W4P1H](https://www.amazon.com/dp/B0F59W4P1H/).
-Its listing advertises `+/-36.80 kPa` (`+/-147.7 inH2O`) and a `0.3%` accuracy claim, but the
-available listing text does not establish whether accuracy is percent of reading, full scale, or
-another basis, nor does it identify a verifiable make/model. If `0.3%` were percent of the
-advertised full scale, it would imply about `+/-0.44 inH2O` at full scale, a substantial uncertainty
-near the project's `3-8 inH2O` target range. This is conditional arithmetic, not a verified
-specification for the received unit.
+The received unit is visibly labeled `S8830`; its displayed unit selector includes `inH2O`. The
+listing advertises `+/-36.80 kPa` (`+/-147.7 inH2O`) and a `0.3%` accuracy claim, but this does not
+establish whether accuracy is percent of reading, full scale, or another basis. The generic model
+label and matching third-party S8830 manuals do not verify that those manuals or specifications
+apply to this unit. If `0.3%` were percent of the advertised full scale, it would imply about
+`+/-0.44 inH2O` at full scale, a substantial uncertainty near the project's `3-8 inH2O` target
+range. This is conditional arithmetic, not a verified specification for the received unit.
 
 An online search surfaced an AUTOOL-branded generic digital manometer manual with a different
 published range (`+/-83.02 inH2O`) and `0.3% FSO`; its identity does not match the ASIN or its
-advertised range, so it is **not** used as the purchased device's specification. When the meter is
-physically available, record its label/model, actual units, resolution, zero behavior, response,
-range and supplied manual. Until then, use the U-tube as the primary low-pressure reference and
-the digital unit only as a cross-check whose limits are recorded.
+advertised range, so it is **not** used as the purchased device's specification. A prior open-port
+reading of `0.02` was initially described as inH2O, but the user later confirmed the meter was not
+set to inH2O at that time; it is not a valid inH2O zero observation. Finger pressure reportedly
+moved the display positive at the left port and negative at the right port. Zero behavior, least
+displayed increment, response, actual range and accuracy remain unverified.
+
+During an exploratory connection to the FTP sensor's pressure T, the user initially reported a
+roughly `10:1` difference between the gauge and S8830 at low positive pressure. On 2026-11-10, the
+user clarified that the S8830 had not been set to inH2O during that comparison. With the correct
+unit selected, its readings now move consistently around the gauge readings and the apparent
+factor-of-ten discrepancy is no longer present. The tubing assembly still leaks, so the pressure
+cannot be held steady and the comparison does not yet validate conversion accuracy. The associated
+serial capture shows the firmware's derived values changing from `+1.4` through `+4.1 inH2O`, then
+an out-of-domain voltage, followed by a return toward zero; it is exploratory stimulus data, not a
+calibration record. Do not change the conversion slope or claim calibration from this run.
+
+Until a stable paired comparison is recorded, use the U-tube as the primary low-pressure reference
+and the digital unit only as a cross-check whose limits are recorded. A comparison record should
+include both readings at the same settled stimulus, the S8830 display unit and mode, sensor supply,
+sensor output voltage, A0 voltage, ADC raw code, displayed pressure, pressure direction, and whether
+the pressure held steady.
 
 For pressure/vacuum correlation, record points in both directions and repeat atmospheric zero.
 Preserve raw data rather than writing a fitted curve over the source observations. A useful record
@@ -374,3 +392,7 @@ affected design before using its pressure values.
 Datasheet and official API facts above were reviewed on 2026-11-01. The project component pages,
 preserved datasheet and W01 remain the durable hardware/interface records; this feature research
 summarizes only the facts needed to design M02.
+
+## Follow-up manometer comparison (2026-11-10)
+
+After selecting `inH2O` on the S8830, the apparent tenfold mismatch disappeared. The photographed readings are +2.0 vs +2.2, +0.7 vs +0.6, +3.7 vs +3.5, and −2.2 vs −2.2 inH2O (project gauge vs manometer). Across the broader manual sweep, the reported difference was about 0.1–0.3 inH2O, with larger differences near the extremes. This supports the current conversion's polarity and approximate scale in the observed range, but does not establish calibrated accuracy. A slow leak remained, readings were not synchronized, and the manometer's accuracy basis is unknown. See [the bench record and photographs](../../../../hardware/components/adc/bench-pressure-comparison-2026-11-10.md). Do not treat the sensor-family slopes as validated from this comparison.

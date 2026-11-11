@@ -4,16 +4,17 @@ namespace gauge_core {
 
 /// Apply shared interval rules and leave result untouched on invalid input.
 bool PressureClassifier::classify(PressureTenthsInH2O pressure,
-                                  const DemoBandConfig& config,
+                                  const PressureBandThresholds& thresholds,
                                   PressureBand& result) const {
-  if (!config.isValid() || !config.contains(pressure)) return false;
+  if (!thresholds.isValid()) return false;
 
   // Lower danger is [minimum, lowerDanger); lower warning is
   // [lowerDanger, lowerWarning); normal includes both endpoints; upper warning
   // is (upperWarning, upperDanger]; upper danger is (upperDanger, maximum].
-  if (pressure < config.lowerDanger || pressure > config.upperDanger) {
+  if (pressure < thresholds.lowerDanger || pressure > thresholds.upperDanger) {
     result = PressureBand::kDanger;
-  } else if (pressure < config.lowerWarning || pressure > config.upperWarning) {
+  } else if (pressure < thresholds.lowerWarning ||
+             pressure > thresholds.upperWarning) {
     result = PressureBand::kWarning;
   } else {
     result = PressureBand::kNormal;

@@ -84,6 +84,10 @@ keeping its generated-value bounds local to the synthetic source. The common sna
 - Source kind: `live` or `synthetic`.
 - Measurement quality: starting/unavailable, valid, stale, ADC/I2C error, or out of the configured
   sensor measurement domain. These states are distinct from the pressure warning/danger band.
+- The live display treats a valid acquisition older than 1,500 ms as stale. This is the one-second
+  trend interval plus a 500 ms scheduling margin; it suppresses the current numeric value while
+  leaving accepted history and extrema intact. This is a firmware freshness policy, not a sensor
+  specification or pressure limit.
 - The latest raw ADC code, converted signal voltage in microvolts, and acquisition timestamp when
   available.
 - Signed pressure in tenths of `inH2O` and its classified band only when the sample is valid.
@@ -176,9 +180,11 @@ selection (with one item this has no visible change), and double click selects i
 Selecting `Set zero` opens the existing approved confirmation flow. Explain that the engine must be
 off and cold and the oil cap removed so the crankcase and sensor port can equalize to atmosphere.
 The prompt defaults to Cancel. Single click toggles Cancel/Zero; double click confirms the
-highlighted choice. Cancel or inactivity returns without changing stored calibration. The device
-cannot detect engine state or prove the pressure path is open, so this remains a user-controlled
-procedure. Never capture zero automatically or while the engine is running.
+highlighted choice. The Settings menu itself remains open while idle. If the confirmation prompt is
+left untouched for 30 seconds, it returns to the Settings menu with Cancel selected; it does not
+start capture, change stored calibration, or return to the gauge. The device cannot detect engine
+state or prove the pressure path is open, so this remains a user-controlled procedure. Never capture
+zero automatically or while the engine is running.
 
 After confirmation, the application sends a nonblocking zero-capture command to the acquisition
 task. The task continues sampling and passes a bounded sample window to `ZeroReferenceCapture`.
@@ -205,6 +211,12 @@ Use two explicit PlatformIO environments with one shared application and one com
 | --- | --- | --- |
 | `n16r8` | Live FTP sensor through ADS1115 | Starts acquisition, reads/validates pressure, and enables the Settings zero flow. |
 | `n16r8_demo` | Existing synthetic M01 source | Does not initialize or access the FTP sensor, ADC, I2C translator, or Preferences. Preserves M01 click/double-click pressure generation and three-page behavior. |
+
+The `n16r8_adc` PlatformIO environment is a focused bench diagnostic for Phase 3, not a third
+application mode. Its separate entry point exercises the same N16R8 I2C and ADS1115 source, then
+reports raw codes and calculated A0 voltage without displaying pressure. It supports safe voltage
+acquisition checks before the FTP sensor and live pressure UI are integrated; the final live and
+synthetic application compositions remain `n16r8` and `n16r8_demo`.
 
 Keep source selection in one build-time composition seam, such as one factory guarded by a single
 environment define. Do not scatter conditional compilation through the gauge core, LVGL pages, or
@@ -332,7 +344,12 @@ sensor calibration, filter response, bus electrical margins, or pressure accurac
   peak response to set final timing.
 - The family-based pressure slopes and `0.5-4.5 V` provisional conversion domain are defaults only;
   use calibration records to refine them and never extrapolate.
-- Zero stability window and acceptance statistics must be based on observed bench noise.
+- The initial zero capture accepts 64 consecutive readings within the family atmospheric interval
+  (1.3–1.7 V) only when peak-to-peak variation is at most 2.0 mV. This provisional setting is
+  grounded in the two recorded atmospheric sessions: one-code variation within each session and a
+  six-code (about 1.125 mV) span between sessions at the selected ±6.144 V ADS1115 range. It
+  provides modest allowance above observed variation, not a validated accuracy specification; the
+  capture mean becomes an offset only and does not alter pressure slopes.
 - Final ADC/I2C GPIOs, task priorities/stack sizes, finite bus timeout, NVS namespace/key spelling,
   and display text layout are implementation details to finalize against W01 and measured behavior.
 - Exact sensor failure signatures remain unknown. Report only faults detectable from ADC/I2C,

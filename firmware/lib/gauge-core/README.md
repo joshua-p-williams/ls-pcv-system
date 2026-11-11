@@ -1,20 +1,41 @@
 # Gauge core
 
-`gauge-core` holds M01's pressure-band rules, synthetic demonstration source, gauge session state,
-trend history, extrema, and temporary gesture mapping. It has no dependency on Arduino, the ESP32,
-LVGL, LovyanGFX, or a physical device, so PlatformIO can exercise these rules on a host computer.
+`gauge-core` holds hardware-independent pressure conversion, validity and status rules, measurement
+tracking, trend history, extrema, zero-capture evaluation, and the M01 synthetic demonstration.
+It has no dependency on Arduino, the ESP32, FreeRTOS, I2C, NVS, LVGL, LovyanGFX, or a physical
+device, so PlatformIO can exercise these rules on a host computer.
 
 Pressure values use signed tenths of `inH2O`. For example, `-55` means `-5.5 inH2O`; this is a
 display representation for synthetic movement, not a claim about sensor resolution or accuracy.
-The `DemoBandConfig` is the single source for the visible `-14.0` to `+4.5 inH2O` span and the
-temporary lower/upper warning and danger boundaries. These values exist to demonstrate UI states;
-they are not measured engine limits or production alarm settings.
+`PressureBandThresholds` holds the shared lower/upper warning and danger boundaries. Classification
+does not decide whether a sensor voltage is valid; the conversion profile checks its own input
+domain first. `DemoBandConfig` adds M01's visible `-14.0` to `+4.5 inH2O` span for synthetic value
+generation and display. Those demo limits and status bands are illustrative guidance, not measured
+engine limits or production alarm settings.
 
-`GaugeSession` accepts only values inside that demo span. It derives the status, tracks extrema,
-and stores one current value per elapsed one-second sample interval in a 30-slot rolling history.
-The snapshot is chronological and may contain fewer than 30 samples after startup. Gesture handling
-changes synthetic values or the active page; gestures do not directly create trend samples. This
-logic is intentionally separate from the later calibrated sensor and ADC contract.
+`PressureCalibrationProfile` uses integer microvolts and rational slopes to convert the provisional
+family reference points into signed tenths of `inH2O`. The default `1.5 V`, `+4.5 inH2O`, and
+`-14 inH2O` anchors are a piecewise-linear starting model, not a manufacturer transfer curve or
+measured calibration. Inputs outside the profile's inclusive voltage domain are rejected instead
+of extrapolated. Changing the atmospheric zero does not change either slope.
+
+`MeasurementTracker` separates measurement quality from pressure status. Only a valid pressure is
+classified or included in extrema. Each one-second trend slot contains a validity flag, pressure,
+and monotonic timestamp; a slot without a fresh valid observation is a gap rather than a repeated
+old live value. The synthetic M01 source intentionally repeats its held demo state through elapsed
+slots, preserving the demo's prior behavior. The tracker handles wraparound and retains the newest
+30 chronological slots.
+`GaugeDisplaySnapshot` adds page and display-range state to a detached measurement snapshot.
+
+`ZeroReferenceCapture` evaluates a bounded set of microvolt samples using caller-supplied
+plausibility and peak-to-peak criteria. It intentionally defines no physical stability limit; those
+criteria must come from measured noise and the active sensor profile. Its mean is only a candidate
+offset, not a multi-point calibration.
+
+The M01 `GaugeSession` and `DemoPressureSource` adapt the synthetic gestures and readings to these
+shared contracts. Demo values are explicitly tagged `synthetic`, and the demo's display span is
+checked separately from the shared classifier. Button gestures still change the synthetic value or
+page; timer sampling, not the gesture event itself, records trend points.
 
 Build and run the native tests from `firmware/` with `pio test -e native`. See the [development
 environment guide](../../docs/development-environment.md) for the host GCC prerequisite and setup.

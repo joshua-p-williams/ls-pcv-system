@@ -2,11 +2,16 @@
 
 namespace gauge_core {
 
-/// Reject ambiguous/overlapping bands before classification or value generation.
+/// Reject inverted or overlapping status boundaries before classification.
+bool PressureBandThresholds::isValid() const {
+  return lowerDanger < lowerWarning && lowerWarning <= upperWarning &&
+         upperWarning < upperDanger;
+}
+
+/// Reject ambiguous bands and require the synthetic display span to surround them.
 /// The normal interval may collapse to one value when its endpoints are equal.
 bool DemoBandConfig::isValid() const {
-  return minimum < lowerDanger && lowerDanger < lowerWarning &&
-         lowerWarning <= upperWarning && upperWarning < upperDanger &&
+  return PressureBandThresholds::isValid() && minimum < lowerDanger &&
          upperDanger < maximum;
 }
 

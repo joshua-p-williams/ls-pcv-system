@@ -1,6 +1,6 @@
 # W01: N16R8 bench harness
 
-**Document state: Draft. Not assembly-ready.** W01 covers the complete intended bench gauge: one N16R8 controller, one GC9A01 display, one ADS1115, the FTP sensor and built RC input filter, a bidirectional I2C translator, one multifunction button, and USB-derived power distribution. The controller and other purchased bench parts, including the I2C translator, are reported on hand. No connections have been bench verified. The XIAO and vehicle converter configurations remain separate work.
+**Document state: Draft. Not assembly-ready.** W01 covers the complete intended bench gauge: one N16R8 controller, one GC9A01 display, one ADS1115, the FTP sensor and built RC input filter, a bidirectional I2C translator, one multifunction button, and USB-derived power distribution. The controller and other purchased bench parts, including the I2C translator, are reported on hand. An ADC voltage-acquisition check is recorded in the [bench test record](../../components/adc/bench-voltage-observations-2026-11-02.md); most W01 connections and the complete harness remain unverified. The XIAO and vehicle converter configurations remain separate work.
 
 The design establishes intended signal and power wiring from listing/reference evidence, with hardware validation and remaining sensor interfaces explicit. Assemble and energize a section only after its listed prerequisites are resolved. P04 supplies the working sensor cavity map. Native USB, IN-OUT closed, USB-OTG open, the L21 nominal 5 V takeoff and 3.3 V display supply are selected (Q30/Q31). Rail/load checks, translator bring-up and filter power/protection review remain assembly checks.
 
@@ -96,7 +96,7 @@ The [electrical review](../../components/adc/conditioning-review.md) selects a s
 
 ## Phased assembly and verification
 
-These are planned steps with prerequisites, not completed test results. W01 and L03 support laying out and completing the mechanical wiring before firmware exists; staged powered checks can follow that assembly. Unpowered continuity/contact checks and rail measurements are available now. Programming/console tests, display output, button gestures, I2C transactions, ADC readings and pressure-processing tests require suitable firmware, which has not been implemented. Treat those functional checks as pending, not as expected behavior of bare hardware. All wiring changes occur with power disconnected. At each phase, record the actual configuration, supply conditions, instrument and readings using the [data conventions](../../../data/README.md). Retain only verified preceding connections; do not attach later-phase loads to unverified rails.
+These are phased checks with prerequisites, not completed test results. Unpowered continuity/contact checks and rail measurements are available before functional firmware. M01 display/button behavior has been exercised; the M02 `n16r8_adc` target now provides acquisition-only ADS1115 code/voltage diagnostics for Phase 3. No physical ADS1115, translator, analog input or sensor result has yet been recorded. Treat those functional checks as pending until measured. All wiring changes occur with power disconnected. At each phase, record the actual configuration, supply conditions, instrument and readings using the [data conventions](../../../data/README.md). Retain only verified preceding connections; do not attach later-phase loads to unverified rails.
 
 ### Phase 0: identify and prepare
 
@@ -120,7 +120,7 @@ With power disconnected, follow the [selected jumper plan](../../components/esp3
 
 With power off, install the display and button connections. Verify the button contact pair is open at rest and closes when pressed. After power-up, verify the input changes between the planned idle and pressed levels, and test display orientation, colors, clipping and signed text. Measure supply voltage/current with display activity. Test the chosen gestures without applying calibration changes to an uncalibrated sensor; verify prompt actions do not also trigger normal-view peak reset.
 
-**Proceed when:** stable display/button operation and current measurements support adding the ADC. Once gauge firmware exists, this test must also show that rendering and gesture handling do not block acquisition.
+**Proceed when:** stable display/button operation and current measurements support adding the ADC. The M01 synthetic application does not exercise acquisition timing; rendering/gesture interaction with live acquisition is verified after the sensor-to-display application is integrated.
 
 ### Phase 3: ADC without sensor
 
@@ -128,9 +128,9 @@ With power off, install the display and button connections. Verify the button co
 
 **Prerequisites:** Q07/Q08 module and bus/strap checks, Q05/Q12 shared 5 V source/margin, selected LS1 terminal mapping and Q29 bring-up checks and Q18 configuration review. Sensor and COND remain disconnected.
 
-Inspect existing pull-ups and ADDR bias before installing W_ADDR. Connect ADC power to the shared 5 V branch and LS1 references to their respective rails. Verify each bus segment's idle voltage before attaching the controller: 3.3 V on LV, 5 V on HV. Check address response and register configuration through LS1. An address scan alone does not authenticate the chip. Use a separately documented known-voltage fixture, referenced to the same ground and within verified ADC limits, to check fresh conversions and gain scaling. Record temporary connections; use an independent known voltage for this check rather than treating the uncalibrated sensor as a voltage standard.
+Inspect existing pull-ups and ADDR bias before installing W_ADDR. Connect ADC power to the shared 5 V branch and LS1 references to their respective rails. Verify each bus segment's idle voltage before attaching the controller: 3.3 V on LV, 5 V on HV. Check address response and register configuration through LS1. An address scan alone does not authenticate the chip. After verifying ADC VDD and common ground, use a measured known-voltage source at the isolated A0-side node and the `n16r8_adc` firmware to check fresh conversions and gain scaling. This target reports raw code and calculated voltage, not pressure. Record temporary connections; use the multimeter at the same node and do not treat the uncalibrated sensor as a voltage standard. Timing under display activity is a later integrated check.
 
-**Proceed when:** measured conversions, timing and rail behavior agree with the configured device, including during display activity. Inputs used for a test must have defined values; an unconnected input is not a zero-voltage reference.
+**Proceed when:** measured conversions and rail behavior agree with the configured device for multiple safe input voltages. Inputs used for a test must have defined values; an unconnected input is not a zero-voltage reference. This phase's diagnostic target excludes the display, so display-load timing remains to be checked during integration.
 
 ### Phase 4: conditioning and sensor
 
@@ -173,4 +173,4 @@ wireviz -f s -o hardware/wiring/bench/generated hardware/wiring/bench/bench-harn
 
 Use `render.py` after source changes so sectional views and the schedule are refreshed together. Native BOM output is not published: functional TBD blocks are not orderable parts, and missing lengths/gauges would make that output unsuitable as a construction BOM. The [procurement BOM](../../bom/parts.md) remains separate.
 
-The full view and four section views were rendered and visually inspected. Terminal references and conductor coverage passed the renderer's checks. These checks validate document generation, not electrical operation; no physical bench results are recorded.
+The full view and four section views were rendered and visually inspected. Terminal references and conductor coverage passed the renderer's checks. These checks validate document generation, not electrical operation. The recorded ADC voltage test provides limited bench evidence; it does not verify the complete W01 harness or its other peripherals.
