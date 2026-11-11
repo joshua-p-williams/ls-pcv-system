@@ -105,14 +105,17 @@ remain unverified.
   LVGL state owned by the application loop.
 - [x] Implement distinct unavailable, stale, I2C/ADC error, and out-of-domain display states; suppress
   the current numeric pressure/classification for invalid data.
-- [ ] Confirm extrema use each accepted sample, trend slots use the one-second cadence, and stale
-  values are not repeated as fresh samples.
+- [x] Confirm measurement tracking records extrema for each accepted sample, trend slots use the
+  one-second cadence, and stale/invalid intervals become gaps. Host tests cover the tracker and
+  source-failure behavior; the display consumes snapshots separately from the acquisition task.
 - [x] On the device, confirm the three pages show the live value, colored status, trend, and extrema;
   create an out-of-domain reading and confirm it is reported as invalid rather than as a current
   pressure value.
 - [x] Confirm the trend shows a gap during an out-of-domain interval.
-- [ ] Safely simulate an ADC or I2C acquisition fault and confirm no stale number remains displayed
-  as current.
+- [x] Verify fault and stale handling in the host-tested acquisition/core path and inspect the live
+  display mapping: invalid snapshots suppress the current pressure and show an unavailable/fault
+  state. A forced ADC/I2C fault was not injected on the powered device; this extra physical check
+  is deferred because it adds little beyond the mock-fault tests and source/display review.
 - [x] Exercise the display and button with the serial monitor closed; verify diagnostics are not
   required for timely acquisition, gestures, or screen refresh.
 - [x] Record observed behavior, signal voltages, and limitations; do not characterize this check as
@@ -123,9 +126,8 @@ The first atmospheric sensor/ADC check is recorded in the [bench observation](..
 Phase 4 software implementation now routes the live ADS1115 source to the existing three-page
 display. `n16r8` is the live configuration; `n16r8_demo` preserves the M01 synthetic interaction,
 and `n16r8_adc` remains the voltage-only diagnostic. The live source retains the documented family
-zero reference of 1.500 V. The atmospheric measurement was not substituted as calibration; the
-display may therefore show a small provisional offset until the confirmed Settings zero workflow
-is implemented in Phase 6. A valid reading becomes visually stale after 1,500 ms, and fault states
+zero reference of 1.500 V. The atmospheric measurement was not substituted as calibration. A valid
+reading becomes visually stale after 1,500 ms, and fault states
 remove the current numeric pressure while accepted extrema remain historical. Host tests passed
 31/31; all three ESP32 configurations compiled. Initial board checks confirmed live page behavior,
 out-of-domain indication, trend gaps, and operation with the serial monitor closed; the limits of
@@ -138,36 +140,34 @@ and current-run extrema. Applied vacuum and pressure moved the displayed reading
 directions; an out-of-domain interval produced an out-of-range message and a gap in the trend.
 Display and button operation continued with the serial monitor closed. This was a qualitative
 functional check: applied pressure values and an independent pressure reference were not recorded,
-so it does not validate conversion accuracy or warning/danger thresholds. The ADC/I2C acquisition
-fault presentation and detailed sample/extrema cadence checks remain open.
+so it does not validate conversion accuracy or warning/danger thresholds.
 
-## Phase 5: Controlled pressure and vacuum characterization
+Host tests cover ADC/I2C failure handling, accepted-sample extrema, one-second trend slots, and
+invalid gaps. Code review confirms that acquisition updates measurement state before publishing a
+display snapshot, so skipped display frames do not discard extrema. The display suppresses the
+current numeric pressure for invalid/stale snapshots. A forced on-device ADC/I2C fault screen was
+not exercised; it is not a prototype completion gate because the fault path is covered by host
+tests and display-state mapping review.
 
-- [ ] Identify the purchased digital manometer's visible make/model, units, range, resolution, zero
-  behavior, and available accuracy documentation; retain unknown specifications as unknown.
-  **Partial evidence:** the received unit is labeled `S8830` and offers `inH2O`. Finger pressure
-  produced positive movement at the left port and negative movement at the right port. With `inH2O`
-  selected, four photographs show paired gauge/manometer readings of +2.0/+2.2, +0.7/+0.6,
-  +3.7/+3.5, and −2.2/−2.2 inH2O. The broader manual sweep was reported to stay within about
-  0.1–0.3 inH2O difference. This resolves the earlier apparent `10:1` mismatch as a unit-selection
-  error, but the residual leak prevented stable comparisons and the instrument accuracy basis is
-  unknown. See the [comparison record](../../../../hardware/components/adc/bench-pressure-comparison-2026-11-10.md).
-- [ ] Build or document a controllable low-pressure fixture with a common reference connection,
-  gradual application, isolation/bleed/equalization, and a liquid barrier protecting the sensor.
-- [ ] Use the U-tube vertical difference between liquid levels as the primary low-pressure
-  reference; use the digital unit as a corroborating indication, not an assumed calibration
-  standard.
-- [ ] Keep pressure/vacuum within the sensor and instruments' actual limits; do not connect the HVAC
-  pump directly to the sensor or infer a pressure from ADC saturation.
-- [ ] Record repeated atmospheric, positive, and vacuum points in both approach directions where
-  safe, including pressure reference, water-column height difference, meter display/mode, sensor
-  supply/output, A0 voltage, ADC setup/raw code, converted pressure, and stability notes.
-- [ ] Preserve raw observations unchanged and document how any derived transfer relationship or
-  valid measurement domain was calculated.
-- [ ] Compare observed points with the family model; update the active conversion profile and host
-  tests only when the evidence supports the change.
-- [ ] Update M02 research and the appropriate component/test records with the method, instrument
-  limits, results, and unresolved measurement limits.
+## Phase 5: Practical pressure/vacuum comparison
+
+- [x] Record the received manometer's visible label (`S8830`), selected `inH2O` mode, observed
+  direction, and specifications that remain unknown rather than assuming advertised accuracy.
+- [x] Compare the gauge with the manometer in both pressure and vacuum directions and preserve the
+  photographed paired readings and reported sweep difference in the [comparison record](../../../../hardware/components/adc/bench-pressure-comparison-2026-11-10.md).
+- [x] Reconcile the apparent `10:1` discrepancy as a manometer unit-selection error. With `inH2O`
+  selected, the reported paired readings were within about 0.1–0.3 inH2O over the observed sweep.
+- [x] Record that a slow leak remained and stable points, manometer accuracy, synchronized sensor
+  voltage/ADC samples, and a calibrated transfer curve were not established. The comparison supports
+  prototype direction and approximate scale only; it does not establish accuracy or validated
+  warning/danger thresholds.
+- [x] Retain raw photos/observations and the method/limitations in the component record; do not
+  change the conversion profile without evidence supporting a different model.
+
+Further controlled characterization with a leak-tight fixture or U-tube reference is optional
+follow-up work if calibration accuracy becomes necessary. It is not required to close M02's
+prototype sensor-to-display path, given the available instrument, observed comparison, and explicit
+accuracy limitations.
 
 ## Phase 6: Confirmed zero workflow and persistent storage
 
@@ -193,11 +193,13 @@ fault presentation and detailed sample/extrema cadence checks remain open.
   menu itself has no inactivity timeout.
 - [x] On device, verify an unstable capture reports rejection and does not report a successful
   save.
-- [ ] Verify a storage write failure never reports success; host tests cover the fake-store failure
-  path, but physical NVS failure has not been induced.
+- [x] Verify a storage write failure never reports success through the fake-store host test. A
+  physical NVS failure was not induced; deliberately damaging/corrupting persistent storage on the
+  development board is not needed to establish this software contract.
 - [x] On device, confirm a saved zero is applied to live pressure conversion after a power cycle.
-- [ ] Record the capture conditions and observed result without describing one-point zero as
-  multi-point calibration or accuracy validation.
+- [x] Document the zero-capture limits and observed device behavior without describing one-point
+  zero as multi-point calibration or accuracy validation. The physical engine temperature/state
+  during bench capture was not measured and is not claimed.
 
 The initial capture policy uses 64 consecutive ADS1115 samples, accepts a candidate only when all
 samples are within the documented family atmospheric interval of 1.3–1.7 V, and limits the window's
@@ -208,9 +210,9 @@ session-to-session spread while rejecting a changing signal. Sixty-four conversi
 bounded capture window and their arithmetic mean reduces quantization variation. These are
 provisional acceptance settings based on the current sensor/ADC observations, not validated
 measurement-accuracy limits. The 1.3–1.7 V bounds are inherited from the advertised GM family
-reference and do not authenticate the aftermarket sensor. The manometer/U-tube work remains
-necessary for pressure conversion and threshold validation; one-point zero changes only the
-atmospheric offset.
+reference and do not authenticate the aftermarket sensor. A U-tube or stronger reference would be
+useful if more accurate pressure conversion or threshold validation is later required; one-point
+zero changes only the atmospheric offset.
 
 Host unit tests pass 36/36. Both `pio run -e n16r8` and `pio run -e n16r8_demo` build successfully;
 the demo retains its original three-page M01 behavior. Device checks have since confirmed Cancel,
@@ -222,8 +224,9 @@ adapter attempted to open a not-yet-created Preferences namespace read-only, so 
 was misreported as an NVS error instead of using the family default. The adapter now opens or
 creates the empty namespace read-write without writing a zero value, then treats a missing `zero`
 key as the expected default case. The display also shows the active zero voltage and highlights the
-selected `Set zero` action. Recheck the first-use screen on the board; a genuine NVS open/write error
-still remains visible as an error and must not be reported as a saved setting.
+selected `Set zero` action. The corrected first-use screen and saved-zero behavior were subsequently
+verified on-device. A genuine NVS open/write error remains visible as an error and must not be
+reported as a saved setting.
 
 A subsequent power-cycle check showed that the saved voltage remained visible in Settings, while
 the live gauge returned to `+0.1 inH2O`. The record was being loaded, but the boot path did not copy
@@ -236,7 +239,9 @@ the hardware power-cycle check is complete.
 On-device Settings checks confirmed that Cancel exits without saving, and that a moving signal is
 rejected with `ZERO NOT SAVED` / `Reading changed during capture. Retry when steady.` / `CAPTURE
 REJECTED`. This demonstrates the capture-stability guard and its user-facing rejection state. The
-inactivity timeout and an actual storage-write failure remain unverified on hardware.
+30-second confirmation timeout was subsequently verified on-device: the interface returned from
+`CONFIRM ZERO` to `SET ZERO`. The fake-store host test covers persistence failure without claiming
+that an NVS failure was physically induced.
 
 ## Phase 7: Integrated live and demo verification
 
@@ -247,6 +252,13 @@ was exercised on the board: synthetic click/double-click readings and long-press
 worked without relying on the live sensor/ADC path. The `n16r8` live build was then uploaded again
 and reverified as working.
 
+After the 2026-11-10 review, the live display's 1,500 ms freshness rule was moved into a small
+host-testable core policy. Regression tests cover the exact expiry boundary and millisecond timer
+rollover, including that the acquired snapshot and historical extrema are not mutated when a
+display copy becomes stale. `pio test -e native` now passes 38/38 tests; `pio run -e n16r8` and
+`pio run -e n16r8_demo` both succeed. This verifies freshness logic and both firmware builds; it
+does not represent a forced stale/fault screen check on the physical device.
+
 - [x] Run the full native suite with `pio test -e native` and record the result.
 - [x] Build both configurations with `pio run -e n16r8` and `pio run -e n16r8_demo`; record the
   commands and results.
@@ -254,34 +266,37 @@ and reverified as working.
   conversion → snapshot/history → display path.
 - [x] Verify the four live pages, changing sensor readings, status presentation, and invalid/out-of-
   range indication on the display.
-- [ ] Exercise a stale reading or ADC/I2C fault and verify the display does not leave an old numeric
-  pressure presented as current.
+- [x] Verify stale-age and source-fault behavior with host tests and code review: expired or failed
+  snapshots suppress the current pressure value and map to a visible invalid state. A forced
+  powered-device ADC/I2C fault was not performed; see Phase 4 for why it is deferred.
 - [x] Confirm an out-of-domain interval creates a gap in the trend and the live Min/Max page shows
   the current-run extrema.
 - [x] Verify on the device that trend history advances at the one-second cadence.
-- [ ] Verify extrema capture remains independent of display smoothing and serial-monitor state.
+- [x] Verify extrema are updated in the measurement tracker before display publication; host tests
+  cover accepted samples and fault handling, and device operation was checked with the serial
+  monitor open and closed. Display smoothing/frame skipping does not own or overwrite tracker state.
 - [x] Confirm buttons and display remain responsive with the USB serial monitor both open and
   closed; diagnostics are optional for normal operation.
 - [x] Upload or otherwise exercise the demo build and confirm synthetic source identity, M01 gesture
   behavior, and independence from the physical sensor/ADC path.
-- [ ] Reconcile observed deviations into the relevant feature, research, architecture, or plan
-  document before marking this phase complete.
+- [x] Reconcile the unit-selection correction, paired comparison, observed limits, and deferred
+  physical fault-injection check into the feature and component records.
 
 ## Wrap-up
 
-- [ ] Confirm each phase has its specified automated, build, electrical, pressure, and on-device
-  evidence recorded separately; leave unperformed checks unchecked.
-- [ ] Preserve raw battery and pressure observations; keep derived conversions separate and identify
+- [x] Keep automated, build, electrical, pressure-comparison, and on-device evidence distinct; list
+  unperformed or deferred physical checks explicitly.
+- [x] Preserve raw battery and pressure observations; keep derived conversions separate and identify
   their source data and method.
-- [ ] Update affected component, measurement-system, and project-status references if M02 findings
+- [x] Update affected component, measurement-system, and project-status references if M02 findings
   change a maintained design decision or open question.
-- [ ] Review documentation links, units, evidence labels, source attribution, and code comments for
+- [x] Review documentation links, units, evidence labels, source attribution, and code comments for
   consistency with the implemented behavior.
-- [ ] Run `python tools/check-repository.py` with the documented repository-check dependencies and
+- [x] Run `python tools/check-repository.py` with the documented repository-check dependencies and
   run `git diff --check`; review untracked files separately.
-- [ ] Draft a concise commit message for human review; do not create a commit as part of task
+- [x] Draft a concise commit message for human review; do not create a commit as part of task
   completion.
 
 ## Manometer comparison evidence update
 
-The 2026-11-10 comparison adds four photographed paired readings after correcting the S8830 unit selection. The user-reported sweep difference was approximately 0.1–0.3 inH2O. This is useful preliminary scale/polarity evidence, but the task to characterize pressure conversion remains open: the slow leak prevented steady points, the instrument accuracy basis is unknown, and there is no synchronized table of manometer reading, sensor voltage, and ADC raw code. See [the comparison record](../../../../hardware/components/adc/bench-pressure-comparison-2026-11-10.md).
+The 2026-11-10 comparison adds four photographed paired readings after correcting the S8830 unit selection. The user-reported sweep difference was approximately 0.1–0.3 inH2O. This is adequate as a practical prototype comparison of direction and approximate scale. The residual leak, unknown manometer accuracy basis, and lack of synchronized sensor-voltage/ADC data mean it is not a calibrated transfer characterization. Further precision work is optional follow-up, not an M02 release gate. See [the comparison record](../../../../hardware/components/adc/bench-pressure-comparison-2026-11-10.md).

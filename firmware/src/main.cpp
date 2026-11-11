@@ -15,6 +15,7 @@
 #include <Wire.h>
 #include "board/n16r8/arduino_wire_bus.hpp"
 #include "gauge_core/gauge_types.hpp"
+#include "gauge_core/measurement_freshness.hpp"
 #include "measurement/ads1115_pressure_source.hpp"
 #include "measurement/preferences_zero_store.hpp"
 #endif
@@ -192,17 +193,13 @@ const char* zeroReferenceName(gauge_core::ZeroReferenceState state) {
 /// value stale affects only this presentation copy, never the tracker's history.
 gauge_core::GaugeDisplaySnapshot displaySnapshot(std::uint32_t nowMs) {
   gauge_core::GaugeDisplaySnapshot view;
-  static_cast<gauge_core::MeasurementSnapshot&>(view) = latestMeasurement;
+  static_cast<gauge_core::MeasurementSnapshot&>(view) =
+      gauge_core::withFreshnessPolicy(latestMeasurement, nowMs, kStaleAfterMs);
   view.bands = displayBands;
   view.page = activePage;
   view.settingsView = settingsView;
   view.settingsConfirmSelected = settingsConfirmSelected;
   view.settingsCommandFailed = settingsCommandFailed;
-  if (view.quality == gauge_core::MeasurementQuality::kValid &&
-      static_cast<std::uint32_t>(nowMs - view.acquiredAtMs) > kStaleAfterMs) {
-    view.quality = gauge_core::MeasurementQuality::kStale;
-    view.hasPressure = false;
-  }
   return view;
 }
 

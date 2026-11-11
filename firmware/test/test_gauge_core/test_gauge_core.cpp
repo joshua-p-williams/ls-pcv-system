@@ -2,6 +2,7 @@
 
 #include "gauge_core/demo_pressure_source.hpp"
 #include "gauge_core/gauge_session.hpp"
+#include "gauge_core/measurement_freshness.hpp"
 #include "gauge_core/measurement_tracker.hpp"
 #include "gauge_core/m01_interaction.hpp"
 #include "gauge_core/pressure_classifier.hpp"
@@ -418,6 +419,56 @@ void test_measurement_tracker_handles_sampling_lateness_and_millis_rollover() {
   TEST_ASSERT_TRUE(rolloverTracker.snapshot().history[0].valid);
 }
 
+/// Presentation suppresses expired readings at the exact configured age boundary.
+void test_freshness_policy_marks_expired_copy_without_mutating_acquisition() {
+  MeasurementSnapshot acquisition;
+  acquisition.source = MeasurementSource::kLive;
+  acquisition.quality = MeasurementQuality::kValid;
+  acquisition.hasPressure = true;
+  acquisition.pressure = -47;
+  acquisition.acquiredAtMs = 500;
+  acquisition.hasExtrema = true;
+  acquisition.minimumRecorded = -80;
+  acquisition.maximumRecorded = -30;
+
+  const MeasurementSnapshot atLimit = withFreshnessPolicy(acquisition, 2000, 1500);
+  TEST_ASSERT_EQUAL(static_cast<int>(MeasurementQuality::kValid),
+                    static_cast<int>(atLimit.quality));
+  TEST_ASSERT_TRUE(atLimit.hasPressure);
+
+  const MeasurementSnapshot expired = withFreshnessPolicy(acquisition, 2001, 1500);
+  TEST_ASSERT_EQUAL(static_cast<int>(MeasurementQuality::kStale),
+                    static_cast<int>(expired.quality));
+  TEST_ASSERT_FALSE(expired.hasPressure);
+  TEST_ASSERT_TRUE(expired.hasExtrema);
+  TEST_ASSERT_EQUAL_INT(-80, expired.minimumRecorded);
+  TEST_ASSERT_EQUAL_INT(-30, expired.maximumRecorded);
+  TEST_ASSERT_EQUAL(static_cast<int>(MeasurementQuality::kValid),
+                    static_cast<int>(acquisition.quality));
+  TEST_ASSERT_TRUE(acquisition.hasPressure);
+}
+
+/// Freshness age uses wrap-safe elapsed-time arithmetic like millis().
+void test_freshness_policy_handles_millisecond_rollover() {
+  MeasurementSnapshot acquisition;
+  acquisition.source = MeasurementSource::kLive;
+  acquisition.quality = MeasurementQuality::kValid;
+  acquisition.hasPressure = true;
+  acquisition.acquiredAtMs = 0xFFFFFF00u;
+
+  const MeasurementSnapshot fresh = withFreshnessPolicy(
+      acquisition, 0x00000100u, 1024);
+  TEST_ASSERT_EQUAL(static_cast<int>(MeasurementQuality::kValid),
+                    static_cast<int>(fresh.quality));
+  TEST_ASSERT_TRUE(fresh.hasPressure);
+
+  const MeasurementSnapshot expired = withFreshnessPolicy(
+      acquisition, 0x00000301u, 1024);
+  TEST_ASSERT_EQUAL(static_cast<int>(MeasurementQuality::kStale),
+                    static_cast<int>(expired.quality));
+  TEST_ASSERT_FALSE(expired.hasPressure);
+}
+
 /// Accept a bounded stable capture and report its rounded mean and observed range.
 void test_zero_capture_accepts_stable_samples() {
   const std::uint32_t samples[] = {1500000, 1500100, 1499900};
@@ -606,6 +657,8 @@ int main() {
   RUN_TEST(test_measurement_tracker_invalid_states_preserve_valid_extrema);
   RUN_TEST(test_measurement_tracker_marks_missing_samples_as_gaps);
   RUN_TEST(test_measurement_tracker_handles_sampling_lateness_and_millis_rollover);
+  RUN_TEST(test_freshness_policy_marks_expired_copy_without_mutating_acquisition);
+  RUN_TEST(test_freshness_policy_handles_millisecond_rollover);
   RUN_TEST(test_zero_capture_accepts_stable_samples);
   RUN_TEST(test_zero_capture_rejects_invalid_windows);
   RUN_TEST(test_zero_record_round_trip_and_corruption);

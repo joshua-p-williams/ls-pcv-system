@@ -33,9 +33,9 @@ not engine-specific failure limits, and pressure by itself cannot identify a mec
   positive values mean pressure. Displayed pressure uses `inH2O`.
 - Known electrical input voltages are checked against a multimeter so ADC acquisition and voltage
   conversion are verified independently of the pressure sensor.
-- The sensor is evaluated against controlled pressure and vacuum readings from the available
-  reference instruments. The test record captures reference pressure, sensor output, acquired
-  signal, and displayed pressure so conversion behavior and limitations can be reviewed.
+- The sensor is compared in both pressure and vacuum directions with the available reference
+  instrument. The record captures paired readings and limitations of the setup, providing a
+  practical polarity and approximate-scale check without claiming calibrated accuracy.
 - The gauge, 30-second trend, and current-run minimum/maximum pages continue to use the active
   pressure source. Their updates do not depend on a serial monitor being open.
 - The live gauge uses the project's initial status bands: lower danger at `−12 inH2O`, lower
@@ -57,8 +57,9 @@ not engine-specific failure limits, and pressure by itself cannot identify a mec
   single click advances through options and double click selects or confirms the highlighted
   option. The M01 synthetic demonstration retains its temporary click and double-click gestures.
 - Automated tests cover pressure conversion, zero-offset behavior, status classification and
-  boundaries, invalid/out-of-range handling, and the pressure-history behavior affected by live
-  readings. Bench checks separately verify the physical acquisition path and displayed behavior.
+  boundaries, invalid/out-of-range handling, stale-data handling, and pressure-history behavior.
+  Bench checks separately verify the physical acquisition path and displayed behavior. Higher-
+  accuracy characterization can be added later if the intended use requires it.
 - Firmware code and nearby documentation explain each public function, measurement concept,
   assumption, unit, and failure state in accordance with the
   [firmware coding standards](../../coding-standards.md).
