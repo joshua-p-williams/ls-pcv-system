@@ -145,6 +145,13 @@ fault presentation and detailed sample/extrema cadence checks remain open.
 
 - [ ] Identify the purchased digital manometer's visible make/model, units, range, resolution, zero
   behavior, and available accuracy documentation; retain unknown specifications as unknown.
+  **Partial evidence:** the received unit is labeled `S8830` and offers `inH2O`. Finger pressure
+  produced positive movement at the left port and negative movement at the right port. With `inH2O`
+  selected, four photographs show paired gauge/manometer readings of +2.0/+2.2, +0.7/+0.6,
+  +3.7/+3.5, and −2.2/−2.2 inH2O. The broader manual sweep was reported to stay within about
+  0.1–0.3 inH2O difference. This resolves the earlier apparent `10:1` mismatch as a unit-selection
+  error, but the residual leak prevented stable comparisons and the instrument accuracy basis is
+  unknown. See the [comparison record](../../../../hardware/components/adc/bench-pressure-comparison-2026-11-10.md).
 - [ ] Build or document a controllable low-pressure fixture with a common reference connection,
   gradual application, isolation/bleed/equalization, and a liquid barrier protecting the sensor.
 - [ ] Use the U-tube vertical difference between liquid levels as the primary low-pressure
@@ -274,3 +281,7 @@ and reverified as working.
   run `git diff --check`; review untracked files separately.
 - [ ] Draft a concise commit message for human review; do not create a commit as part of task
   completion.
+
+## Manometer comparison evidence update
+
+The 2026-11-10 comparison adds four photographed paired readings after correcting the S8830 unit selection. The user-reported sweep difference was approximately 0.1–0.3 inH2O. This is useful preliminary scale/polarity evidence, but the task to characterize pressure conversion remains open: the slow leak prevented steady points, the instrument accuracy basis is unknown, and there is no synchronized table of manometer reading, sensor voltage, and ADC raw code. See [the comparison record](../../../../hardware/components/adc/bench-pressure-comparison-2026-11-10.md).
